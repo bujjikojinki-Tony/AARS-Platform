@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "90_System/README.md",
+                "file": "90_System/Guides/AARS Custom GPT Inventory 表格模板.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "README"
+              "title": "AARS Custom GPT Inventory 表格模板"
             }
           }
         ]
@@ -193,11 +193,13 @@
   },
   "active": "7841cd62f50a4e84",
   "lastOpenFiles": [
+    "90_System/Guides/AARS_Content_Governance_Self_Check_Prompts.md",
+    "90_System/Guides/AARS Custom GPT Inventory 表格模板.md",
+    "90_System/README.md",
     "00_Inbox/ChatGPT_Imports",
     "02_Knowledge/Templates",
     "90_System/Guides",
     "Untitled.md",
-    "90_System/README.md",
     "TEST.md"
   ]
 }
