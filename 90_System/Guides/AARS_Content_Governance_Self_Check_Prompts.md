@@ -1,8 +1,28 @@
+---
+title: AARS Content Governance Self-Check Prompts
+type: guide
+status: stable
+project: AARS
+tags:
+  - aars
+  - system
+  - governance
+  - prompts
+created: 2026-03-25
+source: curated system governance guide
+area: system
+aliases:
+  - AARS 内容治理自查提示词手册
+related:
+  - "[[90_System/MOCs/AARS_Home]]"
+  - "[[AARS_Custom_GPT_Inventory_Template]]"
+---
+
 # AARS 内容治理自查提示词手册
 
 ## 目的
 
-本手册用于判断以下内容应如何处理：
+本手册用于判断以下内容应如何处理，以及是否应沉淀为可长期复用的 [[AARS_vNext_Terminology_Glossary#Artifact|知识资产]]：
 
 - 是否继续保留在 Custom GPT
 - 是否转入 ChatGPT Project

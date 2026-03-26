@@ -1,28 +1,30 @@
 ---
 title: AARS Invocation Record Template
 type: template
-domain: AARS
 status: reusable
-layer: operational
+project: AARS
 tags:
   - aars
   - template
   - invocation
   - record
+created: 2026-03-26
+source: AARS reusable template
+domain: AARS
+layer: operational
 aliases:
   - AARS_Invocation_Record_Template
   - Invocation Record Template
-source: AARS reusable template
 related:
   - "[[AARS_Capability_Object_Schema]]"
   - "[[AARS_Risk_Object_Schema]]"
   - "[[AARS_Dependency_Object_Schema]]"
   - "[[AARS_Health_Snapshot_Template]]"
 ---
-# AARS_Invocation_Record_Template
+# AARS Invocation Record Template
 
 ## 1. Purpose
-Define the standard record format used to log capability invocation events in AARS vNext, including invocation context, compatibility basis, dependencies, outputs, limitations, supervision notes, and outcome status.
+Define the standard record format used to log [[AARS_vNext_Terminology_Glossary#Invocation Record|invocation record]] events in [[AARS_vNext_Terminology_Glossary#AARS vNext|AARS vNext]], including [[AARS_vNext_Terminology_Glossary#Invocation|invocation]] context, compatibility basis, [[AARS_vNext_Terminology_Glossary#Dependency|dependency]] state, outputs, limitations, supervision notes, and outcome status.
 
 ## 2. Invocation Record Sections
 1. Record Identity

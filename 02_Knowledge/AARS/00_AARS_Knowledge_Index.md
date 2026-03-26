@@ -1,40 +1,16 @@
 ---
-title: AARS Knowledge Index
-type: index
-domain: AARS
-status: stable
-layer: navigation
+title: Legacy Redirect - AARS Knowledge Index
+type: redirect
+status: legacy
+project: AARS
 tags:
   - aars
-  - index
-  - moc
-aliases:
-  - AARS Index
+  - legacy
+  - redirect
+created: 2026-03-26
+source: compatibility redirect
 ---
 
-# AARS Knowledge Index
+# Legacy Redirect
 
-## Glossary
-- [[AARS_Terminology_Glossary]]
-
-## Schemas
-- [[AARS_Capability_Object_Schema]]
-- [[AARS_Risk_Object_Schema]]
-- [[AARS_Dependency_Object_Schema]]
-# AARS Knowledge Index
-
-## Glossary
-- [[04_AARS_vNext_Terminology_Glossary]]
-
-## Schemas
-- [[AARS_Capability_Object_Schema]]
-- [[AARS_Risk_Object_Schema]]
-- [[AARS_Dependency_Object_Schema]]
-
-## Templates
-- [[AARS_Health_Snapshot_Template]]
-- [[AARS_Recovery_Path_Template]]
-- [[AARS_Invocation_Record_Template]]
-
-## Summaries
-- [[08_AARS_vNext_Executive_Summary]]
+Canonical note: [[AARS_Knowledge_Index]]

@@ -1,29 +1,31 @@
 ---
 title: AARS Risk Object Schema
 type: schema
-domain: AARS
 status: stable
-layer: knowledge
+project: AARS
 tags:
   - aars
   - schema
   - risk
   - object
+created: 2026-03-26
+source: AARS vNext knowledge asset
+domain: AARS
+layer: knowledge
 aliases:
   - AARS_Risk_Object_Schema
   - Risk Schema
-source: AARS vNext knowledge asset
 related:
-  - "[[AARS_Terminology_Glossary]]"
+  - "[[AARS_vNext_Terminology_Glossary]]"
   - "[[AARS_Capability_Object_Schema]]"
   - "[[AARS_Dependency_Object_Schema]]"
   - "[[AARS_Health_Snapshot_Template]]"
   - "[[AARS_Recovery_Path_Template]]"
 ---
-# AARS_Risk_Object_Schema
+# AARS Risk Object Schema
 
 ## 1. Purpose
-Define the formal object schema used to represent detected research-quality and governance risks in AARS vNext.
+Define the formal [[AARS_vNext_Terminology_Glossary#Risk Object|Risk Object]] schema used to represent detected research-quality and governance [[AARS_vNext_Terminology_Glossary#Risk|risks]] in [[AARS_vNext_Terminology_Glossary#AARS vNext|AARS vNext]].
 
 ## 2. Risk Object Sections
 1. Identity Section

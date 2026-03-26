@@ -18,12 +18,12 @@
                 "state": {
                   "type": "markdown",
                   "state": {
-                    "file": "02_Knowledge/AARS/02_schema/AARS_Capability_Object_Schema.md",
+                    "file": "gitignore.md",
                     "mode": "source",
                     "source": false
                   },
                   "icon": "lucide-file",
-                  "title": "AARS_Capability_Object_Schema"
+                  "title": "gitignore"
                 }
               }
             ]
@@ -249,33 +249,43 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "22bc333447194009",
+  "active": "052e4da08e3179f5",
   "lastOpenFiles": [
+    "Migration_Report.md",
+    "02_Knowledge/AARS/05_Specs/AARS_Latest_Stable_View_Spec.md",
+    "02_Knowledge/AARS/05_Specs/AARS_vNext_Master_Spec.md",
+    "02_Knowledge/AARS/05_Specs",
+    "progress.md",
+    "findings.md",
+    "task_plan.md",
+    "90_System/Guides/AARS Custom GPT Inventory 表格模板.md",
+    "02_Knowledge/AARS/04_Summary/08_AARS_vNext_Executive_Summary.md",
+    "02_Knowledge/AARS/01_Glossary/04_AARS_vNext_Terminology_Glossary.md",
+    "02_Knowledge/AARS/00_AARS_Knowledge_Index.md",
+    "90_System/MOCs/AARS_Home.md",
+    "90_System/MOCs",
+    "90_System/Guides/AARS_Custom_GPT_Inventory_Template.md",
+    "02_Knowledge/AARS/04_Summary/AARS_vNext_Executive_Summary.md",
+    "02_Knowledge/AARS/01_Glossary/AARS_vNext_Terminology_Glossary.md",
+    "02_Knowledge/AARS/AARS_Knowledge_Index.md",
+    "06_Archive",
+    "TEST.md",
+    "gitignore.md",
     "02_Knowledge/AARS/02_schema/AARS_Capability_Object_Schema.md",
     "02_Knowledge/AARS/03_Templates/AARS_Health_Snapshot_Template.md",
     "02_Knowledge/AARS/03_Templates/AARS_Recovery_Path_Template.md",
     "02_Knowledge/AARS/02_schema/AARS_Risk_Object_Schema.md",
     "02_Knowledge/AARS/03_Templates/AARS_Invocation_Record_Template.md",
     "02_Knowledge/AARS/02_schema/AARS_Dependency_Object_Schema.md",
-    "02_Knowledge/AARS/04_Summary/08_AARS_vNext_Executive_Summary.md",
-    "02_Knowledge/AARS/00_AARS_Knowledge_Index.md",
-    "02_Knowledge/AARS/01_Glossary/04_AARS_vNext_Terminology_Glossary.md",
     "AARS_Terminology_Glossary.md",
     "02_Knowledge/README.md",
     "00_Inbox/ChatGPT_Imports/AARS_Latest_Stable_View_Spec.md",
-    "00_Inbox/ChatGPT_Imports/01_AARS_vNext_Master_Spec.md",
     "02_Knowledge/AARS/04_Summary",
     "02_Knowledge/AARS/03_Templates",
     "02_Knowledge/AARS/02_schema",
     "02_Knowledge/AARS/01_Glossary",
-    "90_System/Guides/AARS Custom GPT Inventory 表格模板.md",
     "02_Knowledge/AARS",
-    "90_System/Guides/AARS_Content_Governance_Self_Check_Prompts.md",
-    "90_System/README.md",
     "00_Inbox/ChatGPT_Imports",
-    "02_Knowledge/Templates",
-    "90_System/Guides",
-    "Untitled.md",
-    "TEST.md"
+    "02_Knowledge/Templates"
   ]
 }

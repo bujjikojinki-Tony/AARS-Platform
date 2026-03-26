@@ -1,28 +1,30 @@
 ---
 title: AARS Capability Object Schema
 type: schema
-domain: AARS
 status: stable
-layer: knowledge
+project: AARS
 tags:
   - aars
   - schema
   - capability
   - object
+created: 2026-03-26
+source: AARS vNext knowledge asset
+domain: AARS
+layer: knowledge
 aliases:
   - AARS_Capability_Object_Schema
   - Capability Schema
-source: AARS vNext knowledge asset
 related:
-  - "[[AARS_Terminology_Glossary]]"
+  - "[[AARS_vNext_Terminology_Glossary]]"
   - "[[AARS_Risk_Object_Schema]]"
   - "[[AARS_Dependency_Object_Schema]]"
   - "[[AARS_vNext_Executive_Summary]]"
 ---
-# AARS_Capability_Object_Schema
+# AARS Capability Object Schema
 
 ## 1. Purpose
-Define the formal object schema used to register, version, match, invoke, supervise, and migrate capability units within AARS vNext.
+Define the formal [[AARS_vNext_Terminology_Glossary#Capability Object|Capability Object]] schema used to register, version, match, invoke, supervise, and migrate [[AARS_vNext_Terminology_Glossary#Capability|capability]] units within [[AARS_vNext_Terminology_Glossary#AARS vNext|AARS vNext]].
 
 ## 2. Schema Sections
 1. Identity Section

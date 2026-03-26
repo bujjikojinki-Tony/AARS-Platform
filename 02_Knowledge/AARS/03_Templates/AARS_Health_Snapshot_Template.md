@@ -1,28 +1,30 @@
 ---
 title: AARS Health Snapshot Template
 type: template
-domain: AARS
 status: reusable
-layer: operational
+project: AARS
 tags:
   - aars
   - template
   - health
   - snapshot
+created: 2026-03-26
+source: AARS reusable template
+domain: AARS
+layer: operational
 aliases:
   - AARS_Health_Snapshot_Template
   - Health Snapshot Template
-source: AARS reusable template
 related:
   - "[[AARS_Risk_Object_Schema]]"
   - "[[AARS_Dependency_Object_Schema]]"
   - "[[AARS_Recovery_Path_Template]]"
   - "[[AARS_Invocation_Record_Template]]"
 ---
-# AARS_Health_Snapshot_Template
+# AARS Health Snapshot Template
 
 ## 1. Purpose
-Define the standard format used to produce health snapshots in AARS vNext, covering project health, thread state, artifact stability, capability readiness, gate performance, blocker visibility, risk load, and recovery guidance.
+Define the standard format used to produce [[AARS_vNext_Terminology_Glossary#Health Snapshot|health snapshots]] in [[AARS_vNext_Terminology_Glossary#AARS vNext|AARS vNext]], covering project health, thread state, artifact stability, capability readiness, gate performance, blocker visibility, [[AARS_vNext_Terminology_Glossary#Risk|risk]] load, and [[AARS_vNext_Terminology_Glossary#Recovery|recovery]] guidance.
 
 ## 2. Snapshot Sections
 1. Snapshot Identity

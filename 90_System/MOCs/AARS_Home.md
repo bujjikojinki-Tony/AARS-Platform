@@ -1,25 +1,32 @@
 ---
-title: Knowledge Hub
-type: overview
+title: AARS Home
+type: moc
 status: active
 project: AARS
 tags:
   - aars
-  - knowledge
-  - hub
+  - moc
   - navigation
-created: 2026-03-24
-source: knowledge workspace navigation
+  - home
+created: 2026-03-26
+source: curated system navigation
 ---
 
-# Knowledge Hub
+# AARS Home
 
-This area stores stable knowledge assets, schemas, templates, and summaries for AARS.
+## Start Here
+- [[INDEX|Workspace Index]]
+- [[README|Workspace Overview]]
+- [[02_Knowledge/README|Knowledge Hub]]
 
-## Core Entry Points
+## Core Knowledge
 - [[02_Knowledge/AARS/AARS_Knowledge_Index|AARS Knowledge Index]]
 - [[02_Knowledge/AARS/01_Glossary/AARS_vNext_Terminology_Glossary|AARS vNext Terminology Glossary]]
 - [[02_Knowledge/AARS/04_Summary/AARS_vNext_Executive_Summary|AARS vNext Executive Summary]]
+
+## Specs
+- [[02_Knowledge/AARS/05_Specs/AARS_vNext_Master_Spec|AARS vNext Master Spec]]
+- [[02_Knowledge/AARS/05_Specs/AARS_Latest_Stable_View_Spec|AARS Latest Stable View Spec]]
 
 ## Schemas
 - [[02_Knowledge/AARS/02_schema/AARS_Capability_Object_Schema|AARS Capability Object Schema]]
@@ -31,6 +38,11 @@ This area stores stable knowledge assets, schemas, templates, and summaries for 
 - [[02_Knowledge/AARS/03_Templates/AARS_Invocation_Record_Template|AARS Invocation Record Template]]
 - [[02_Knowledge/AARS/03_Templates/AARS_Recovery_Path_Template|AARS Recovery Path Template]]
 
-## Specs
-- [[02_Knowledge/AARS/05_Specs/AARS_vNext_Master_Spec|AARS vNext Master Spec]]
-- [[02_Knowledge/AARS/05_Specs/AARS_Latest_Stable_View_Spec|AARS Latest Stable View Spec]]
+## Projects
+- [[03_Projects/CDA/README|CDA Project Workspace]]
+- `03_Projects/AARS_OS_vNext/` is not currently present in the repository.
+
+## System
+- [[90_System/README|System Hub]]
+- [[90_System/Guides/AARS_Content_Governance_Self_Check_Prompts|AARS Content Governance Self-Check Prompts]]
+- [[90_System/Guides/AARS_Custom_GPT_Inventory_Template|AARS Custom GPT Inventory Template]]

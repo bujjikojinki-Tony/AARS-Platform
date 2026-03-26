@@ -1,29 +1,31 @@
 ---
 title: AARS Dependency Object Schema
 type: schema
-domain: AARS
 status: stable
-layer: knowledge
+project: AARS
 tags:
   - aars
   - schema
   - dependency
   - object
+created: 2026-03-26
+source: AARS vNext knowledge asset
+domain: AARS
+layer: knowledge
 aliases:
   - AARS_Dependency_Object_Schema
   - Dependency Schema
-source: AARS vNext knowledge asset
 related:
-  - "[[AARS_Terminology_Glossary]]"
+  - "[[AARS_vNext_Terminology_Glossary]]"
   - "[[AARS_Capability_Object_Schema]]"
   - "[[AARS_Risk_Object_Schema]]"
   - "[[AARS_Invocation_Record_Template]]"
   - "[[AARS_Health_Snapshot_Template]]"
 ---
-# AARS_Dependency_Object_Schema
+# AARS Dependency Object Schema
 
 ## 1. Purpose
-Define the formal object schema used to represent dependencies in AARS vNext across kernels, capabilities, artifacts, stages, threads, and recovery pathways.
+Define the formal [[AARS_vNext_Terminology_Glossary#Dependency Object|Dependency Object]] schema used to represent [[AARS_vNext_Terminology_Glossary#Dependency|dependencies]] in [[AARS_vNext_Terminology_Glossary#AARS vNext|AARS vNext]] across kernels, capabilities, artifacts, stages, threads, and recovery pathways.
 
 ## 2. Dependency Object Sections
 1. Identity Section

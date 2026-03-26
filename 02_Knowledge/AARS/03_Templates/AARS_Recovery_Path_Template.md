@@ -1,28 +1,30 @@
 ---
 title: AARS Recovery Path Template
 type: template
-domain: AARS
 status: reusable
-layer: operational
+project: AARS
 tags:
   - aars
   - template
   - recovery
   - fallback
+created: 2026-03-26
+source: AARS reusable template
+domain: AARS
+layer: operational
 aliases:
   - AARS_Recovery_Path_Template
   - Recovery Path Template
-source: AARS reusable template
 related:
   - "[[AARS_Health_Snapshot_Template]]"
   - "[[AARS_Risk_Object_Schema]]"
   - "[[AARS_Dependency_Object_Schema]]"
   - "[[AARS_Invocation_Record_Template]]"
 ---
-# AARS_Recovery_Path_Template
+# AARS Recovery Path Template
 
 ## 1. Purpose
-Define the standard format used to represent recovery paths in AARS vNext, including trigger state, affected scope, recovery objective, required actions, dependency conditions, risk constraints, stable anchor usage, success criteria, and post-recovery review.
+Define the standard format used to represent [[AARS_vNext_Terminology_Glossary#Recovery Path|recovery paths]] in [[AARS_vNext_Terminology_Glossary#AARS vNext|AARS vNext]], including trigger state, affected scope, recovery objective, required actions, [[AARS_vNext_Terminology_Glossary#Dependency|dependency]] conditions, [[AARS_vNext_Terminology_Glossary#Risk|risk]] constraints, [[AARS_vNext_Terminology_Glossary#Stable Anchor|stable anchor]] usage, success criteria, and post-recovery review.
 
 ## 2. Recovery Path Sections
 1. Path Identity
