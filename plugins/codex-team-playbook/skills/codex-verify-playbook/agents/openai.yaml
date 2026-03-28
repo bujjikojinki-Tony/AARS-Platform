@@ -1,0 +1,3 @@
+display_name: Codex Verify Playbook
+short_description: Review and verify changes with findings-first discipline.
+default_prompt: Review this change, surface the highest-risk findings first, and summarize verification gaps.

@@ -18,12 +18,12 @@
                 "state": {
                   "type": "markdown",
                   "state": {
-                    "file": "03_Projects/CDA/Pilot_001_CDA/Pilot_001_CDA_Review_Note.md",
+                    "file": "03_Projects/CDA/Pilot_001_CDA/CDA_Paper_1_Outline.md",
                     "mode": "source",
                     "source": false
                   },
                   "icon": "lucide-file",
-                  "title": "Pilot_001_CDA_Review_Note"
+                  "title": "CDA_Paper_1_Outline"
                 }
               }
             ]
@@ -251,8 +251,24 @@
   },
   "active": "7841cd62f50a4e84",
   "lastOpenFiles": [
-    "03_Projects/CDA/Pilot_001_CDA/CDA_Layer_Validation_Note.md",
+    "plugins/codex-team-playbook/skills/codex-verify-playbook/agents/openai.yaml",
+    "plugins/codex-team-playbook/skills/codex-verify-playbook/agents",
+    "plugins/codex-team-playbook/skills/codex-verify-playbook/SKILL.md",
+    "plugins/codex-team-playbook/skills/codex-verify-playbook",
+    "plugins/codex-team-playbook/scripts/team_brief.sh",
+    "plugins/codex-team-playbook/skills/codex-team-playbook/agents/openai.yaml",
+    "plugins/codex-team-playbook/skills/codex-team-playbook/agents",
+    "plugins/codex-team-playbook/skills/codex-team-playbook/SKILL.md",
+    "plugins/codex-team-playbook/skills/codex-team-playbook",
+    "plugins/codex-team-playbook/hooks.json",
+    "plugins/codex-team-playbook/skills",
+    "plugins/codex-team-playbook/scripts",
+    "plugins/codex-team-playbook/hooks",
+    "06_Archive/Pilot_001_CDA_Frozen_Baseline.md",
+    "03_Projects/CDA/Pilot_001_CDA/CDA_Paper_1_Outline.md",
+    "03_Projects/CDA/Pilot_001_CDA/CDA_Project_Home.md",
     "03_Projects/CDA/Pilot_001_CDA/Pilot_001_CDA_Review_Note.md",
+    "03_Projects/CDA/Pilot_001_CDA/CDA_Layer_Validation_Note.md",
     "02_Knowledge/Concepts/CDA_Concept_Map.md",
     "02_Knowledge/Concepts/CDA_Taxonomy_Baseline.md",
     "05_Glossary/CDA_Glossary_Baseline.md",
@@ -263,29 +279,13 @@
     "05_Outputs/Roadmaps/CDA_3_Paper_Roadmap.md",
     "02_Knowledge/Glossary/CDA_Glossary_Baseline.md",
     "03_Projects/CDA/Pilot_001_CDA/CDA_Working_Questions.md",
-    "03_Projects/CDA/Pilot_001_CDA/CDA_Project_Home.md",
-    "05_Outputs/Roadmaps",
-    "05_Outputs/Reviews",
-    "05_Outputs",
-    "02_Knowledge/Concepts",
-    "02_Knowledge/Glossary",
-    "03_Projects/CDA/Pilot_001_CDA",
     "Migration_Report.md",
     "02_Knowledge/AARS/05_Specs/AARS_Latest_Stable_View_Spec.md",
     "02_Knowledge/AARS/05_Specs/AARS_vNext_Master_Spec.md",
-    "02_Knowledge/AARS/05_Specs",
     "progress.md",
     "findings.md",
     "task_plan.md",
     "90_System/Guides/AARS Custom GPT Inventory 表格模板.md",
-    "02_Knowledge/AARS/04_Summary/08_AARS_vNext_Executive_Summary.md",
-    "02_Knowledge/AARS/01_Glossary/04_AARS_vNext_Terminology_Glossary.md",
-    "02_Knowledge/AARS/00_AARS_Knowledge_Index.md",
-    "90_System/MOCs/AARS_Home.md",
-    "90_System/MOCs",
-    "90_System/Guides/AARS_Custom_GPT_Inventory_Template.md",
-    "02_Knowledge/AARS/04_Summary/AARS_vNext_Executive_Summary.md",
-    "06_Archive",
-    "02_Knowledge/AARS/04_Summary"
+    "02_Knowledge/AARS/04_Summary/08_AARS_vNext_Executive_Summary.md"
   ]
 }

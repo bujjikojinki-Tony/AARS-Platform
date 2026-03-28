@@ -1,0 +1,3 @@
+display_name: Codex Team Playbook
+short_description: Team-style planning, execution, and verification for Codex work.
+default_prompt: Create a team brief, split the task into workstreams, and carry it through verification.
