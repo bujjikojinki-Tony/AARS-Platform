@@ -18,12 +18,12 @@
                 "state": {
                   "type": "markdown",
                   "state": {
-                    "file": "03_Projects/CDA/Pilot_001_CDA/Pilot_001_CDA_Project_Charter.md",
+                    "file": "03_Projects/CDA/Pilot_001_CDA/Pilot_001_CDA_Review_Note.md",
                     "mode": "source",
                     "source": false
                   },
                   "icon": "lucide-file",
-                  "title": "Pilot_001_CDA_Project_Charter"
+                  "title": "Pilot_001_CDA_Review_Note"
                 }
               }
             ]
@@ -135,7 +135,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 389.5
+    "width": 304.5
   },
   "right": {
     "id": "eaf46880727296e0",
@@ -251,14 +251,18 @@
   },
   "active": "7841cd62f50a4e84",
   "lastOpenFiles": [
+    "03_Projects/CDA/Pilot_001_CDA/CDA_Layer_Validation_Note.md",
+    "03_Projects/CDA/Pilot_001_CDA/Pilot_001_CDA_Review_Note.md",
+    "02_Knowledge/Concepts/CDA_Concept_Map.md",
+    "02_Knowledge/Concepts/CDA_Taxonomy_Baseline.md",
+    "05_Glossary/CDA_Glossary_Baseline.md",
+    "02_Knowledge/Concepts/README.md",
+    "03_Projects/CDA/Pilot_001_CDA/Pilot_001_CDA_Project_Charter.md",
     "gitignore.md",
     "05_Outputs/Reviews/Pilot_001_CDA_Review_Note.md",
     "05_Outputs/Roadmaps/CDA_3_Paper_Roadmap.md",
-    "02_Knowledge/Concepts/CDA_Taxonomy_Baseline.md",
     "02_Knowledge/Glossary/CDA_Glossary_Baseline.md",
-    "02_Knowledge/Concepts/CDA_Concept_Map.md",
     "03_Projects/CDA/Pilot_001_CDA/CDA_Working_Questions.md",
-    "03_Projects/CDA/Pilot_001_CDA/Pilot_001_CDA_Project_Charter.md",
     "03_Projects/CDA/Pilot_001_CDA/CDA_Project_Home.md",
     "05_Outputs/Roadmaps",
     "05_Outputs/Reviews",
@@ -281,11 +285,7 @@
     "90_System/MOCs",
     "90_System/Guides/AARS_Custom_GPT_Inventory_Template.md",
     "02_Knowledge/AARS/04_Summary/AARS_vNext_Executive_Summary.md",
-    "02_Knowledge/AARS/01_Glossary/AARS_vNext_Terminology_Glossary.md",
-    "02_Knowledge/AARS/AARS_Knowledge_Index.md",
     "06_Archive",
-    "TEST.md",
-    "02_Knowledge/AARS/02_schema/AARS_Capability_Object_Schema.md",
     "02_Knowledge/AARS/04_Summary"
   ]
 }

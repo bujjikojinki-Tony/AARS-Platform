@@ -12,25 +12,60 @@ created: 2026-03-27
 source: initialized in vault project structure setup
 ---
 
-# CDA Concept Map
+---
+title: CDA_Concept_Map
+type: concept-map
+status: draft
+project: CDA
+tags:
+  - aars
+  - cda
+  - concept-map
+  - pilot
+created: 2026-03-27
+source: ChatGPT
+---
 
-## Central Frame
+# CDA_Concept_Map
 
-- [[02_Knowledge/Glossary/CDA_Glossary_Baseline#CDA|CDA]] sits at the center of the pilot knowledge frame.
-- [[02_Knowledge/Glossary/CDA_Glossary_Baseline#Research Question|Research Question]] shapes the project problem definition.
-- [[02_Knowledge/Glossary/CDA_Glossary_Baseline#Claim|Claim]] depends on interpretable evidence and review discipline.
-- [[02_Knowledge/Glossary/CDA_Glossary_Baseline#Corpus|Corpus]] bounds the material under analysis.
-- [[02_Knowledge/Glossary/CDA_Glossary_Baseline#Analytic Unit|Analytic Unit]] defines the level at which observations are recorded.
+## 1. Purpose
 
-## Relationship Notes
+This document provides the initial concept map for the **Pilot_001_CDA** project.
 
-- A [[02_Knowledge/Glossary/CDA_Glossary_Baseline#Research Question|Research Question]] should map to one or more candidate [[02_Knowledge/Glossary/CDA_Glossary_Baseline#Claim|Claims]].
-- A [[02_Knowledge/Glossary/CDA_Glossary_Baseline#Claim|Claim]] should be tested against a defined [[02_Knowledge/Glossary/CDA_Glossary_Baseline#Corpus|Corpus]].
-- A [[02_Knowledge/Glossary/CDA_Glossary_Baseline#Corpus|Corpus]] is interpreted through one or more [[02_Knowledge/Glossary/CDA_Glossary_Baseline#Analytic Lens|Analytic Lenses]].
-- Category design should stay aligned with [[CDA_Taxonomy_Baseline]].
+Its purpose is to:
+- express the structural relationships among CDA-related concepts
+- connect glossary terms and taxonomy categories
+- surface category overlap and layer-mixing risks
+- provide a bridge from concept structuring to layer validation and architecture expression
 
-## Adjacent Notes
+This concept map is a **working structural note**, not a final framework.
 
-- [[02_Knowledge/Glossary/CDA_Glossary_Baseline|CDA Glossary Baseline]]
-- [[02_Knowledge/Concepts/CDA_Taxonomy_Baseline|CDA Taxonomy Baseline]]
-- [[03_Projects/CDA/Pilot_001_CDA/CDA_Working_Questions|CDA Working Questions]]
+---
+
+## 2. Scope of the Map
+
+This map focuses on the bounded pilot question:
+
+**How should CDA be conceptually related to assets, properties, consequences, dependencies, methods, and governance concepts so that the pilot can proceed in a stable and reusable way?**
+
+This map does **not** yet attempt:
+- full formal ontology
+- exhaustive domain decomposition
+- detailed implementation architecture
+- complete regulatory mapping
+
+---
+
+## 3. Core Structural Position
+
+The core structural position of this pilot is:
+
+**CDA is the central organizing concept.**  
+A CDA is understood as a subset of [[Digital Asset]] whose importance emerges through [[Criticality]], consequence relevance, and dependency structure within a system context.
+
+This means the concept map is anchored on the following relation:
+
+```text
+Digital Asset
+    ↓ (evaluated by criticality, consequence, and dependency)
+CDA
