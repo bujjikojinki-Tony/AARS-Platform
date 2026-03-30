@@ -83,12 +83,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "02_Knowledge/AARS/AARS_Freeze_Model.md",
+                "file": "90_System/Guides/AARS_Review_Checklist.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "AARS_Freeze_Model"
+              "title": "AARS_Review_Checklist"
             }
           }
         ],
@@ -265,8 +265,17 @@
   },
   "active": "136f130b0806109c",
   "lastOpenFiles": [
-    "02_Knowledge/AARS_Review_Model.md",
+    "90_System/Guides/AARS_Latest_Stable_View_Operating_Guide.md",
+    "90_System/Guides/AARS_Review_Checklist.md",
+    "02_Knowledge/AARS_Next_Step_Decision_Model.md",
+    "02_Knowledge/AARS_Object_Status_Model.md",
+    "02_Knowledge/AARS_Track_Model.md",
+    "02_Knowledge/AARS_Goal_Model.md",
+    "02_Knowledge/AARS_Stage_Model.md",
+    "02_Knowledge/AARS_Baseline_Model.md",
+    "02_Knowledge/AARS_Archive_Model.md",
     "02_Knowledge/AARS/AARS_Freeze_Model.md",
+    "02_Knowledge/AARS_Review_Model.md",
     "90_System/Guides/AARS_Project_Operating_Guide.md",
     "90_System/Guides/AARS_File_Placement_Guide.md",
     "90_System/MOCs/AARS_Home.md",
@@ -282,15 +291,6 @@
     "02_Knowledge/AARS_Bounded_Case_Model.md",
     "02_Knowledge/AARS_Project_Model.md",
     "02_Knowledge/AARS_Capability_Lifecycle_Model.md",
-    "02_Knowledge/AARS_Continuity_Model.md",
-    "02_Knowledge/AARS_Recovery_Model.md",
-    "02_Knowledge/AARS_Stable_View_Model.md",
-    "02_Knowledge/AARS_Execution_Model.md",
-    "02_Knowledge/AARS_System_Positioning.md",
-    "02_Knowledge/AARS/AARS_Capability_Lifecycle_Model.md",
-    "02_Knowledge/AARS/AARS_Project_Model.md",
-    "02_Knowledge/AARS_Knowledge_Capture_Model.md",
-    "02_Knowledge/AARS/AARS_Continuity_Model.md",
     "plugins/codex-team-playbook/skills/codex-verify-playbook/agents/openai.yaml",
     "plugins/codex-team-playbook/skills/codex-verify-playbook/agents",
     "plugins/codex-team-playbook/skills/codex-verify-playbook",
