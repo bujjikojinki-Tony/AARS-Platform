@@ -18,17 +18,17 @@ This directory organizes concept-level knowledge notes, concept maps, and taxono
 
 ## Current Entry Points
 
-- [[CDA_Concept_Map]]
+- [[03_Projects/CDA/Pilot_001_CDA/CDA_Concept_Map|CDA Concept Map]]
 - [[CDA_Taxonomy_Baseline]]
 
 ## Directory Logic
 
 - Use a concept map when the goal is to show relationships, dependencies, and conceptual structure.
 - Use a taxonomy note when the goal is to stabilize categories, boundaries, and grouping logic.
-- Keep term-level definitions in [[02_Knowledge/Glossary/CDA_Glossary_Baseline|CDA Glossary Baseline]].
+- Keep term-level definitions in [[05_Glossary/CDA_Glossary_Baseline|CDA Glossary Baseline]].
 
 ## Related Notes
 
 - [[02_Knowledge/README|Knowledge Hub]]
 - [[03_Projects/CDA/Pilot_001_CDA/CDA_Project_Home|CDA Project Home]]
-- [[05_Outputs/Roadmaps/CDA_3_Paper_Roadmap|CDA 3 Paper Roadmap]]
+- [[03_Projects/CDA/Pilot_001_CDA/CDA_3_Paper_Roadmap|CDA 3 Paper Roadmap]]

@@ -37,5 +37,5 @@ This area stores stable knowledge assets, schemas, templates, and summaries for 
 
 ## Concepts
 - [[02_Knowledge/Concepts/README|Concepts Hub]]
-- [[02_Knowledge/Concepts/CDA_Concept_Map|CDA Concept Map]]
+- [[03_Projects/CDA/Pilot_001_CDA/CDA_Concept_Map|CDA Concept Map]]
 - [[02_Knowledge/Concepts/CDA_Taxonomy_Baseline|CDA Taxonomy Baseline]]

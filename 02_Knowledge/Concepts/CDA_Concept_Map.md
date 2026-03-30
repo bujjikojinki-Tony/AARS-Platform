@@ -1,71 +1,16 @@
 ---
-title: CDA Concept Map
-type: concept-map
-status: draft
+title: Legacy Redirect - CDA Concept Map
+type: redirect
+status: legacy
 project: CDA
 tags:
   - cda
-  - concepts
-  - map
-  - baseline
-created: 2026-03-27
-source: initialized in vault project structure setup
+  - legacy
+  - redirect
+created: 2026-03-30
+source: archive reorganization compatibility redirect
 ---
 
----
-title: CDA_Concept_Map
-type: concept-map
-status: draft
-project: CDA
-tags:
-  - aars
-  - cda
-  - concept-map
-  - pilot
-created: 2026-03-27
-source: ChatGPT
----
+# Legacy Redirect
 
-# CDA_Concept_Map
-
-## 1. Purpose
-
-This document provides the initial concept map for the **Pilot_001_CDA** project.
-
-Its purpose is to:
-- express the structural relationships among CDA-related concepts
-- connect glossary terms and taxonomy categories
-- surface category overlap and layer-mixing risks
-- provide a bridge from concept structuring to layer validation and architecture expression
-
-This concept map is a **working structural note**, not a final framework.
-
----
-
-## 2. Scope of the Map
-
-This map focuses on the bounded pilot question:
-
-**How should CDA be conceptually related to assets, properties, consequences, dependencies, methods, and governance concepts so that the pilot can proceed in a stable and reusable way?**
-
-This map does **not** yet attempt:
-- full formal ontology
-- exhaustive domain decomposition
-- detailed implementation architecture
-- complete regulatory mapping
-
----
-
-## 3. Core Structural Position
-
-The core structural position of this pilot is:
-
-**CDA is the central organizing concept.**  
-A CDA is understood as a subset of [[Digital Asset]] whose importance emerges through [[Criticality]], consequence relevance, and dependency structure within a system context.
-
-This means the concept map is anchored on the following relation:
-
-```text
-Digital Asset
-    ↓ (evaluated by criticality, consequence, and dependency)
-CDA
+Canonical note: [[03_Projects/CDA/Pilot_001_CDA/CDA_Concept_Map|CDA Concept Map]]

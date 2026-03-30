@@ -1,18 +1,18 @@
 ---
-title: Pilot_001_CDA_Review_Note
+title: Pilot 001 CDA Review Note
 type: review-log
 status: draft
-project: CDA
+project: Pilot_001_CDA
 tags:
   - aars
   - cda
   - pilot
   - review
 created: 2026-03-27
-source: ChatGPT
+source: canonical CDA pilot review note
 ---
 
-# Pilot_001_CDA_Review_Note
+# Pilot 001 CDA Review Note
 
 ## 1. Purpose
 

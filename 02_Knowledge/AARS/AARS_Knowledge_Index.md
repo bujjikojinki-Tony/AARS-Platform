@@ -51,4 +51,4 @@ This note is the primary map for the AARS knowledge set.
 
 ## Related Navigation
 - [[02_Knowledge/README|Knowledge Hub]]
-- [[90_System/MOCs/AARS_Home|AARS Home]]
+- [[90_System/MOCs/AARS_System_Home|AARS System Home]]

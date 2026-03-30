@@ -1,8 +1,8 @@
 ---
-title: CDA_Paper_1_Outline
+title: CDA Paper 1 Outline
 type: paper-outline
 status: draft
-project: CDA
+project: Pilot_001_CDA
 tags:
   - aars
   - cda
@@ -10,10 +10,10 @@ tags:
   - outline
   - concept-baseline
 created: 2026-03-28
-source: ChatGPT
+source: canonical CDA pilot paper outline
 ---
 
-# CDA_Paper_1_Outline
+# CDA Paper 1 Outline
 
 ## 1. Working Title
 

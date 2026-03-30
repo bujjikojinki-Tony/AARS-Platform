@@ -17,9 +17,9 @@ source: system workspace navigation
 This area stores governance guides, MOCs, and system-level navigation for the AARS vault.
 
 ## Key Notes
-- [[90_System/MOCs/AARS_Home|AARS Home]]
+- [[90_System/MOCs/AARS_System_Home|AARS System Home]]
 - [[90_System/Guides/AARS_Content_Governance_Self_Check_Prompts|AARS Content Governance Self-Check Prompts]]
-- [[90_System/Guides/AARS_Custom_GPT_Inventory_Template|AARS Custom GPT Inventory Template]]
+- [[90_System/Guides/AARS_Custom_GPT_Inventory|AARS Custom GPT Inventory]]
 
 ## Related Areas
 - [[INDEX|Workspace Index]]

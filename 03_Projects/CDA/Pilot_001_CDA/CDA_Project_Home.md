@@ -4,29 +4,16 @@ type: project-home
 status: active
 project: Pilot_001_CDA
 tags:
-  - cda
-  - pilot
-  - project
-  - navigation
-created: 2026-03-27
-source: initialized in vault project structure setup
----
-
----
-title: CDA_Project_Home
-type: project-note
-status: draft
-project: CDA
-tags:
   - aars
   - cda
   - pilot
+  - project
   - moc
 created: 2026-03-27
-source: ChatGPT
+source: canonical CDA pilot project home
 ---
 
-# CDA_Project_Home
+# CDA Project Home
 
 ## 1. Project Identity
 
@@ -81,7 +68,7 @@ This project does **not** yet aim to:
 - [[CDA_Taxonomy_Baseline]]
 
 ## Related System Pages
-- [[AARS_Home]]
+- [[90_System/MOCs/AARS_System_Home|AARS System Home]]
 - [[INDEX]]
 
 ---

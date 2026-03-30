@@ -4,29 +4,16 @@ type: charter
 status: draft
 project: Pilot_001_CDA
 tags:
-  - cda
-  - pilot
-  - charter
-  - scope
-created: 2026-03-27
-source: initialized in vault project structure setup
----
-
----
-title: Pilot_001_CDA_Project_Charter
-type: project-note
-status: draft
-project: CDA
-tags:
   - aars
   - cda
   - pilot
+  - charter
   - research-os
 created: 2026-03-27
-source: ChatGPT
+source: canonical CDA pilot charter
 ---
 
-# Pilot_001_CDA_Project_Charter
+# Pilot 001 CDA Project Charter
 
 ## 1. Project Identity
 

@@ -1,5 +1,5 @@
 ---
-title: Legacy Redirect - AARS Automation Operating Model
+title: Legacy Redirect - AARS Home
 type: redirect
 status: legacy
 project: AARS
@@ -13,4 +13,4 @@ source: archive reorganization compatibility redirect
 
 # Legacy Redirect
 
-Canonical note: [[90_System/Guides/AARS_Automation_Operating_Model|AARS Automation Operating Model]]
+Canonical note: [[90_System/MOCs/AARS_System_Home|AARS System Home]]

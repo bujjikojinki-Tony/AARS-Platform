@@ -61,14 +61,14 @@ The following artifacts are included in the frozen baseline:
 - [[Pilot_001_CDA_Project_Charter]]
 - [[CDA_Project_Home]]
 - [[CDA_Working_Questions]]
-- [[CDA_Concept_Map]]
+- [[03_Projects/CDA/Pilot_001_CDA/CDA_Concept_Map|CDA Concept Map]]
 - [[CDA_Layer_Validation_Note]]
-- [[CDA_Layered_Architecture]]
-- [[CDA_3_Paper_Roadmap]]
-- [[Pilot_001_CDA_Review_Note]]
+- [[03_Projects/CDA/Pilot_001_CDA/CDA_Layered_Architecture|CDA Layered Architecture]]
+- [[03_Projects/CDA/Pilot_001_CDA/CDA_3_Paper_Roadmap|CDA 3 Paper Roadmap]]
+- [[03_Projects/CDA/Pilot_001_CDA/Pilot_001_CDA_Review_Note|Pilot 001 CDA Review Note]]
 
 ## Knowledge Assets
-- [[CDA_Glossary_Baseline]]
+- [[05_Glossary/CDA_Glossary_Baseline|CDA Glossary Baseline]]
 - [[CDA_Taxonomy_Baseline]]
 
 ---

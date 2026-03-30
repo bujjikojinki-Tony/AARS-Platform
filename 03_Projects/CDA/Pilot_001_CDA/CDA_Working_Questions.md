@@ -17,8 +17,8 @@ source: initialized in vault project structure setup
 ## Primary Questions
 
 1. What is the minimum coherent problem frame for the CDA pilot?
-2. Which [[02_Knowledge/Glossary/CDA_Glossary_Baseline#Core Terms|core terms]] must be fixed early to reduce ambiguity?
-3. Which concepts belong in the baseline [[02_Knowledge/Concepts/CDA_Concept_Map|concept map]] versus the [[02_Knowledge/Concepts/CDA_Taxonomy_Baseline|taxonomy]]?
+2. Which [[05_Glossary/CDA_Glossary_Baseline#Core Terms|core terms]] must be fixed early to reduce ambiguity?
+3. Which concepts belong in the baseline [[03_Projects/CDA/Pilot_001_CDA/CDA_Concept_Map|concept map]] versus the [[02_Knowledge/Concepts/CDA_Taxonomy_Baseline|taxonomy]]?
 4. What evidence or materials will be required before a paper roadmap becomes execution-ready?
 
 ## Structuring Questions

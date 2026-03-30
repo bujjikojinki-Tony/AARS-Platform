@@ -14,8 +14,8 @@ area: system
 aliases:
   - AARS 内容治理自查提示词手册
 related:
-  - "[[90_System/MOCs/AARS_Home]]"
-  - "[[AARS_Custom_GPT_Inventory_Template]]"
+  - "[[90_System/MOCs/AARS_System_Home]]"
+  - "[[AARS_Custom_GPT_Inventory]]"
 ---
 
 # AARS 内容治理自查提示词手册

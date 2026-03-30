@@ -1,18 +1,18 @@
 ---
-title: CDA_Layer_Validation_Note
+title: CDA Layer Validation Note
 type: review-log
 status: draft
-project: CDA
+project: Pilot_001_CDA
 tags:
   - aars
   - cda
   - layer-validation
   - pilot
 created: 2026-03-27
-source: ChatGPT
+source: canonical CDA pilot layer validation note
 ---
 
-# CDA_Layer_Validation_Note
+# CDA Layer Validation Note
 
 ## 1. Purpose
 

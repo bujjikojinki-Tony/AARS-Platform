@@ -1,5 +1,5 @@
 ---
-title: Legacy Redirect - AARS Automation Operating Model
+title: Legacy Redirect - AARS Stable View Model
 type: redirect
 status: legacy
 project: AARS
@@ -13,4 +13,4 @@ source: archive reorganization compatibility redirect
 
 # Legacy Redirect
 
-Canonical note: [[90_System/Guides/AARS_Automation_Operating_Model|AARS Automation Operating Model]]
+Canonical note: [[02_Knowledge/AARS_Stable_View_Model|AARS Stable View Model]]

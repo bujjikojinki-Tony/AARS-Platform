@@ -4,29 +4,15 @@ type: taxonomy
 status: draft
 project: CDA
 tags:
-  - cda
-  - taxonomy
-  - baseline
-  - concepts
-created: 2026-03-27
-source: initialized in vault project structure setup
----
-
----
-title: CDA_Taxonomy_Baseline
-type: taxonomy
-status: draft
-project: CDA
-tags:
   - aars
   - cda
   - taxonomy
   - pilot
 created: 2026-03-27
-source: ChatGPT
+source: canonical CDA taxonomy baseline
 ---
 
-# CDA_Taxonomy_Baseline
+# CDA Taxonomy Baseline
 
 ## 1. Purpose
 

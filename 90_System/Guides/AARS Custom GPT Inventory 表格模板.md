@@ -13,4 +13,4 @@ source: compatibility redirect
 
 # Legacy Redirect
 
-Canonical note: [[AARS_Custom_GPT_Inventory_Template]]
+Canonical note: [[AARS_Custom_GPT_Inventory]]

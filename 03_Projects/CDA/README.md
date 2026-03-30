@@ -22,4 +22,4 @@ This directory is reserved for CDA project notes and project-specific outputs.
 
 ## Navigation
 - [[INDEX|Workspace Index]]
-- [[90_System/MOCs/AARS_Home|AARS Home]]
+- [[90_System/MOCs/AARS_System_Home|AARS System Home]]
