@@ -4,138 +4,81 @@
     "type": "split",
     "children": [
       {
-        "id": "a10fc368a8022239",
-        "type": "split",
+        "id": "0c5c22362d6b2ee8",
+        "type": "tabs",
         "children": [
           {
-            "id": "3ea3eb69ac070f7b",
-            "type": "tabs",
-            "dimension": 77.77777777777779,
-            "children": [
-              {
-                "id": "7841cd62f50a4e84",
-                "type": "leaf",
-                "state": {
-                  "type": "markdown",
-                  "state": {
-                    "file": "03_Projects/CDA/Pilot_001_CDA/CDA_Paper_1_Outline.md",
-                    "mode": "source",
-                    "source": false
+            "id": "22bc333447194009",
+            "type": "leaf",
+            "pinned": true,
+            "state": {
+              "type": "terminal:terminal",
+              "state": {
+                "terminal:terminal": {
+                  "cwd": "/Users/maolei/AARS-Platform",
+                  "focus": false,
+                  "profile": {
+                    "args": [
+                      "--login"
+                    ],
+                    "executable": "/bin/zsh",
+                    "followTheme": true,
+                    "name": "",
+                    "platforms": {
+                      "darwin": true
+                    },
+                    "pythonExecutable": "python3",
+                    "restoreHistory": false,
+                    "rightClickAction": "copyPaste",
+                    "successExitCodes": [
+                      "0",
+                      "SIGINT",
+                      "SIGTERM"
+                    ],
+                    "terminalOptions": {
+                      "documentOverride": null
+                    },
+                    "type": "integrated",
+                    "useWin32Conhost": true
                   },
-                  "icon": "lucide-file",
-                  "title": "CDA_Paper_1_Outline"
+                  "serial": null
                 }
               },
-              {
-                "id": "3af560b11c11e633",
-                "type": "leaf",
-                "state": {
-                  "type": "markdown",
-                  "state": {
-                    "file": "AARS_System_Positioning.md",
-                    "mode": "source",
-                    "source": false
-                  },
-                  "icon": "lucide-file",
-                  "title": "AARS_System_Positioning"
-                }
-              },
-              {
-                "id": "1a006da1385f6e33",
-                "type": "leaf",
-                "state": {
-                  "type": "markdown",
-                  "state": {
-                    "file": "AARS_Usage_Model.md",
-                    "mode": "source",
-                    "source": false
-                  },
-                  "icon": "lucide-file",
-                  "title": "AARS_Usage_Model"
-                }
-              },
-              {
-                "id": "f1b42e804ce68b0c",
-                "type": "leaf",
-                "state": {
-                  "type": "markdown",
-                  "state": {
-                    "file": "AARS_Execution_Model.md",
-                    "mode": "source",
-                    "source": false
-                  },
-                  "icon": "lucide-file",
-                  "title": "AARS_Execution_Model"
-                }
-              },
-              {
-                "id": "79bb46eb525c4913",
-                "type": "leaf",
-                "state": {
-                  "type": "markdown",
-                  "state": {
-                    "file": "AARS_Usage_Model.md",
-                    "mode": "source",
-                    "source": false
-                  },
-                  "icon": "lucide-file",
-                  "title": "AARS_Usage_Model"
-                }
-              }
-            ],
-            "currentTab": 4
+              "pinned": true,
+              "icon": "terminal",
+              "title": "Terminal: zsh"
+            }
           },
           {
-            "id": "0c5c22362d6b2ee8",
-            "type": "tabs",
-            "dimension": 22.22222222222222,
-            "children": [
-              {
-                "id": "22bc333447194009",
-                "type": "leaf",
-                "pinned": true,
-                "state": {
-                  "type": "terminal:terminal",
-                  "state": {
-                    "terminal:terminal": {
-                      "cwd": "/Users/maolei/AARS-Platform",
-                      "focus": false,
-                      "profile": {
-                        "args": [
-                          "--login"
-                        ],
-                        "executable": "/bin/zsh",
-                        "followTheme": true,
-                        "name": "",
-                        "platforms": {
-                          "darwin": true
-                        },
-                        "pythonExecutable": "python3",
-                        "restoreHistory": false,
-                        "rightClickAction": "copyPaste",
-                        "successExitCodes": [
-                          "0",
-                          "SIGINT",
-                          "SIGTERM"
-                        ],
-                        "terminalOptions": {
-                          "documentOverride": null
-                        },
-                        "type": "integrated",
-                        "useWin32Conhost": true
-                      },
-                      "serial": null
-                    }
-                  },
-                  "pinned": true,
-                  "icon": "terminal",
-                  "title": "Terminal: zsh"
-                }
-              }
-            ]
+            "id": "9837d292e12493a4",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "03_Projects/AARS/AARS_System_Baseline_Note.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "AARS_System_Baseline_Note"
+            }
+          },
+          {
+            "id": "89fa1e969246a639",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "02_Knowledge/AARS/AARS_Automation_Operating_Model.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "AARS_Automation_Operating_Model"
+            }
           }
         ],
-        "direction": "horizontal"
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -192,7 +135,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 304.5
+    "width": 413.5
   },
   "right": {
     "id": "eaf46880727296e0",
@@ -306,14 +249,19 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "79bb46eb525c4913",
+  "active": "8fae6ae18b4ddd4e",
   "lastOpenFiles": [
-    "AARS_System_Home.md",
-    "AARS_Execution_Model.md",
+    "AARS_System_Interface_Model.md",
+    "02_Knowledge/AARS/AARS_Automation_Operating_Model.md",
+    "03_Projects/AARS/AARS_System_Baseline_Note.md",
     "AARS_Usage_Model.md",
-    "90_System/MOCs/AARS_Home.md",
+    "AARS_Execution_Model.md",
     "AARS_System_Positioning.md",
     "03_Projects/CDA/Pilot_001_CDA/CDA_Paper_1_Outline.md",
+    "02_Knowledge/AARS_Governance_Model.md",
+    "02_Knowledge/AARS_Object_Chain_Overview.md",
+    "AARS_System_Home.md",
+    "90_System/MOCs/AARS_Home.md",
     "plugins/codex-team-playbook/skills/codex-verify-playbook/agents/openai.yaml",
     "plugins/codex-team-playbook/skills/codex-verify-playbook/agents",
     "plugins/codex-team-playbook/skills/codex-verify-playbook/SKILL.md",
@@ -338,11 +286,6 @@
     "gitignore.md",
     "05_Outputs/Reviews/Pilot_001_CDA_Review_Note.md",
     "05_Outputs/Roadmaps/CDA_3_Paper_Roadmap.md",
-    "02_Knowledge/Glossary/CDA_Glossary_Baseline.md",
-    "03_Projects/CDA/Pilot_001_CDA/CDA_Working_Questions.md",
-    "Migration_Report.md",
-    "02_Knowledge/AARS/05_Specs/AARS_Latest_Stable_View_Spec.md",
-    "02_Knowledge/AARS/05_Specs/AARS_vNext_Master_Spec.md",
-    "progress.md"
+    "02_Knowledge/Glossary/CDA_Glossary_Baseline.md"
   ]
 }
