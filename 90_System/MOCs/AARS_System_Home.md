@@ -100,7 +100,7 @@ AARS system work and CDA pilot work should be read together.
 ### Pilot Side
 - [[Pilot_001_CDA_Project_Charter]]
 - [[CDA_Project_Home]]
-- [[Pilot_001_CDA_Frozen_Baseline]]
+- [[Pilot_001_CDA_Frozen_Baseline_v2]]
 
 This creates a clean bridge between:
 - system-level logic
@@ -123,7 +123,7 @@ This creates a clean bridge between:
 - [[CDA_Layered_Architecture]]
 - [[CDA_3_Paper_Roadmap]]
 - [[Pilot_001_CDA_Review_Note]]
-- [[Pilot_001_CDA_Frozen_Baseline]]
+- [[Pilot_001_CDA_Frozen_Baseline_v2]]
 
 ---
 
@@ -202,7 +202,7 @@ Reason:
 
 ### Then See Operational Proof
 - [[CDA_Project_Home]]
-- [[Pilot_001_CDA_Frozen_Baseline]]
+- [[Pilot_001_CDA_Frozen_Baseline_v2]]
 
 ### Then Extend
 - object-chain files

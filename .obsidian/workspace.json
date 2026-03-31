@@ -50,119 +50,21 @@
             }
           },
           {
-            "id": "9837d292e12493a4",
+            "id": "4508f822d10de8ea",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "02_Knowledge/AARS/AARS_System_Baseline_Note.md",
+                "file": "90_System/MOCs/AARS_Archived_Projects_Home.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "AARS_System_Baseline_Note"
-            }
-          },
-          {
-            "id": "89fa1e969246a639",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "02_Knowledge/AARS/AARS_Automation_Operating_Model.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "AARS_Automation_Operating_Model"
-            }
-          },
-          {
-            "id": "136f130b0806109c",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "90_System/Guides/AARS_Review_Checklist.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "AARS_Review_Checklist"
-            }
-          },
-          {
-            "id": "b57f1f978aca94ed",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "02_Knowledge/AARS_Freeze_Checklist.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "AARS_Freeze_Checklist"
-            }
-          },
-          {
-            "id": "103e652712f78a54",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "02_Knowledge/AARS_Object_File_Naming_Rules.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "AARS_Object_File_Naming_Rules"
-            }
-          },
-          {
-            "id": "a5cbdd7ce0add598",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "AARS_Execution_Model.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "AARS_Execution_Model"
-            }
-          },
-          {
-            "id": "73b3a4af29d07021",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "AARS_Usage_Model.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "AARS_Usage_Model"
-            }
-          },
-          {
-            "id": "f0bb810e00db2d78",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "02_Knowledge/AARS_Pilot_Template.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "AARS_Pilot_Template"
+              "title": "AARS_Archived_Projects_Home"
             }
           }
         ],
-        "currentTab": 8
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -333,34 +235,34 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "f0bb810e00db2d78",
+  "active": "4508f822d10de8ea",
   "lastOpenFiles": [
-    "AARS_Stable_View_Model.md",
-    "02_Knowledge/AARS_Pilot_Template.md",
-    "02_Knowledge/AARS_System_Interface_Model.md",
-    "02_Knowledge/Templates/AARS_Project_Template.md",
-    "AARS_System_Home.md",
-    "AARS_System_Positioning.md",
-    "AARS_Terminology_Glossary.md",
+    "90_System/MOCs/AARS_Frozen_Projects_Home.md",
+    "06_Archive/Pilot_001_CDA_Frozen_Baseline_v2.md",
+    "03_Projects/CDA/Pilot_001_CDA/Pilot_001_CDA_Freeze_Readiness_Note.md",
+    "02_Knowledge/AARS/AARS_System_Baseline_Note.md",
+    "02_Knowledge/AARS/AARS_Automation_Operating_Model.md",
     "02_Knowledge/AARS_Freeze_Checklist.md",
-    "AARS_Usage_Model.md",
-    "02_Knowledge/AARS_Object_File_Naming_Rules.md",
     "AARS_Execution_Model.md",
-    "90_System/Guides/AARS_Review_Checklist.md",
-    "90_System/Guides/AARS_Latest_Stable_View_Operating_Guide.md",
-    "02_Knowledge/AARS_Next_Step_Decision_Model.md",
-    "02_Knowledge/AARS_Object_Status_Model.md",
-    "02_Knowledge/AARS_Track_Model.md",
-    "02_Knowledge/AARS_Goal_Model.md",
-    "02_Knowledge/AARS_Stage_Model.md",
-    "02_Knowledge/AARS_Baseline_Model.md",
-    "02_Knowledge/AARS_Archive_Model.md",
-    "02_Knowledge/AARS/AARS_Freeze_Model.md",
-    "02_Knowledge/AARS_Review_Model.md",
-    "90_System/Guides/AARS_Project_Operating_Guide.md",
-    "90_System/Guides/AARS_File_Placement_Guide.md",
-    "90_System/MOCs/AARS_Home.md",
-    "02_Knowledge/AARS/AARS_Bounded_Case_Model.md",
+    "02_Knowledge/AARS_Object_File_Naming_Rules.md",
+    "03_Projects/CDA/Pilot_001_CDA/Pilot_001_CDA_Second_Pass_Acceptance_Note.md",
+    "AARS_Usage_Model.md",
+    "03_Projects/CDA/Pilot_001_CDA/Pilot_001_CDA_Latest_Stable_View.md",
+    "03_Projects/CDA/Pilot_001_CDA/Pilot_001_CDA_Final_Review.md",
+    "90_System/MOCs/AARS_Project_Coordination_Home.md",
+    "90_System/MOCs/AARS_Project_Recovery_Queue.md",
+    "90_System/MOCs/AARS_Project_Freeze_Queue.md",
+    "90_System/MOCs/AARS_Project_Review_Queue.md",
+    "90_System/MOCs/AARS_Project_Status_Board.md",
+    "90_System/MOCs/AARS_Project_Priority_Board.md",
+    "90_System/MOCs/AARS_Archived_Projects_Home.md",
+    "90_System/MOCs/AARS_Active_Projects_Home.md",
+    "02_Knowledge/AARS_Multi_Project_Governance_Model.md",
+    "90_System/Guides/AARS_Implementation_Checklist.md",
+    "90_System/Guides/AARS_System_Baseline_Release_Note.md",
+    "90_System/Guides/AARS_Directory_Architecture_Guide.md",
+    "02_Knowledge/AARS_Knowledge_Tiering_Model.md",
+    "02_Knowledge/AARS_Pilot_Template.md",
     "plugins/codex-team-playbook/skills/codex-verify-playbook/agents/openai.yaml",
     "plugins/codex-team-playbook/skills/codex-verify-playbook/agents",
     "plugins/codex-team-playbook/skills/codex-verify-playbook",

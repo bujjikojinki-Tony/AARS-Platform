@@ -56,7 +56,7 @@ source: workspace root navigation
 - `03_Projects/AARS_OS_vNext/` is not currently present in this repository.
 
 ## Outputs
-- [[06_Archive/Pilot_001_CDA_Frozen_Baseline|Pilot 001 CDA Frozen Baseline]]
+- [[Pilot_001_CDA_Frozen_Baseline_v2|Pilot 001 CDA Frozen Baseline]]
 
 ## System
 - [[90_System/MOCs/AARS_System_Home|AARS System Home]]
