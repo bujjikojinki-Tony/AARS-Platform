@@ -16,76 +16,90 @@ source: ChatGPT
 
 ## 1. Purpose
 
-This page is the active home surface for the current AARS system round.
+This page is the live home surface for the current AARS system round.
 
 It is intended to:
-- provide one live entry point for the current system round
-- connect charter, backlog, status, review, closure, and packaging artifacts
+- provide one entry point for the currently active or most recent bounded system round
+- connect charter, backlog, status, review, closure, and baseline artifacts
 - make the current round legible without scanning many files
-- support bounded system-round execution
+- support bounded system-round execution and transition
 
-This page should function as the live MOC for the active system round.
+This page functions as the live MOC for the current system round.
 
 ---
 
 ## 2. Current Round Identity
 
-**Round ID:**  
-**Round Name:**  
-**Current State:**  
-**Current Priority:**  
-**Current Stable Anchor:**  
+**Round ID:** Round_01_Final_Consolidation  
+**Round Name:** AARS Round_01 Final Consolidation  
+**Current State:** nearing closure / closure allowed  
+**Current Priority:** highest active system round  
+**Current Stable Anchor:** Round_01 AARS system-definition baseline  
 
 ---
 
 ## 3. Core Round Files
 
 ### Charter
-- [[AARS_System_Round_Charter_Template]] *(template)*
-- [actual current round charter link goes here]
+- [[AARS_Round_01_Final_Consolidation_Charter]]
 
 ### Backlog
-- [[AARS_System_Round_Backlog_Template]] *(template)*
-- [actual current round backlog link goes here]
+- [[AARS_Round_01_Final_Consolidation_Backlog]]
 
 ### Status
-- [[AARS_System_Round_Status_Note_Template]] *(template)*
-- [actual current round status note link goes here]
+- [[AARS_Round_01_Final_Consolidation_Status_Note]]
 
 ### Review / Closure
-- [[AARS_End_of_Round_Review_Note_Template]] *(template)*
-- [[AARS_Round_Closure_Note_Template]] *(template)*
+- [[AARS_Round_01_End_of_Round_Review_Note]]
+- [[AARS_Round_01_Closure_Note]]
+
+### Change / Decision
+- [[AARS_Round_01_Change_Log]]
+- [[AARS_Round_01_Freeze_Decision_Note]]
 
 ---
 
 ## 4. Current Round Objective
 
-[Short bounded statement of what this round is currently trying to achieve]
+Bring Round_01 to a clear closure-ready state by consolidating:
+- file placement
+- system navigation
+- round review artifacts
+- baseline decision artifacts
+- next-phase readiness
 
 ---
 
 ## 5. Current Completion Snapshot
 
 ### Completed
-- 
-- 
-- 
+- main system models established
+- guide/checklist layer expanded
+- first-wave template layer created
+- portfolio and round MOCs introduced
+- end-of-round review written
+- round closure note written
+- round change log written
+- freeze decision note written
 
 ### Open
-- 
-- 
-- 
+- final navigation refresh if needed
+- final baseline release note refresh if needed
+- explicit next round naming
 
 ### Blocked
-- 
-- 
-- 
+- none materially blocking closure at present
 
 ---
 
 ## 6. Current Closure Readiness
 
-[not close / reviewable / nearing closure / freeze candidate / closure candidate]
+**closure allowed / freeze recommended**
+
+Interpretation:
+- the round is substantively complete
+- only bounded final administrative consolidation remains
+- the system now benefits more from preservation and transition than from continued Round_01 expansion
 
 ---
 
@@ -94,8 +108,8 @@ This page should function as the live MOC for the active system round.
 ### Portfolio / Baseline
 - [[AARS_Active_Projects_Home]]
 - [[AARS_Project_Status_Register]]
-- [[AARS_Baseline_History_Home]]
-- [[AARS_Round_Index_Home]]
+- [[90_System/Guides/AARS_Baseline_History_Home]]
+- [[90_System/Guides/AARS_Round_Index_Home]]
 
 ### Core Governance
 - [[AARS_Final_Review_Guide]]
@@ -113,18 +127,18 @@ This page should function as the live MOC for the active system round.
 
 Update this page whenever:
 - the current round changes state
-- the round objective changes materially
-- a new stable anchor is accepted
-- closure readiness changes
-- a major round artifact is added
+- the stable anchor changes
+- new closure or freeze artifacts are added
+- the next system round is explicitly opened
 
-If this page is stale, current-round visibility weakens.
+When Round_02 begins, this page should either:
+- be updated to reflect the new current round
+or
+- be preserved as the historical current-round home for Round_01
 
 ---
 
 ## 9. Suggested Placement
 
-This page is best placed at:
-
-```text id="thflyk"
+```text
 90_System/MOCs/AARS_Current_System_Round_Home.md

@@ -125,12 +125,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "90_System/Guides/AARS_Round_01_Change_Log.md",
+                "file": "90_System/Guides/AARS_Internal_Validation_Project_Home.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "AARS_Round_01_Change_Log"
+              "title": "AARS_Internal_Validation_Project_Home"
             }
           }
         ],
@@ -307,11 +307,22 @@
   },
   "active": "a301429d995aea47",
   "lastOpenFiles": [
-    "90_System/Guides/AARS_Round_01_Closure_Note.md",
+    "90_System/Guides/AARS_Internal_Validation_Project_Charter.md",
+    "90_System/Guides/AARS_Internal_Validation_Project_Home.md",
+    "90_System/Guides/AARS_Round_02_Validation_Context_01.md",
+    "90_System/Guides/AARS_Validation_Context_Note_Template.md",
+    "90_System/Guides/AARS_Validation_Context_Selection_Guide.md",
+    "90_System/Guides/AARS_Round_02_Validation_Status_Note.md",
+    "90_System/Guides/AARS_Round_02_Validation_Backlog.md",
+    "90_System/Guides/AARS_Round_02_Validation_Charter.md",
+    "90_System/MOCs/AARS_Current_System_Round_Home.md",
+    "90_System/Guides/AARS_Baseline_History_Home.md",
+    "90_System/Guides/AARS_Round_Index_Home.md",
+    "90_System/Guides/AARS_Round_01_Freeze_Decision_Note.md",
     "90_System/Guides/AARS_Round_01_Change_Log.md",
+    "90_System/Guides/AARS_Round_01_Closure_Note.md",
     "90_System/Guides/AARS_Round_01_Final_Consolidation_Status_Note.md",
     "90_System/Guides/AARS_Round_01_Final_Consolidation_Charter.md",
-    "90_System/MOCs/AARS_Current_System_Round_Home.md",
     "90_System/Guides/AARS_System_Round_Status_Note_Template.md",
     "90_System/Guides/AARS_System_Round_Backlog_Template.md",
     "90_System/Guides/AARS_System_Round_Charter_Template.md",
@@ -322,17 +333,6 @@
     "90_System/MOCs/AARS_Round_Index_Home.md",
     "90_System/Guides/AARS_End_of_Round_Packaging_Guide.md",
     "90_System/MOCs/AARS_Baseline_History_Home.md",
-    "90_System/Guides/AARS_System_Archive_Decision_Note_Template.md",
-    "90_System/Guides/AARS_System_Freeze_Decision_Note_Template.md",
-    "90_System/Guides/AARS_Release_Change_Log_Template.md",
-    "90_System/Guides/AARS_Change_Control_Guide.md",
-    "90_System/Guides/AARS_System_Upgrade_Guide.md",
-    "90_System/Guides/AARS_Bounded_Production_Use_Guide.md",
-    "90_System/Guides/AARS_Archive_Package_Guide.md",
-    "90_System/Guides/AARS_System_Freeze_Package_Guide.md",
-    "90_System/Guides/AARS_Round_Closure_Note_Template.md",
-    "90_System/Guides/AARS_Final_Review_Guide.md",
-    "AARS_Baseline_Closure_Checklist.md",
     "02_Knowledge/Schemas",
     "plugins/codex-team-playbook/skills/codex-verify-playbook/agents/openai.yaml",
     "plugins/codex-team-playbook/skills/codex-verify-playbook/agents",
