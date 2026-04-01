@@ -9,6 +9,9 @@ tags:
   - model
 created: 2026-03-28
 source: ChatGPT
+aliases:
+  - Archive
+  - Archive State
 ---
 
 # AARS_Archive_Model

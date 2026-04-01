@@ -10,6 +10,9 @@ tags:
   - model
 created: 2026-03-28
 source: ChatGPT
+aliases:
+  - Latest Stable View
+  - Stable View
 ---
 
 # AARS_Stable_View_Model

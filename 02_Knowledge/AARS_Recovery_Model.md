@@ -10,6 +10,9 @@ tags:
   - continuity
 created: 2026-03-28
 source: ChatGPT
+aliases:
+  - Recovery Path
+  - Recovery
 ---
 
 # AARS_Recovery_Model

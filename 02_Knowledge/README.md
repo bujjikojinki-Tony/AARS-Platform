@@ -27,6 +27,14 @@ This area stores stable knowledge assets, schemas, templates, and summaries for 
 - [[02_Knowledge/AARS/02_schema/AARS_Risk_Object_Schema|AARS Risk Object Schema]]
 
 ## Templates
+Generic templates below are maintained canonically inside `02_Knowledge/`.
+
+- [[02_Knowledge/Latest_Stable_View_Template|Latest Stable View Template]]
+- [[02_Knowledge/Recovery_Path_Template|Recovery Path Template]]
+- [[02_Knowledge/No_Recovery_Needed_Note_Template|No Recovery Needed Note Template]]
+- [[02_Knowledge/Review_Note_Template|Review Note Template]]
+- [[02_Knowledge/Freeze_Note_Template|Freeze Note Template]]
+- [[02_Knowledge/Archive_Note_Template|Archive Note Template]]
 - [[02_Knowledge/AARS/03_Templates/AARS_Health_Snapshot_Template|AARS Health Snapshot Template]]
 - [[02_Knowledge/AARS/03_Templates/AARS_Invocation_Record_Template|AARS Invocation Record Template]]
 - [[02_Knowledge/AARS/03_Templates/AARS_Recovery_Path_Template|AARS Recovery Path Template]]

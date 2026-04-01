@@ -12,149 +12,206 @@ created: 2026-03-28
 source: ChatGPT
 ---
 
+---
+
 # AARS_Active_Projects_Home
 
 ## 1. Purpose
 
-This page is the active-project navigation hub for AARS.
+This page is the active-projects control surface for AARS.
 
 It is intended to:
 - show which projects are currently active
-- distinguish active projects from frozen or archived projects
-- provide a quick state summary for each active project
-- provide a continuity-aware entry point for project-level work
-- support later multi-project governance inside AARS
+- distinguish active, frozen, paused, archived, and recovering projects
+- support multi-project governance
+- provide a single project portfolio entry point
+- reduce confusion between current execution and historical baselines
 
-This page is a navigation and coordination page, not a system model.
-
----
-
-## 2. Use Rule
-
-Use this page when:
-- checking which projects are currently active
-- deciding which project should receive next effort
-- locating each active project’s home page
-- checking current maturity / continuity status
-- comparing active projects at a glance
-
-Do not use this page as a substitute for local project home or charter files.
+This page should function as the project portfolio MOC of AARS.
 
 ---
 
-## 3. Current Active Projects
+## 2. Project Portfolio States
 
-## 3.1 Pilot_001_CDA
-**Project Type:** bounded migration-and-operationalization pilot  
-**Domain:** Critical Digital Assets  
-**Status:** reviewable / conditionally stable  
-**Current Stage:** post-first bounded loop, entering second-pass stabilization  
-**Primary Active Entry Files:**
+AARS projects should be understood through the following portfolio states:
+
+### Active
+Project is currently being advanced.
+
+### Reviewable
+Project has meaningful outputs and needs structured judgment.
+
+### Conditionally Stable
+Project can continue, but with caution.
+
+### Frozen
+Project baseline is preserved as a reusable reference state.
+
+### Paused
+Project is temporarily inactive but not archived.
+
+### Recovering
+Project requires corrective action before normal continuation.
+
+### Archived
+Project is no longer active, but retained historically.
+
+---
+
+## 3. Current Portfolio Summary
+
+### Active Projects
+- [[CDA_Project_Home]]
+
+### Reviewable / Conditionally Stable Projects
+- [[Pilot_001_CDA_Review_Note]]
+
+### Frozen Projects
+- [[Pilot_001_CDA_Frozen_Baseline]]
+
+### Archived Projects
+- _None formally indexed yet_
+
+### Paused Projects
+- _None formally indexed yet_
+
+### Recovering Projects
+- _None formally indexed yet_
+
+---
+
+## 4. Active Project Register
+
+Use the following section to track currently active projects.
+
+| Project ID | Project Name | Domain | Current Stage | Current State | Latest Stable View | Next Step |
+|---|---|---|---|---|---|---|
+| Pilot_001_CDA | CDA Pilot | Critical Digital Assets | Review / Freeze Transition | Conditionally Stable | First bounded pilot baseline | Prepare for next bounded extension or system reuse |
+
+---
+
+## 5. Frozen Project Register
+
+Use the following section to track frozen baselines.
+
+| Project ID | Frozen Asset | Domain | Freeze Scope | Status | Notes |
+|---|---|---|---|---|---|
+| Pilot_001_CDA | [[Pilot_001_CDA_Frozen_Baseline]] | CDA | pilot baseline | Frozen | First bounded reference pilot |
+
+---
+
+## 6. Paused / Recovering Register
+
+Use this section when projects are not active but are not archived either.
+
+| Project ID | State | Reason | Stable Anchor | Re-entry Condition |
+|---|---|---|---|---|
+| _TBD_ |  |  |  |  |
+
+---
+
+## 7. Archived Project Register
+
+Use this section for projects no longer active.
+
+| Project ID | Archive Asset | Domain | Reason Archived | Historical Value |
+|---|---|---|---|---|
+| _TBD_ |  |  |  |  |
+
+---
+
+## 8. Active Project Entry Links
+
+### CDA Domain
 - [[Pilot_001_CDA_Project_Charter]]
 - [[CDA_Project_Home]]
-- [[CDA_Legacy_to_AARS_vNext_Mapping]]
-- [[CDA_Capability_Catalog_v0]]
-- [[CASE-NPP-CDA-01_Case_File_v0]]
-- [[CDA_Continuity_Log_v0]]
-
-### Current Continuity Anchor
-单一数字化仪控子系统改造包 + 首波 capability family + 第一轮 bounded object chain
-
-### Current Latest Stable View
-第一轮闭环已完成，项目处于 reviewable / conditionally stable，可进入第二轮稳定化收口。
-
-### Current Recommended Next Step
-- 固化 glossary baseline  
-- 固化 taxonomy baseline  
-- 对 control priority 与 risk evidence 做 second-pass strengthening  
+- [[CDA_Glossary_Baseline]]
+- [[CDA_Taxonomy_Baseline]]
+- [[CDA_Concept_Map]]
+- [[CDA_Layer_Validation_Note]]
+- [[CDA_Layered_Architecture]]
+- [[CDA_3_Paper_Roadmap]]
+- [[Pilot_001_CDA_Review_Note]]
+- [[Pilot_001_CDA_Frozen_Baseline]]
 
 ---
 
-## 4. Frozen Projects
+## 9. Cross-Project Governance Questions
 
-当前暂无单独列出的 frozen project 列表。  
-后续如项目进入冻结状态，可在此增加：
+This page should help answer:
 
-- [[Pilot_001_CDA_Frozen_Baseline_v2]]
-
----
-
-## 5. Archived Projects
-
-当前暂无单独列出的 archived project 列表。  
-后续如项目从 active / frozen 转为 archive，应在此移除 active 状态，并加入 archive 区域。
+1. Which projects are currently active?
+2. Which projects are frozen and should not be casually reopened?
+3. Which projects are still only reviewable?
+4. Which projects have a valid stable anchor?
+5. Which project should receive next implementation effort?
+6. Which project-origin assets may deserve promotion into reusable AARS knowledge?
 
 ---
 
-## 6. Active Project Summary Table
+## 10. Priority Guidance
 
-| Project | Domain | Type | Current State | Main Entry |
-|---|---|---|---|---|
-| Pilot_001_CDA | CDA | bounded migration pilot | reviewable / conditionally stable | [[CDA_Project_Home]] |
+When more than one project becomes active, priority should consider:
 
----
+- strategic importance
+- stage readiness
+- continuity risk
+- freeze readiness
+- system refinement value
+- domain validation value
 
-## 7. Coordination Notes
-
-### Current System Observation
-At present, AARS has one clearly active bounded pilot:
-- Pilot_001_CDA
-
-This makes the current page simple, but still valuable, because it establishes the correct system pattern before more projects are added.
-
-### Growth Rule
-When additional projects are opened, update this page to include:
-- project name
-- domain
-- current state
-- latest stable view summary
-- current next step
-- project home link
+Priority should be explicit, not assumed.
 
 ---
 
-## 8. Recommended Reading Order
+## 11. Relationship to Other Pages
 
-For the currently active project:
-
-1. [[Pilot_001_CDA_Project_Charter]]  
-2. [[CDA_Project_Home]]  
-3. [[CDA_Legacy_to_AARS_vNext_Mapping]]  
-4. [[CDA_Capability_Catalog_v0]]  
-5. [[CASE-NPP-CDA-01_Case_File_v0]]  
-6. [[CDA_Continuity_Log_v0]]  
-
----
-
-## 9. Relationship to Other System Pages
-
-### System-Level Navigation
+### System-Level Entry
 - [[AARS_System_Home]]
 
-### Project-Level Navigation
-- [[CDA_Project_Home]]
+### System Governance
+- [[AARS_Multi_Project_Governance_Model]]
+- [[AARS_Project_Model]]
+- [[AARS_Stage_Model]]
+- [[AARS_Next_Step_Decision_Model]]
 
-### Future Coordination Pages
-Possible future additions:
-- `AARS_Frozen_Projects_Home.md`
-- `AARS_Archived_Projects_Home.md`
-- `AARS_Project_Priority_Board.md`
+### Templates
+- [[AARS_Project_Template]]
+- [[AARS_Pilot_Template]]
+
+This page is the active portfolio view, not the full governance logic itself.
 
 ---
 
-## 10. Update Rule
+## 12. Maintenance Rule
 
 Update this page whenever:
 - a new project becomes active
-- an active project changes maturity state
-- a project becomes frozen
+- a project freezes
 - a project moves to archive
-- a project’s recommended next step materially changes
+- a project enters recovery
+- project priority materially changes
 
-This page should remain lightweight but current.
+If this page is stale, multi-project governance quality weakens.
 
 ---
 
-## 11. Closing Note
+## 13. Recommended Next Step
 
-This page should serve as the active-project coordination entry for AARS until the number of active projects becomes large enough to require a more detailed multi-project dashboard.
+The next useful file after this one is:
+
+`02_Knowledge/AARS_Schema_Layer_Overview.md`
+
+because the system now has:
+- models
+- guides
+- templates
+- active-project visibility
+
+and the next missing production-readiness layer is the schema overview.
+
+---
+
+## 14. Closing Note
+
+This page should remain the main active-project portfolio surface for AARS until a more advanced runtime dashboard or UI implementation exists.
