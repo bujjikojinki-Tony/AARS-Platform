@@ -1,0 +1,104 @@
+@import "../page-01/styles.css";
+
+.review-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.review-target-card {
+  grid-column: span 7;
+}
+
+.decision-summary-card {
+  grid-column: span 5;
+}
+
+.decision-summary-card .decision-block {
+  min-height: 100%;
+}
+
+.decision-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.decision-option {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.58);
+  font-family: var(--mono-font);
+  font-size: 0.76rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.decision-option--active {
+  border-color: rgba(157, 91, 36, 0.24);
+  background: var(--warning-soft);
+  color: var(--ink);
+}
+
+.review-target-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.review-target-block {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.artifact-list,
+.rationale-list {
+  display: grid;
+  gap: 12px;
+}
+
+.artifact-item,
+.rationale-item {
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.artifact-item:first-child,
+.rationale-item:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.artifact-item strong,
+.rationale-item strong {
+  display: block;
+}
+
+.artifact-item span,
+.rationale-item span {
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+@media (max-width: 1120px) {
+  .review-grid,
+  .review-target-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .review-target-card,
+  .decision-summary-card,
+  .identity-card,
+  .health-card,
+  .next-step-card,
+  .stable-card,
+  .result-card {
+    grid-column: span 1;
+  }
+}

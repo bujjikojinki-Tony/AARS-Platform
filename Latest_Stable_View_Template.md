@@ -1,8 +1,4 @@
----
 
-# 4. `02_Knowledge/Latest_Stable_View_Template.md`
-
-```md
 ---
 title: Latest_Stable_View_Template
 type: template
