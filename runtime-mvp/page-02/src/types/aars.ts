@@ -139,3 +139,60 @@ export type ReviewDecisionPagePayload = {
   timeline: TimelineEntry[];
   governanceSignals: GovernanceSignal[];
 };
+
+export type ActiveProjectEntry = {
+  projectId: string;
+  projectName: string;
+  status:
+    | "active"
+    | "reviewable"
+    | "conditionally_stable"
+    | "frozen"
+    | "paused"
+    | "recovering"
+    | "archived";
+  priority: "high" | "medium" | "low" | "deferred";
+  latestStableViewId?: string;
+  nextStep?: string;
+};
+
+export type ActiveProjectsRegister = {
+  activeProjects: ActiveProjectEntry[];
+};
+
+export type PortfolioProjectSummary = {
+  projectId: string;
+  projectName: string;
+  domain: string;
+  goalType: string;
+  primaryTrack: string;
+  currentStage: string;
+  status:
+    | "active"
+    | "reviewable"
+    | "conditionally_stable"
+    | "frozen"
+    | "paused"
+    | "recovering"
+    | "archived";
+  latestStableView: string;
+  stableAnchorState: "explicit" | "inherited" | "frozen_reference" | "none";
+  nextStep: string;
+  priority: "highest" | "high" | "medium" | "reference";
+  touchPolicy: "advance" | "review_only" | "do_not_touch";
+  notes: string;
+};
+
+export type PortfolioSummaryStats = {
+  activeCount: number;
+  highestPriorityProjectId: string;
+  frozenCount: number;
+  cautionCount: number;
+  portfolioGuardrail: string;
+};
+
+export type ActiveProjectsSurfacePayload = {
+  summary: PortfolioSummaryStats;
+  activeProjects: PortfolioProjectSummary[];
+  nonActiveProjects: PortfolioProjectSummary[];
+};

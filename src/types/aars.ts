@@ -45,11 +45,34 @@ export type StableViewSummary = {
   recommendedNextStep: string;
 };
 
+export type ActiveProjectEntry = {
+  projectId: string;
+  projectName: string;
+  status:
+    | "active"
+    | "reviewable"
+    | "conditionally_stable"
+    | "frozen"
+    | "paused"
+    | "recovering"
+    | "archived";
+  priority: "high" | "medium" | "low" | "deferred";
+  latestStableViewId?: string;
+  nextStep?: string;
+};
+
+export type ActiveProjectsRegister = {
+  activeProjects: ActiveProjectEntry[];
+};
+
 export type {
+  ActiveProjectsSurfacePayload,
   CurrentStepPagePayload,
   CurrentStepSummary,
   GovernanceSignal,
   NextStepControl,
+  PortfolioProjectSummary,
+  PortfolioSummaryStats,
   ProcessMapStep,
   ReviewDecisionPagePayload,
   ReviewTargetSummary,
