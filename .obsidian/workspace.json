@@ -125,12 +125,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "90_System/Guides/Codex_Implementation_Prompt_Round_06_Active_Projects_Surface.md",
+                "file": "90_System/Guides/AARS_Round_06_MVP_Implementation_Review_Note.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Codex_Implementation_Prompt_Round_06_Active_Projects_Surface"
+              "title": "AARS_Round_06_MVP_Implementation_Review_Note"
             }
           }
         ],
@@ -305,8 +305,10 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "c213cd8792462b11",
+  "active": "8fae6ae18b4ddd4e",
   "lastOpenFiles": [
+    "90_System/Guides/Codex_Implementation_Prompt_Round_06_Active_Projects_Surface.md",
+    "90_System/Guides/AARS_Round_06_MVP_Implementation_Review_Note.md",
     "src/App.tsx",
     "src/components/aars/ActiveProjectRow.tsx",
     "src/components/aars/PortfolioSummaryHeader.tsx",
@@ -317,8 +319,6 @@
     "src/pages/ActiveProjectsSurface.tsx",
     "src/components/aars/NonActiveProjectsPanel.tsx",
     "src/components/aars/ActiveProjectCard.tsx",
-    "src/components/aars/PortfolioSummaryBar.tsx",
-    "90_System/Guides/Codex_Implementation_Prompt_Round_06_Active_Projects_Surface.md",
     "Health_Snapshot_Template.md",
     "90_System/Guides/Untitled 1.md",
     "90_System/Guides/Untitled 2.md",
