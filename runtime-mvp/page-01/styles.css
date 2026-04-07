@@ -255,16 +255,26 @@ body::before {
   grid-column: span 6;
 }
 
+.actions-card,
+.explainability-card {
+  grid-column: span 6;
+}
+
 .stable-card,
 .result-card {
   grid-column: span 12;
 }
 
 .identity-grid,
-.stability-grid {
+.stability-grid,
+.objective-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
+}
+
+.stability-column--wide {
+  grid-column: span 2;
 }
 
 .identity-meta,
@@ -479,6 +489,46 @@ body::before {
   color: var(--ink-soft);
 }
 
+.action-button-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.action-button {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.76);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.action-button:hover,
+.action-button:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(17, 57, 92, 0.3);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12px 28px rgba(19, 35, 43, 0.08);
+}
+
+.action-button:focus-visible {
+  outline: 2px solid rgba(17, 57, 92, 0.3);
+  outline-offset: 2px;
+}
+
 .admissibility-panel {
   display: grid;
   gap: 12px;
@@ -571,8 +621,14 @@ body::before {
   }
 
   .identity-grid,
-  .stability-grid {
+  .stability-grid,
+  .objective-grid,
+  .action-button-grid {
     grid-template-columns: 1fr;
+  }
+
+  .stability-column--wide {
+    grid-column: span 1;
   }
 
   .banner-meta,

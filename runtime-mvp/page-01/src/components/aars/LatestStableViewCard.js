@@ -2,6 +2,35 @@ import { toneForState } from "../../runtime.js";
 import { escapeHtml, tag } from "./shared.js";
 
 export function renderLatestStableViewCard(stableView) {
+  if ("latestStableView" in stableView) {
+    return `
+      <section class="card stable-card" aria-labelledby="stable-view-title">
+        <div class="card-header">
+          <div class="section-label">Latest Stable View Card</div>
+          <h2 class="card-title" id="stable-view-title">Active continuation anchor</h2>
+          <p class="card-copy">
+            This block exists to show the last safe bounded state, why it is trusted,
+            and what work can continue from it without reopening broader system definition.
+          </p>
+        </div>
+        <div class="stability-grid">
+          <div class="stability-column">
+            <div class="mini-label">Latest stable view summary</div>
+            <p class="card-copy">${escapeHtml(stableView.latestStableView)}</p>
+          </div>
+          <div class="stability-column">
+            <div class="mini-label">Why this is the stable view</div>
+            <p class="card-copy">${escapeHtml(stableView.stableViewRationale)}</p>
+          </div>
+          <div class="stability-column stability-column--wide">
+            <div class="mini-label">What can safely continue</div>
+            <p class="card-copy">${escapeHtml(stableView.safeContinuation)}</p>
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
   return `
     <section class="card stable-card" aria-labelledby="stable-view-title">
       <div class="card-header">

@@ -1,7 +1,36 @@
 import { toneForState } from "../../runtime.js";
 import { escapeHtml, tag } from "./shared.js";
+import { renderStatusBadge } from "./StatusBadge.js";
 
 export function renderProjectIdentityCard(project) {
+  if ("title" in project) {
+    return `
+      <section class="card identity-card" aria-labelledby="project-identity-title">
+        <div class="card-header">
+          <div class="section-label">Project Identity Card</div>
+          <h2 class="card-title" id="project-identity-title">${escapeHtml(project.title)}</h2>
+          <p class="card-copy">
+            This compact identity block establishes where the operator is before any
+            deeper execution or review work begins.
+          </p>
+        </div>
+        <div class="identity-grid">
+          <div class="identity-meta">
+            <div class="mini-label">Project ID</div>
+            <p class="card-copy">${escapeHtml(project.projectId)}</p>
+          </div>
+          <div class="identity-meta">
+            <div class="mini-label">Current round</div>
+            <p class="card-copy">${escapeHtml(project.currentRound)}</p>
+          </div>
+        </div>
+        <div class="metric-row">
+          ${renderStatusBadge(project.status, "Status")}
+        </div>
+      </section>
+    `;
+  }
+
   const statusLabel = project.status.replaceAll("_", " ");
 
   return `

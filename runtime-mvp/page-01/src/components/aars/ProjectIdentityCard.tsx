@@ -1,14 +1,61 @@
 import type { ProjectSummary } from "../../types/aars";
+import { StatusBadge } from "./StatusBadge";
 
 type ProjectIdentityCardProps = {
-  project: ProjectSummary;
+  project?: ProjectSummary;
+  title?: string;
+  projectId?: string;
+  currentRound?: string;
+  status?: string;
 };
 
 function labelize(value: string): string {
   return value.replaceAll("_", " ");
 }
 
-export function ProjectIdentityCard({ project }: ProjectIdentityCardProps) {
+export function ProjectIdentityCard({
+  project,
+  title,
+  projectId,
+  currentRound,
+  status,
+}: ProjectIdentityCardProps) {
+  if (!project && title && projectId && currentRound && status) {
+    return (
+      <section className="card identity-card" aria-labelledby="project-identity-title">
+        <div className="card-header">
+          <div className="section-label">Project Identity Card</div>
+          <h2 className="card-title" id="project-identity-title">
+            {title}
+          </h2>
+          <p className="card-copy">
+            This compact identity block establishes where the operator is before any
+            deeper execution or review work begins.
+          </p>
+        </div>
+
+        <div className="identity-grid">
+          <div className="identity-meta">
+            <div className="mini-label">Project ID</div>
+            <p className="card-copy">{projectId}</p>
+          </div>
+          <div className="identity-meta">
+            <div className="mini-label">Current round</div>
+            <p className="card-copy">{currentRound}</p>
+          </div>
+        </div>
+
+        <div className="metric-row">
+          <StatusBadge label="Status" value={status} />
+        </div>
+      </section>
+    );
+  }
+
+  if (!project) {
+    return null;
+  }
+
   return (
     <section className="card identity-card" aria-labelledby="project-identity-title">
       <div className="card-header">

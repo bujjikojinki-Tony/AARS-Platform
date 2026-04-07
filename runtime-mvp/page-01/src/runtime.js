@@ -8,7 +8,11 @@ export function toneForState(state) {
     return "ok";
   }
 
-  if (normalized.includes("caution")) {
+  if (
+    normalized.includes("caution") ||
+    normalized.includes("watch") ||
+    normalized.includes("review")
+  ) {
     return "warning";
   }
 
@@ -19,16 +23,16 @@ export function toneForState(state) {
  * @param {import("./types/aars.ts").ProjectOverviewPayload} payload
  */
 export function validatePayload(payload) {
-  if (!payload?.project?.projectId) {
-    throw new Error("Project overview payload is missing project.projectId");
+  if (!payload?.projectId) {
+    throw new Error("Project overview payload is missing projectId");
   }
 
-  if (!payload?.stableView?.stableViewId) {
-    throw new Error("Project overview payload is missing stableView.stableViewId");
+  if (!payload?.currentRound) {
+    throw new Error("Project overview payload is missing currentRound");
   }
 
-  if (!payload?.review?.reviewId) {
-    throw new Error("Project overview payload is missing review.reviewId");
+  if (!payload?.latestStableView) {
+    throw new Error("Project overview payload is missing latestStableView");
   }
 
   return payload;

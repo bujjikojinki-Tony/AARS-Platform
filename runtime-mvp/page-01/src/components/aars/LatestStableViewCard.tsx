@@ -1,14 +1,58 @@
 import type { StableViewSummary } from "../../types/aars";
 
 type LatestStableViewCardProps = {
-  stableView: StableViewSummary;
+  stableView?: StableViewSummary;
+  latestStableView?: string;
+  stableViewRationale?: string;
+  safeContinuation?: string;
 };
 
 function labelize(value: string): string {
   return value.replaceAll("_", " ");
 }
 
-export function LatestStableViewCard({ stableView }: LatestStableViewCardProps) {
+export function LatestStableViewCard({
+  stableView,
+  latestStableView,
+  stableViewRationale,
+  safeContinuation,
+}: LatestStableViewCardProps) {
+  if (!stableView && latestStableView && stableViewRationale && safeContinuation) {
+    return (
+      <section className="card stable-card" aria-labelledby="stable-view-title">
+        <div className="card-header">
+          <div className="section-label">Latest Stable View Card</div>
+          <h2 className="card-title" id="stable-view-title">
+            Active continuation anchor
+          </h2>
+          <p className="card-copy">
+            This block exists to show the last safe bounded state, why it is trusted,
+            and what work can continue from it without reopening broader system definition.
+          </p>
+        </div>
+
+        <div className="stability-grid">
+          <div className="stability-column">
+            <div className="mini-label">Latest stable view summary</div>
+            <p className="card-copy">{latestStableView}</p>
+          </div>
+          <div className="stability-column">
+            <div className="mini-label">Why this is the stable view</div>
+            <p className="card-copy">{stableViewRationale}</p>
+          </div>
+          <div className="stability-column stability-column--wide">
+            <div className="mini-label">What can safely continue</div>
+            <p className="card-copy">{safeContinuation}</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!stableView) {
+    return null;
+  }
+
   return (
     <section className="card stable-card" aria-labelledby="stable-view-title">
       <div className="card-header">

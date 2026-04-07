@@ -1,7 +1,7 @@
-import { ActiveProjectsPage } from "./pages/ActiveProjectsPage";
+import { ProjectOverviewPage } from "./pages/ProjectOverviewPage";
 
 export function App() {
-  return <ActiveProjectsPage />;
+  return <ProjectOverviewPage />;
 }
 
 export default App;

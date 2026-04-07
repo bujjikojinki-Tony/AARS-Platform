@@ -111,30 +111,16 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Health_Snapshot_Template.md",
+                "file": "90_System/Guides/Codex_Implementation_Prompt_Round_06_Page_01.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Health_Snapshot_Template"
-            }
-          },
-          {
-            "id": "c213cd8792462b11",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "90_System/Guides/AARS_Round_06_MVP_Implementation_Review_Note.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "AARS_Round_06_MVP_Implementation_Review_Note"
+              "title": "Codex_Implementation_Prompt_Round_06_Page_01"
             }
           }
         ],
-        "currentTab": 6
+        "currentTab": 5
       }
     ],
     "direction": "vertical"
@@ -166,7 +152,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": "Codex_Implementation_Prompt_Round_06_Page_01",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -305,22 +291,28 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "8fae6ae18b4ddd4e",
+  "active": "052e4da08e3179f5",
   "lastOpenFiles": [
-    "90_System/Guides/Codex_Implementation_Prompt_Round_06_Active_Projects_Surface.md",
+    "src/components/aars/StatusBadge.tsx",
+    "src/data/mock/projectOverviewMock.ts",
+    "src/pages/ProjectOverviewPage.tsx",
+    "runtime-mvp/page-01/src/components/aars/ExplainabilitySummaryCard.js",
+    "runtime-mvp/page-01/src/components/aars/ExplainabilitySummaryCard.tsx",
+    "runtime-mvp/page-01/src/components/aars/AdmissibleActionsCard.js",
+    "runtime-mvp/page-01/src/components/aars/AdmissibleActionsCard.tsx",
+    "runtime-mvp/page-01/src/components/aars/RecommendedNextStepCard.js",
+    "runtime-mvp/page-01/src/components/aars/RecommendedNextStepCard.tsx",
+    "runtime-mvp/page-01/src/components/aars/HealthStateCard.js",
+    "runtime-mvp/page-01/src/components/aars/HealthStateCard.tsx",
     "90_System/Guides/AARS_Round_06_MVP_Implementation_Review_Note.md",
-    "src/App.tsx",
-    "src/components/aars/ActiveProjectRow.tsx",
-    "src/components/aars/PortfolioSummaryHeader.tsx",
-    "src/components/aars/ProjectStateBadge.tsx",
-    "src/components/aars/PriorityBadge.tsx",
-    "src/data/mock/activeProjectsMock.ts",
-    "src/pages/ActiveProjectsPage.tsx",
-    "src/pages/ActiveProjectsSurface.tsx",
-    "src/components/aars/NonActiveProjectsPanel.tsx",
-    "src/components/aars/ActiveProjectCard.tsx",
+    "90_System/Guides/AARS_Round_06_MVP_Execution_Note.md",
+    "90_System/Guides/AARS_Round_06_Page_03_Implementation_Review_Note.md",
+    "90_System/Guides/AARS_Round_06_Page_02_Implementation_Review_Note.md",
+    "90_System/Guides/AARS_Round_06_Page_01_Implementation_Review_Note.md",
     "Health_Snapshot_Template.md",
-    "90_System/Guides/Untitled 1.md",
+    "90_System/Guides/Untitled.md",
+    "90_System/Guides/AARS_Round_06_MVP_Implementation_Latest_Stable_View.md",
+    "90_System/Guides/Codex_Implementation_Prompt_Round_06_Active_Projects_Surface.md",
     "90_System/Guides/Untitled 2.md",
     "90_System/Guides/Codex_Implementation_Prompt_Round_06_Page_03.md",
     "90_System/Guides/Codex_Implementation_Prompt_Round_06_Page_02.md",
@@ -336,12 +328,6 @@
     "90_System/Guides/AARS_Round_06_MVP_Implementation_Charter.md",
     "90_System/Guides/AARS_Round_05_Multi_Project_Stress_Validation_Conclusion.md",
     "90_System/Guides/AARS_Round_05_Multi_Project_Stress_Review_Note.md",
-    "90_System/Guides/AARS_Round_05_Multi_Project_Stress_Scenario_01.md",
-    "90_System/Guides/AARS_Round_05_Multi_Project_Stress_Status_Note.md",
-    "90_System/Guides/AARS_Round_05_Multi_Project_Stress_Backlog.md",
-    "90_System/Guides/AARS_Round_05_Multi_Project_Stress_Validation_Charter.md",
-    "90_System/Guides/AARS_Current_Maturity_Judgment_Note.md",
-    "90_System/Guides/AARS_Round_04_Validation_Review_Note.md",
-    "90_System/Guides/AARS_Round_04_External_Validation_Project_Validation_Conclusion.md"
+    "90_System/Guides/AARS_Round_05_Multi_Project_Stress_Scenario_01.md"
   ]
 }

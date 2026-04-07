@@ -65,6 +65,32 @@ export type ActiveProjectsRegister = {
   activeProjects: ActiveProjectEntry[];
 };
 
+export type CurrentStepPayload = {
+  stepNumber: string;
+  stepName: string;
+  phase: string;
+  status: "In Progress" | "Review Required" | "Blocked" | "Completed";
+  stepObjective: string;
+  activeTask: string;
+  expectedOutput: string;
+  currentStepState: string;
+  currentMilestoneState: string;
+  currentStabilityState: string;
+  currentDecisionState: string;
+  requiredInputs: string[];
+  upstreamArtifacts: string[];
+  readinessSignal: string;
+  executionRisks: string[];
+  scopeCautions: string[];
+  latestStableView: string;
+  stableViewRationale: string;
+  allowedContinuation: string;
+  recommendedNextAction: string;
+  nextActionRationale: string;
+  executionPriority: "P1" | "P2" | "P3";
+  admissibleActions: { id: string; label: string }[];
+};
+
 export type {
   ActiveProjectsSurfacePayload,
   CurrentStepPagePayload,
@@ -74,6 +100,7 @@ export type {
   PortfolioProjectSummary,
   PortfolioSummaryStats,
   ProcessMapStep,
+  ProjectOverviewPayload,
   ReviewDecisionPagePayload,
   ReviewTargetSummary,
   StepState,

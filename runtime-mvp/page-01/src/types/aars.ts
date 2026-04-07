@@ -62,10 +62,23 @@ export type GovernanceSignal = {
 };
 
 export type ProjectOverviewPayload = {
-  project: ProjectSummary;
-  review: ReviewSummary;
-  stableView: StableViewSummary;
-  progression: StepState[];
-  timeline: TimelineEntry[];
-  governanceSignals: GovernanceSignal[];
+  title: string;
+  projectId: string;
+  currentRound: string;
+  status: "Stable" | "Review Required" | "Blocked" | "In Progress";
+  currentObjective: string;
+  keyResult: string;
+  currentMode: string;
+  healthState: "Healthy" | "Watch" | "At Risk";
+  blockersCount: number;
+  warningsCount: number;
+  readinessJudgment: string;
+  latestStableView: string;
+  stableViewRationale: string;
+  safeContinuation: string;
+  recommendedNextStep: string;
+  nextStepRationale: string;
+  executionPriority: "P1" | "P2" | "P3";
+  admissibleActions: { id: string; label: string }[];
+  explainabilitySummary: string;
 };
