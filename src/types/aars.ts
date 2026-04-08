@@ -65,6 +65,55 @@ export type ActiveProjectsRegister = {
   activeProjects: ActiveProjectEntry[];
 };
 
+export type ProjectOverviewPayload = {
+  title: string;
+  projectId: string;
+  currentRound: string;
+  status: "Stable" | "Review Required" | "Blocked" | "In Progress";
+  currentObjective: string;
+  keyResult: string;
+  currentMode: string;
+  healthState: "Healthy" | "Watch" | "At Risk";
+  blockersCount: number;
+  warningsCount: number;
+  readinessJudgment: string;
+  latestStableView: string;
+  stableViewRationale: string;
+  safeContinuation: string;
+  recommendedNextStep: string;
+  nextStepRationale: string;
+  executionPriority: "P1" | "P2" | "P3";
+  admissibleActions: { id: string; label: string }[];
+  explainabilitySummary: string;
+};
+
+export type ActiveProjectItem = {
+  id: string;
+  title: string;
+  projectId: string;
+  currentRound: string;
+  status:
+    | "In Progress"
+    | "Review Required"
+    | "Blocked"
+    | "Conditionally Stable"
+    | "Closure Allowed";
+  objectiveSummary: string;
+  latestStableViewSummary: string;
+  healthState: string;
+  recommendedNextStep: string;
+};
+
+export type ActiveProjectsSurfacePayload = {
+  title: string;
+  round: string;
+  status: "In Progress" | "Reviewable" | "Conditionally Stable";
+  activeProjectsCount: number;
+  highlightedProjectId: string;
+  projects: ActiveProjectItem[];
+  explainabilitySummary: string;
+};
+
 export type CurrentStepPayload = {
   stepNumber: string;
   stepName: string;
@@ -91,16 +140,36 @@ export type CurrentStepPayload = {
   admissibleActions: { id: string; label: string }[];
 };
 
+export type ReviewDecisionPayload = {
+  reviewTarget: string;
+  round: string;
+  reviewScope: string;
+  status: "Reviewable" | "Stable" | "Blocked" | "Conditionally Stable";
+  reviewResult: string;
+  currentStabilityState: string;
+  currentDecisionState: "Review Required" | "Continue With Caution" | "Closure Allowed";
+  closureLanguage: "Review Required" | "Continue With Caution" | "Closure Allowed";
+  passedItems: string[];
+  weakItems: string[];
+  deferredItems: string[];
+  latestStableView: string;
+  stableViewRationale: string;
+  authorizedContinuation: string;
+  decisionRationale: string;
+  escalationConditions: string[];
+  nextAuthorizedUnit: string;
+  nextStepRationale: string;
+  executionPriority: "P1" | "P2" | "P3";
+  admissibleActions: { id: string; label: string }[];
+  explainabilitySummary: string;
+};
+
 export type {
-  ActiveProjectsSurfacePayload,
   CurrentStepPagePayload,
   CurrentStepSummary,
   GovernanceSignal,
   NextStepControl,
-  PortfolioProjectSummary,
-  PortfolioSummaryStats,
   ProcessMapStep,
-  ProjectOverviewPayload,
   ReviewDecisionPagePayload,
   ReviewTargetSummary,
   StepState,

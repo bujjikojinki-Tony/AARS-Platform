@@ -182,3 +182,80 @@ This means the next bounded implementation unit is:
 with the following boundary:
 
 - do not widen or restructure the Page 01 contract unless an explicit contract upgrade is recorded
+
+---
+
+## 12. Page 02 Freeze Update
+
+Page 02 is now implemented and accepted as:
+
+**reviewable / conditionally stable**
+
+The current freeze update is:
+
+- Page 02 is implemented in `src/` only
+- no new parallel sandbox surface was created for Page 02
+- `CurrentStepPayload` is the frozen Page 02 payload contract for current Round_06 work
+- Page 01 remains the current entry surface
+
+This means the next bounded implementation unit is:
+
+**Page 03 — Review / Decision Page**
+
+with the following boundary:
+
+- do not change the Page 01 entry surface
+- do not widen Page 02 into multi-step orchestration behavior
+
+---
+
+## 13. Page 03 Freeze Update
+
+Page 03 is now implemented and accepted as:
+
+**reviewable / conditionally stable**
+
+The current freeze update is:
+
+- Page 03 is implemented in `src/` as the third bounded operational surface
+- `src/` remains the only authoritative Round_06 implementation surface
+- `ReviewDecisionPayload` is the frozen Page 03 payload contract for current Round_06 work
+- Page 01 remains the current entry surface
+
+This means the next bounded implementation unit is:
+
+**Active Projects Surface**
+
+with the following boundary:
+
+- do not change Page 01 entry behavior
+- do not widen Page 03 into workflow control logic
+
+---
+
+## 14. Active Projects Surface Freeze Update
+
+Active Projects Surface is now implemented and accepted as:
+
+**reviewable / conditionally stable**
+
+The current freeze update is:
+
+- Active Projects Surface is implemented in `src/` as a bounded governance-aware multi-project visibility surface
+- `src/` remains the only authoritative Round_06 implementation surface
+- `ActiveProjectsSurface.tsx` is the implementation surface and `ActiveProjectsPage.tsx` remains compatibility-facing only
+- `ActiveProjectsSurfacePayload` is the frozen bounded contract for multi-project visibility in current Round_06 work
+- status folding is explicit for the surface:
+  - `Review Required` and `Blocked` fold into `Review Required`
+  - `Closure Allowed` remains `Closure Allowed`
+  - `In Progress` and `Conditionally Stable` fold into `Continue With Caution`
+
+This means the recommended next step is:
+
+**Round_06 MVP integration review**
+
+with the following boundary:
+
+- do not widen the Active Projects Surface into portfolio-management behavior
+- do not change Page 01 entry behavior
+- do not reopen the frozen Page 01, Page 02, Page 03, or Active Projects contracts without explicit contract-upgrade recording

@@ -47,15 +47,15 @@ Interpretation:
    - Project Overview
    - Current Step
    - Review / Decision  
-6. The Active Projects Surface is now specified as the bounded portfolio layer of the MVP  
+6. The Active Projects Surface is now implemented as the bounded multi-project visibility layer of the MVP  
 
 ---
 
 ## 4. Main Weaknesses / Risks
 
-- the current state still depends on actual Codex execution quality to become implementation proof rather than only implementation-ready proof  
 - the MVP still remains bounded and therefore should not yet be mistaken for full product maturity  
-- closure, freeze, archive, and broader runtime surfaces are not yet all implemented within the MVP core  
+- payload-family discipline is still needed as the root `src/` surface set grows  
+- integration review is still needed before treating the current MVP wave as a stronger closure candidate  
 
 ---
 
@@ -70,6 +70,8 @@ The current strongest MVP implementation anchor is:
 - `Codex_Implementation_Prompt_Round_06_Page_02`
 - `Codex_Implementation_Prompt_Round_06_Page_03`
 - `Codex_Implementation_Prompt_Round_06_Active_Projects_Surface`
+- `AARS_Round_06_MVP_Implementation_Latest_Stable_View`
+- `AARS_Round_06_Active_Projects_Surface_Implementation_Review_Note`
 
 Together these now form the strongest current MVP implementation anchor.
 
@@ -85,7 +87,7 @@ Together these now form the strongest current MVP implementation anchor.
 
 - the MVP implementation wave is now coherent enough to execute  
 - the bounded implementation direction is strong  
-- but the round still needs actual implementation output and one stronger stable anchor after implementation execution before closure can be justified  
+- but the round still needs bounded integration review before stronger closure language can be justified  
 
 Thus continuation is correct, but still bounded.
 
@@ -93,7 +95,7 @@ Thus continuation is correct, but still bounded.
 
 ## 8. Recommended Next Step
 
-Create:
+Proceed with:
 
-```text id="g9iyix"
-AARS_Round_06_MVP_Implementation_Latest_Stable_View.md
+```text
+Round_06 MVP integration review

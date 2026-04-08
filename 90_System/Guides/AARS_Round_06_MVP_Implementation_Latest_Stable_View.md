@@ -31,14 +31,17 @@ scope: Round_06_MVP_Implementation / Runtime_MVP_Core
 
 The current stable state is:
 
-**Page 01 is now the first runnable governance-aware MVP surface for Round_06, with `src/` treated as the authoritative implementation surface and `runtime-mvp/page-01/` preserved as a bounded sandbox/reference surface.**
+**Round_06 now has four bounded operational surfaces implemented in sequence in `src/`: Page 01 as the entry surface, Page 02 as the current-step surface, Page 03 as the review / decision surface, and the Active Projects Surface as the bounded multi-project visibility layer.**
 
 This means:
 - Round_06 is no longer only implementation-ready in notes
-- the MVP now has one accepted runnable continuation anchor
-- Page 01 is reviewable / conditionally stable
-- the frozen `ProjectOverviewPayload` contract now governs Page 01 continuation
-- continuation can proceed to Page 02 without reopening conceptual system-definition work
+- the MVP now has a four-surface bounded implementation sequence
+- Page 01 remains the current entry anchor
+- Page 02 remains reviewable / conditionally stable
+- Page 03 is reviewable / conditionally stable
+- the Active Projects Surface is reviewable / conditionally stable
+- the frozen `ActiveProjectsSurfacePayload` contract now governs bounded multi-project visibility continuation
+- the next step should shift to Round_06 MVP integration review rather than broad new surface expansion
 
 ---
 
@@ -64,6 +67,26 @@ This means:
   - `RecommendedNextStepCard`
   - `AdmissibleActionsCard`
   - `ExplainabilitySummaryCard`
+- Current Step Page implemented in `src/` as the second bounded operational surface  
+- Page 02 review completed with `reviewable / conditionally stable` judgment  
+- `CurrentStepPayload` frozen as the current Page 02 payload contract  
+- no new parallel sandbox surface created for Page 02 continuation  
+- Review / Decision Page implemented in `src/` as the third bounded operational surface  
+- Page 03 review completed with `reviewable / conditionally stable` judgment  
+- `ReviewDecisionPayload` frozen as the current Page 03 payload contract  
+- Page 03 remains bounded and non-orchestrating by design  
+- Active Projects Surface implemented in `src/` as the fourth bounded operational surface  
+- Active Projects Surface reviewed with `reviewable / conditionally stable` judgment  
+- `ActiveProjectsSurface.tsx` established as the implementation surface and `ActiveProjectsPage.tsx` retained as compatibility-facing only  
+- `ActiveProjectsSurfacePayload` frozen as the current bounded multi-project visibility contract  
+- Page 01 page ownership corrected into `src/`  
+- Page 01 mock ownership corrected into `src/`  
+- shared `LatestStableViewCard` ownership corrected into `src/`  
+- the four accepted surface mocks refreshed to describe the same integrated Round_06 state  
+- status folding made explicit for the surface:
+  - `Review Required` and `Blocked` fold into `Review Required`
+  - `Closure Allowed` remains `Closure Allowed`
+  - `In Progress` and `Conditionally Stable` fold into `Continue With Caution`  
 
 These elements now form the strongest current Round_06 implementation chain.
 
@@ -73,7 +96,7 @@ These elements now form the strongest current Round_06 implementation chain.
 
 The accepted continuation-safe anchor is:
 
-**the Page 01 implementation state in `src/`, using the frozen `ProjectOverviewPayload` contract and the bounded shared Page 01 component set as the active forward implementation anchor**
+**the current Round_06 `src/` implementation state, with Page 01 as the active entry surface and Pages 02-03 plus the Active Projects Surface as accepted bounded continuation units under frozen `ProjectOverviewPayload`, `CurrentStepPayload`, `ReviewDecisionPayload`, and `ActiveProjectsSurfacePayload` contracts**
 
 This is now the safest current continuation point for MVP implementation work.
 
@@ -85,8 +108,14 @@ This is now the safest current continuation point for MVP implementation work.
 - real routing, backend/persistence/auth, and orchestration remain intentionally deferred  
 - a full TS/React build path is not yet established in the repository  
 - mixed TS/JS implementation paths remain present  
-- backward-compatible reuse between surfaces may still introduce hidden coupling  
+- payload family drift across pages may still introduce hidden coupling  
+- premature shared-component abstraction remains a live risk  
+- accidental expansion into orchestration behavior remains a live risk  
+- review-language drift outside bounded governance terms remains a live risk  
 - dual-surface drift between `src/` and `runtime-mvp/page-01/` remains a live governance risk  
+- accidental expansion into portfolio-management behavior remains a live risk  
+- drift between `ActiveProjectsPage.tsx` and `ActiveProjectsSurface.tsx` remains a live compatibility risk  
+- unbounded growth of multi-project surface logic remains a live governance risk  
 
 These are unresolved, but tolerable for continued bounded MVP hardening.
 
@@ -95,9 +124,12 @@ These are unresolved, but tolerable for continued bounded MVP hardening.
 ## 6. Why This Is the Stable Anchor
 
 - it is stronger than the Round_06 planning and prompt artifacts alone  
-- it converts Page 01 from implementation-ready logic into an accepted runnable surface  
-- it establishes one authoritative forward implementation lane instead of leaving Page 01 split across equal surfaces  
-- it freezes the current Page 01 contract so Page 02 can continue without hidden contract churn  
+- it converts the Active Projects Surface from an authorized next unit into an accepted fourth operational surface  
+- it preserves one authoritative forward implementation lane in `src/`  
+- it freezes the current Active Projects contract so integration review can proceed without hidden contract churn  
+- it removes the hidden Page 01 ownership exception from the accepted first-set MVP lane  
+- it keeps Page 01 as entry surface instead of prematurely expanding app-level navigation behavior or workflow control logic  
+- it completes the first bounded Round_06 governance set without widening into portfolio tooling  
 
 For those reasons, it replaces the review-only state as the best current Round_06 continuation anchor.
 
@@ -107,10 +139,10 @@ For those reasons, it replaces the review-only state as the best current Round_0
 
 Continuation is appropriate if:
 
-- future work remains bounded to Page 02 implementation and MVP hardening  
+- future work remains bounded to MVP integration review and hardening  
 - `src/` remains the forward implementation lane for Round_06 work  
 - `runtime-mvp/page-01/` remains sandbox/reference only and is not expanded into a parallel main surface  
-- the frozen Page 01 payload contract is preserved unless an explicit contract upgrade is recorded  
+- the frozen Page 01, Page 02, Page 03, and Active Projects payload contracts are preserved unless explicit contract upgrades are recorded  
 - stable-view, review, and next-step logic remain explicit in every added surface or integration step  
 
 If implementation work begins to drift toward full-platform expansion, this stable anchor should be preserved and a new review should occur before continuation.
@@ -119,10 +151,10 @@ If implementation work begins to drift toward full-platform expansion, this stab
 
 ## 8. Review Questions
 
-1. Is `src/` now explicit enough as the authoritative forward implementation surface?
-2. Is the frozen `ProjectOverviewPayload` contract strong enough to keep Page 02 bounded?
-3. Are the current shared Page 01 components reusable without introducing hidden coupling?
-4. Is it safe to continue to Page 02 without widening scope or reopening Page 01 definition work?
+1. Is `src/` still explicit enough as the authoritative forward implementation surface?
+2. Is the frozen `ActiveProjectsSurfacePayload` contract strong enough to keep multi-project visibility bounded?
+3. Are the current page-level contracts staying distinct without family drift?
+4. Is it safe to move into integration review without broad new surface expansion?
 
 ---
 
@@ -131,5 +163,5 @@ If implementation work begins to drift toward full-platform expansion, this stab
 Proceed with:
 
 ```text
-Implement `CurrentStepPage` in bounded order, while preserving the Page 01 contract and avoiding dual-surface expansion.
+Move into Round_06 MVP integration review while preserving Page 01 entry behavior and the frozen Page 01, Page 02, Page 03, and Active Projects contracts.
 ```

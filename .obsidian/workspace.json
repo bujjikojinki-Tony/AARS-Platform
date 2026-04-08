@@ -291,19 +291,22 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "052e4da08e3179f5",
+  "active": "8fae6ae18b4ddd4e",
   "lastOpenFiles": [
-    "src/components/aars/StatusBadge.tsx",
-    "src/data/mock/projectOverviewMock.ts",
-    "src/pages/ProjectOverviewPage.tsx",
-    "runtime-mvp/page-01/src/components/aars/ExplainabilitySummaryCard.js",
-    "runtime-mvp/page-01/src/components/aars/ExplainabilitySummaryCard.tsx",
-    "runtime-mvp/page-01/src/components/aars/AdmissibleActionsCard.js",
-    "runtime-mvp/page-01/src/components/aars/AdmissibleActionsCard.tsx",
-    "runtime-mvp/page-01/src/components/aars/RecommendedNextStepCard.js",
-    "runtime-mvp/page-01/src/components/aars/RecommendedNextStepCard.tsx",
-    "runtime-mvp/page-01/src/components/aars/HealthStateCard.js",
-    "runtime-mvp/page-01/src/components/aars/HealthStateCard.tsx",
+    "telegram-aars-bot/__pycache__/storage.cpython-313.pyc",
+    "telegram-aars-bot/__pycache__/orchestrator.cpython-313.pyc",
+    "telegram-aars-bot/__pycache__/models.cpython-313.pyc",
+    "telegram-aars-bot/__pycache__/config.cpython-313.pyc",
+    "telegram-aars-bot/__pycache__/bot_handlers.cpython-313.pyc",
+    "telegram-aars-bot/__pycache__",
+    "telegram-aars-bot/storage.py",
+    "telegram-aars-bot/requirements.txt",
+    "telegram-aars-bot/orchestrator.py",
+    "telegram-aars-bot/models.py",
+    "telegram-aars-bot/config.py",
+    "90_System/Guides/AARS_Round_06_MVP_First_Set_Acceptance_Note.md",
+    "90_System/Guides/AARS_Round_06_MVP_Cross_Surface_Semantics_Glossary.md",
+    "90_System/Guides/AARS_Round_06_Active_Projects_Surface_Implementation_Review_Note.md",
     "90_System/Guides/AARS_Round_06_MVP_Implementation_Review_Note.md",
     "90_System/Guides/AARS_Round_06_MVP_Execution_Note.md",
     "90_System/Guides/AARS_Round_06_Page_03_Implementation_Review_Note.md",
@@ -325,9 +328,6 @@
     "90_System/Guides/AARS_Round_06_MVP_Status_Note.md",
     "Untitled 1.md",
     "90_System/Guides/AARS_Round_06_MVP_Backlog.md",
-    "90_System/Guides/AARS_Round_06_MVP_Implementation_Charter.md",
-    "90_System/Guides/AARS_Round_05_Multi_Project_Stress_Validation_Conclusion.md",
-    "90_System/Guides/AARS_Round_05_Multi_Project_Stress_Review_Note.md",
-    "90_System/Guides/AARS_Round_05_Multi_Project_Stress_Scenario_01.md"
+    "90_System/Guides/AARS_Round_06_MVP_Implementation_Charter.md"
   ]
 }
