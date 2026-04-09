@@ -45,7 +45,15 @@ function getNextProjectId(currentProjectId: string) {
   return mockActiveProjectsSurfacePayload.projects[nextIndex]?.id;
 }
 
-export function ActiveProjectsSurface() {
+type ActiveProjectsSurfaceProps = {
+  onOpenHighlightedProject?: () => void;
+  onReviewProjectState?: () => void;
+};
+
+export function ActiveProjectsSurface({
+  onOpenHighlightedProject,
+  onReviewProjectState,
+}: ActiveProjectsSurfaceProps) {
   const payload = mockActiveProjectsSurfacePayload;
   const [highlightedProjectId, setHighlightedProjectId] = useState(
     payload.highlightedProjectId,
@@ -250,6 +258,11 @@ export function ActiveProjectsSurface() {
             <button
               className="action-button"
               onClick={() => {
+                if (onOpenHighlightedProject) {
+                  onOpenHighlightedProject();
+                  return;
+                }
+
                 console.log(`[AARS Active Projects] open:${highlightedProject.id}`);
               }}
               type="button"
@@ -259,6 +272,11 @@ export function ActiveProjectsSurface() {
             <button
               className="action-button"
               onClick={() => {
+                if (onReviewProjectState) {
+                  onReviewProjectState();
+                  return;
+                }
+
                 console.log(`[AARS Active Projects] review:${highlightedProject.id}`);
               }}
               type="button"

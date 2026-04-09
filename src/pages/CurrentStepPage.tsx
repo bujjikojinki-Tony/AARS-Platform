@@ -1,8 +1,37 @@
 import { StatusBadge } from "../components/aars/StatusBadge";
 import { mockCurrentStepPayload } from "../data/mock/currentStepMock";
 
-export function CurrentStepPage() {
+type CurrentStepPageProps = {
+  onOpenOverview?: () => void;
+  onOpenReviewDecision?: () => void;
+  onOpenActiveProjects?: () => void;
+};
+
+export function CurrentStepPage({
+  onOpenOverview,
+  onOpenReviewDecision,
+  onOpenActiveProjects,
+}: CurrentStepPageProps) {
   const payload = mockCurrentStepPayload;
+
+  function handleActionClick(actionId: string) {
+    if (actionId === "mark-reviewed") {
+      onOpenReviewDecision?.();
+      return;
+    }
+
+    if (actionId === "return-overview") {
+      onOpenOverview?.();
+      return;
+    }
+
+    if (actionId === "jump-forward") {
+      onOpenActiveProjects?.();
+      return;
+    }
+
+    console.log(`[AARS Page 02] ${actionId}`);
+  }
 
   return (
     <div className="page-frame">
@@ -219,7 +248,7 @@ export function CurrentStepPage() {
                 className="action-button"
                 key={action.id}
                 onClick={() => {
-                  console.log(`[AARS Page 02] ${action.id}`);
+                  handleActionClick(action.id);
                 }}
                 type="button"
               >

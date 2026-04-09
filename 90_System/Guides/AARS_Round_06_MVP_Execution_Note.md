@@ -259,3 +259,106 @@ with the following boundary:
 - do not widen the Active Projects Surface into portfolio-management behavior
 - do not change Page 01 entry behavior
 - do not reopen the frozen Page 01, Page 02, Page 03, or Active Projects contracts without explicit contract-upgrade recording
+
+---
+
+## 15. Round_07 Bounded Navigation Closure Update
+
+Round_07 is now accepted as:
+
+**a bounded extension to the accepted Round_06 first-set baseline**
+
+Acceptance remains:
+
+**with caution**
+
+The current closure update is:
+
+- bounded root-owned surface switching now exists in `src/App.tsx`
+- Project Overview remains the default conceptual entry surface
+- a small bounded subset of page-level actions now switches to accepted surfaces
+- the increment remains intentionally non-routed, non-persistent, and non-orchestrated
+
+The smallest remaining bounded gaps are:
+
+- Current Step has no direct page-level action wiring
+- action wiring remains intentionally partial
+- browser-routable behavior still does not exist
+
+This means the current continuation anchor is:
+
+**the accepted Round_06 first-set baseline plus the accepted Round_07 bounded navigation/action layer**
+
+with the following boundary:
+
+- no automatic authorization for broader expansion is implied
+- future extension still requires explicit bounded review before acceptance
+
+---
+
+## 16. Round_08 Current Step Action Wiring Closure Update
+
+Round_08 is now accepted as:
+
+**a bounded extension to the accepted Round_06 first-set baseline and accepted Round_07 navigation/action layer**
+
+Acceptance remains:
+
+**with caution**
+
+The current closure update is:
+
+- the Current Step surface now has the smallest useful bounded page-level action wiring
+- Current Step can now switch to:
+  - Review / Decision
+  - Project Overview
+  - Active Projects
+- root-owned switching remains in `src/App.tsx`
+- the increment remains intentionally non-routed, non-persistent, and non-workflow
+
+The smallest remaining bounded gaps are:
+
+- `Continue Step` remains intentionally unwired
+- action semantics remain intentionally partial
+- browser-routable behavior still does not exist
+
+This means the current continuation anchor is:
+
+**the accepted Round_06 first-set baseline plus the accepted Round_07 bounded navigation/action layer plus the accepted Round_08 Current Step wiring increment**
+
+with the following boundary:
+
+- no automatic authorization for broader expansion is implied
+- future extension still requires explicit bounded review before acceptance
+
+---
+
+## 17. Round_10 Hold Baseline Update
+
+Round_10 is now recorded as:
+
+**a hold-state decision over the accepted Round_06 baseline plus the accepted Round_07 and Round_08 bounded extensions**
+
+The current hold update is:
+
+- the existing baseline is now treated as the authoritative continuation anchor to hold rather than expand
+- continuation is allowed through maintenance/review only
+- the remaining gaps are now interpreted as deliberate boundary conditions rather than active implementation targets
+- root-owned local switching in `src/App.tsx` remains the current bounded navigation limit
+- the current action semantics remain intentionally partial and non-workflow
+
+The held boundary conditions are:
+
+- `Continue Step` remains intentionally unwired
+- action semantics remain intentionally partial
+- browser-routable behavior still does not exist
+
+This means the current continuation anchor is:
+
+**the accepted Round_06 first-set baseline plus the accepted Round_07 bounded navigation/action layer plus the accepted Round_08 Current Step wiring increment, now explicitly held in Round_10**
+
+with the following boundary:
+
+- no automatic feature expansion is authorized
+- maintenance/review is allowed
+- any widening now requires explicit future-round authorization before implementation or acceptance

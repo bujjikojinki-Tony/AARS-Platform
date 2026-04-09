@@ -538,32 +538,6 @@ body::before {
   background: rgba(17, 57, 92, 0.05);
 }
 
-.deerflow-signature {
-  position: fixed;
-  right: 18px;
-  bottom: 18px;
-  z-index: 8;
-  padding: 8px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(17, 57, 92, 0.16);
-  background: rgba(252, 248, 241, 0.72);
-  color: rgba(23, 33, 38, 0.76);
-  font-family: var(--mono-font);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  text-decoration: none;
-  backdrop-filter: blur(12px);
-  transition: transform 180ms ease, border-color 180ms ease, color 180ms ease;
-}
-
-.deerflow-signature:hover,
-.deerflow-signature:focus-visible {
-  transform: translateY(-2px);
-  border-color: rgba(17, 57, 92, 0.32);
-  color: var(--ink);
-}
-
 .sr-only {
   position: absolute;
   width: 1px;

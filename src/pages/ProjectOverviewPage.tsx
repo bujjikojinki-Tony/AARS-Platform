@@ -2,8 +2,37 @@ import { LatestStableViewCard } from "../components/aars/LatestStableViewCard";
 import { StatusBadge } from "../components/aars/StatusBadge";
 import { mockProjectOverviewPayload } from "../data/mock/projectOverviewMock";
 
-export function ProjectOverviewPage() {
+type ProjectOverviewPageProps = {
+  onOpenCurrentStep?: () => void;
+  onOpenReviewDecision?: () => void;
+  onOpenActiveProjects?: () => void;
+};
+
+export function ProjectOverviewPage({
+  onOpenCurrentStep,
+  onOpenReviewDecision,
+  onOpenActiveProjects,
+}: ProjectOverviewPageProps) {
   const payload = mockProjectOverviewPayload;
+
+  function handleActionClick(actionId: string) {
+    if (actionId === "open-current-step" || actionId === "continue-hardening") {
+      onOpenCurrentStep?.();
+      return;
+    }
+
+    if (actionId === "review-first-set" || actionId === "review-stable-view") {
+      onOpenReviewDecision?.();
+      return;
+    }
+
+    if (actionId === "open-active-projects") {
+      onOpenActiveProjects?.();
+      return;
+    }
+
+    console.log(`[AARS Page 01] ${actionId}`);
+  }
 
   return (
     <div className="page-frame">
@@ -163,8 +192,8 @@ export function ProjectOverviewPage() {
               Bounded actions
             </h2>
             <p className="card-copy">
-              These actions establish the operational surface only. They remain stubbed
-              and do not introduce navigation, persistence, or backend behavior.
+              These actions stay bounded to accepted surface switching only. They do not
+              introduce persistence, backend behavior, or broader navigation expansion.
             </p>
           </div>
 
@@ -174,13 +203,22 @@ export function ProjectOverviewPage() {
                 className="action-button"
                 key={action.id}
                 onClick={() => {
-                  console.log(`[AARS Page 01] ${action.id}`);
+                  handleActionClick(action.id);
                 }}
                 type="button"
               >
                 <span>{action.label}</span>
               </button>
             ))}
+            {onOpenActiveProjects ? (
+              <button
+                className="action-button"
+                onClick={onOpenActiveProjects}
+                type="button"
+              >
+                <span>Open Active Projects</span>
+              </button>
+            ) : null}
           </div>
         </section>
 

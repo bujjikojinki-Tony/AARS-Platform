@@ -2,8 +2,23 @@ import { LatestStableViewCard } from "../components/aars/LatestStableViewCard";
 import { StatusBadge } from "../components/aars/StatusBadge";
 import { mockReviewDecisionPayload } from "../data/mock/reviewDecisionMock";
 
-export function ReviewDecisionPage() {
+type ReviewDecisionPageProps = {
+  onReturnCurrentStep?: () => void;
+};
+
+export function ReviewDecisionPage({
+  onReturnCurrentStep,
+}: ReviewDecisionPageProps) {
   const payload = mockReviewDecisionPayload;
+
+  function handleActionClick(actionId: string) {
+    if (actionId === "return-current-step") {
+      onReturnCurrentStep?.();
+      return;
+    }
+
+    console.log(`[AARS Page 03] ${actionId}`);
+  }
 
   return (
     <div className="page-frame">
@@ -176,7 +191,7 @@ export function ReviewDecisionPage() {
                 className="action-button"
                 key={action.id}
                 onClick={() => {
-                  console.log(`[AARS Page 03] ${action.id}`);
+                  handleActionClick(action.id);
                 }}
                 type="button"
               >

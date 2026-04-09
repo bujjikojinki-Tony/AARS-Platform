@@ -1,0 +1,10 @@
+{
+  "name": "aars-round-06-baseline",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

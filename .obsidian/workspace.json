@@ -111,12 +111,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "90_System/Guides/Codex_Implementation_Prompt_Round_06_Page_01.md",
+                "file": "03_Projects/CDA/Pilot_001_CDA/02_Objects/HEALTH-NPP-DGM-01_v0.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Codex_Implementation_Prompt_Round_06_Page_01"
+              "title": "HEALTH-NPP-DGM-01_v0"
             }
           }
         ],
@@ -291,19 +291,34 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "8fae6ae18b4ddd4e",
+  "active": "052e4da08e3179f5",
   "lastOpenFiles": [
-    "telegram-aars-bot/__pycache__/storage.cpython-313.pyc",
-    "telegram-aars-bot/__pycache__/orchestrator.cpython-313.pyc",
-    "telegram-aars-bot/__pycache__/models.cpython-313.pyc",
-    "telegram-aars-bot/__pycache__/config.cpython-313.pyc",
-    "telegram-aars-bot/__pycache__/bot_handlers.cpython-313.pyc",
-    "telegram-aars-bot/__pycache__",
-    "telegram-aars-bot/storage.py",
-    "telegram-aars-bot/requirements.txt",
-    "telegram-aars-bot/orchestrator.py",
-    "telegram-aars-bot/models.py",
-    "telegram-aars-bot/config.py",
+    "03_Projects/CDA/Pilot_001_CDA/02_Objects/CTRL-NPP-DGM-01_v0.md",
+    "03_Projects/CDA/Pilot_001_CDA/02_Objects/HEALTH-NPP-DGM-01_v0.md",
+    "03_Projects/CDA/Pilot_001_CDA/03_Reviews/Pilot_001_DGM_Final_Review_Note_v0.md",
+    "03_Projects/CDA/Pilot_001_CDA/03_Reviews/DGM_Second_Pass_Strengthening_Note_v0.md",
+    "03_Projects/CDA/Pilot_001_CDA/02_Objects/RISK-NPP-DGM-01_v0.md",
+    "03_Projects/CDA/Pilot_001_CDA/02_Objects/DEP-NPP-DGM-01_v0.md",
+    "03_Projects/CDA/Pilot_001_CDA/01_Cases/CASE-NPP-DGM-01_Case_File_v0.md",
+    "03_Projects/CDA/Pilot_001_CDA/04_Baselines/DGM_Glossary_Taxonomy_Mini_Baseline_v0.md",
+    "90_System/Guides/Codex_Implementation_Prompt_Round_06_Page_01.md",
+    "03_Projects/CDA/Pilot_001_CDA/04_Baselines",
+    "03_Projects/CDA/Pilot_001_CDA/03_Reviews",
+    "03_Projects/CDA/Pilot_001_CDA/02_Objects",
+    "03_Projects/CDA/Pilot_001_CDA/01_Cases/Untitled",
+    "03_Projects/CDA/Pilot_001_CDA/01_Cases",
+    "telegram-aars-bot/aars_runtime.db",
+    "90_System/Guides/AARS_Round_10_Hold_Baseline_Note.md",
+    "90_System/Guides/AARS_Round_08_CurrentStep_Action_Wiring_Closure_Note.md",
+    "telegram-aars-bot/__pycache__/app.cpython-313.pyc",
+    "90_System/Guides/AARS_Round_07_Bounded_Navigation_Closure_Note.md",
+    "90_System/Guides/AARS_Round_06_MVP_Baseline_Package_Freeze.md",
+    "90_System/Guides/AARS_Round_06_MVP_Accepted_Path_Inventory_Freeze.md",
+    "package-lock.json",
+    "node_modules/typescript/ThirdPartyNoticeText.txt",
+    "node_modules/typescript/LICENSE.txt",
+    "node_modules/typescript/SECURITY.md",
+    "node_modules/typescript/README.md",
     "90_System/Guides/AARS_Round_06_MVP_First_Set_Acceptance_Note.md",
     "90_System/Guides/AARS_Round_06_MVP_Cross_Surface_Semantics_Glossary.md",
     "90_System/Guides/AARS_Round_06_Active_Projects_Surface_Implementation_Review_Note.md",
@@ -313,21 +328,6 @@
     "90_System/Guides/AARS_Round_06_Page_02_Implementation_Review_Note.md",
     "90_System/Guides/AARS_Round_06_Page_01_Implementation_Review_Note.md",
     "Health_Snapshot_Template.md",
-    "90_System/Guides/Untitled.md",
-    "90_System/Guides/AARS_Round_06_MVP_Implementation_Latest_Stable_View.md",
-    "90_System/Guides/Codex_Implementation_Prompt_Round_06_Active_Projects_Surface.md",
-    "90_System/Guides/Untitled 2.md",
-    "90_System/Guides/Codex_Implementation_Prompt_Round_06_Page_03.md",
-    "90_System/Guides/Codex_Implementation_Prompt_Round_06_Page_02.md",
-    "90_System/Guides/Codex_Implementation_Prompt_Round_06_Page_01.md",
-    "90_System/Guides/AARS_Round_06_MVP_Page_01_Project_Overview_Spec.md",
-    "90_System/Guides/AARS_Round_06_MVP_Component_Implementation_Order.md",
-    "90_System/Guides/AARS_Round_06_MVP_Page_Implementation_Order.md",
-    "Latest_Stable_View_Template.md",
-    "Untitled.md",
-    "90_System/Guides/AARS_Round_06_MVP_Status_Note.md",
-    "Untitled 1.md",
-    "90_System/Guides/AARS_Round_06_MVP_Backlog.md",
-    "90_System/Guides/AARS_Round_06_MVP_Implementation_Charter.md"
+    "90_System/Guides/Untitled.md"
   ]
 }
