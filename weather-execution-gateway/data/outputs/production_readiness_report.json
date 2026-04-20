@@ -1,0 +1,135 @@
+{
+  "schema_version": "production_readiness_report.v1",
+  "generated_at": "2026-04-18T02:39:42.274086+00:00",
+  "ready_for_live": false,
+  "status": "blocked",
+  "blocking_count": 5,
+  "warning_count": 1,
+  "checks": [
+    {
+      "name": "live_mode_policy",
+      "status": "blocked",
+      "message": "Live-mode policy is disabled.",
+      "details": {
+        "policy_id": "production_live_gate_v1",
+        "enabled": false,
+        "allow_live_execution": false,
+        "approved_by_count": 0,
+        "min_approver_count": 2,
+        "expires_at": null,
+        "disabled_required_checks": []
+      }
+    },
+    {
+      "name": "execution_enabled",
+      "status": "blocked",
+      "message": "Execution is disabled; gateway remains dry-run only.",
+      "details": {
+        "enabled": false,
+        "mode": "dry_run"
+      }
+    },
+    {
+      "name": "kill_switch",
+      "status": "passed",
+      "message": "Kill switch is enabled.",
+      "details": {
+        "kill_switch_enabled": true
+      }
+    },
+    {
+      "name": "approval_required",
+      "status": "passed",
+      "message": "Operator approval is required.",
+      "details": {
+        "enabled": false,
+        "require_approval": true,
+        "mode": "dry_run"
+      }
+    },
+    {
+      "name": "market_whitelist",
+      "status": "passed",
+      "message": "Market whitelist is configured.",
+      "details": {
+        "count": 1
+      }
+    },
+    {
+      "name": "exposure_limits",
+      "status": "passed",
+      "message": "Exposure limits are configured.",
+      "details": {
+        "max_notional_per_market": 100,
+        "max_total_notional": 500
+      }
+    },
+    {
+      "name": "position_exposure",
+      "status": "passed",
+      "message": "Position exposure snapshot is available.",
+      "details": {
+        "snapshot_updated_at": "2026-04-18T02:39:42.271611+00:00",
+        "market_notional": 0.0,
+        "total_notional": 0.0,
+        "total_position_count": 0,
+        "total_open_order_count": 0,
+        "available_balance": 0.0,
+        "balance_currency": "USDC",
+        "manual_order_only": true,
+        "balance_snapshot_available": true,
+        "source_path": "/Users/maolei/AARS-Platform/weather-execution-gateway/data/outputs/position_snapshot.json"
+      }
+    },
+    {
+      "name": "model_validation",
+      "status": "blocked",
+      "message": "Model validation is not approved for live execution.",
+      "details": {
+        "approved_for_live": false,
+        "deployment_mode": "shadow",
+        "calibration_status": "not_calibrated"
+      }
+    },
+    {
+      "name": "approval_probe",
+      "status": "warning",
+      "message": "No active approval probe is currently available.",
+      "details": {
+        "probe_available": false,
+        "approval_valid": false,
+        "reason": "latest_approval_expired",
+        "approval_id": "approval_4cb18dad04",
+        "signal_id": "sig_7840154de6",
+        "decision": "approve_small",
+        "expires_at": "2026-04-13T07:02:19.701708+00:00",
+        "created_at": "2026-04-13T06:47:19.701708+00:00",
+        "intent_id": null,
+        "is_consumed": false,
+        "db_path": "/Users/maolei/AARS-Platform/weather-telegram-console/data/outputs/weather_telegram_console.db"
+      }
+    },
+    {
+      "name": "clob_adapter",
+      "status": "blocked",
+      "message": "Real Polymarket CLOB execution adapter is not enabled.",
+      "details": {
+        "clob_adapter_ready": false
+      }
+    },
+    {
+      "name": "execution_modes",
+      "status": "blocked",
+      "message": "Execution modes config does not include live mode.",
+      "details": {
+        "modes": [
+          "manual_advisory",
+          "dry_run",
+          "live_disabled"
+        ]
+      }
+    }
+  ],
+  "decision": "LIVE_EXECUTION_BLOCKED",
+  "note": "Production readiness is a pre-flight gate. A blocked status means the gateway must remain dry-run / disabled even if an operator approval exists."
+}

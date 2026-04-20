@@ -1,0 +1,81 @@
+{
+  "schema_version": "model_validation_report.v1",
+  "generated_at": "2026-04-18T01:13:41.243208+00:00",
+  "model_id": "heuristic_shadow_probability_v1",
+  "model_type": "probability_shadow",
+  "deployment_mode": "shadow",
+  "approved_for_live": false,
+  "calibration_status": "not_calibrated",
+  "sample_count": 40,
+  "labeled_sample_count": 4,
+  "training_data_range": "2026-04-13T06:42:24.602412+00:00/2026-04-17T14:31:57.368545+00:00",
+  "market_family_counts": {
+    "unknown": 13,
+    "sea_ice_extent": 15,
+    "global_temperature_index": 12
+  },
+  "validation_metrics": {
+    "brier_score": 0.1628,
+    "log_loss": 0.510826,
+    "calibration_error": 0.393333,
+    "market_baseline_brier_score": 0.4489,
+    "market_baseline_log_loss": 1.108663,
+    "roi_backtest": 0.35,
+    "max_drawdown": 0.0,
+    "hit_rate": 1.0
+  },
+  "family_validation": {
+    "global_temperature_index": {
+      "sample_count": 12,
+      "labeled_sample_count": 2,
+      "brier_score": 0.205,
+      "log_loss": 0.601986,
+      "calibration_error": 0.45,
+      "trade_count": 1,
+      "roi": 0.35,
+      "hit_rate": 1.0
+    },
+    "sea_ice_extent": {
+      "sample_count": 15,
+      "labeled_sample_count": 1,
+      "brier_score": 0.0784,
+      "log_loss": 0.328504,
+      "calibration_error": 0.28,
+      "trade_count": 0,
+      "roi": null,
+      "hit_rate": null
+    },
+    "unknown": {
+      "sample_count": 13,
+      "labeled_sample_count": 1,
+      "brier_score": null,
+      "log_loss": null,
+      "calibration_error": null,
+      "trade_count": 0,
+      "roi": null,
+      "hit_rate": null
+    }
+  },
+  "edge_deciles": [
+    {
+      "decile": 1,
+      "count": 1,
+      "min_edge": -0.27,
+      "max_edge": -0.27,
+      "avg_edge": -0.27,
+      "yes_rate": 0.0
+    }
+  ],
+  "resolver_quality": {
+    "sample_count": 40,
+    "matched_count": 3,
+    "unmatched_count": 37,
+    "resolver_match_rate": 0.075,
+    "unmatched_market_rate": 0.925,
+    "resolver_status_counts": {
+      "unknown": 37,
+      "matched": 3
+    }
+  },
+  "note": "Phase 8 validation is evaluating the current heuristic shadow probability and edge-based decision scaffold. Outputs are for offline validation only."
+}

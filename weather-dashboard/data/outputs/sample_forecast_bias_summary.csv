@@ -1,0 +1,7 @@
+metric,value
+mae,0.8
+rmse,1.1
+band_hit_rate,0.67
+avg_drift_span,1.2
+stable_groups_count,4
+extreme_miss_rate,0.08

@@ -1,0 +1,44 @@
+Metadata-Version: 2.4
+Name: weather-dashboard
+Version: 0.1.0
+Summary: Streamlit dashboard for weather model vs Polymarket comparison.
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: streamlit>=1.44.0
+Requires-Dist: pandas>=2.2.2
+Requires-Dist: pydantic>=2.7.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.2.0; extra == "dev"
+Requires-Dist: ruff>=0.4.0; extra == "dev"
+
+# weather-dashboard
+
+Streamlit dashboard for weather-model signals vs Polymarket weather market states.
+
+## Purpose
+
+This dashboard visualizes:
+- dashboard rows from the comparison engine
+- latest signal payload
+- latest market bundle payload
+
+## First MVP
+
+The first MVP shows:
+- overview metrics
+- comparison table
+- latest signal panel
+- latest market panel
+
+## Inputs
+
+Expected files:
+- `data/outputs/sample_dashboard_rows.json`
+- `data/outputs/sample_signal_event.json`
+- `data/outputs/sample_weather_bundles.json`
+
+## Run
+
+```bash
+streamlit run src/weather_dashboard/app.py
+```

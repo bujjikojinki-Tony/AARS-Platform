@@ -1,0 +1,122 @@
+{
+  "schema_version": "monitoring_status.v1",
+  "generated_at": "2026-04-19T14:32:04.512938+00:00",
+  "overall_status": "degraded",
+  "counts": {
+    "healthy": 3,
+    "warning": 1,
+    "stale": 2,
+    "missing": 0,
+    "blocked": 3
+  },
+  "workers": [
+    {
+      "worker": "market_realtime",
+      "label": "Market",
+      "layer": "market_layer",
+      "path": "../polymarket-weather-ingest/data/outputs/market_realtime_simple.json",
+      "status": "stale",
+      "source_status": "stale",
+      "last_success_at": "2026-04-19T13:54:56.788224+00:00",
+      "freshness_seconds": 2227.724714,
+      "stale_after_seconds": 300,
+      "last_error": null
+    },
+    {
+      "worker": "forecast_realtime",
+      "label": "Forecast",
+      "layer": "resolver_layer",
+      "path": "../weather-rules-research/data/outputs/forecast_realtime_snapshot.json",
+      "status": "healthy",
+      "source_status": "ok",
+      "last_success_at": "2026-04-19T14:29:36.557571+00:00",
+      "freshness_seconds": 147.955367,
+      "stale_after_seconds": 1800,
+      "last_error": null
+    },
+    {
+      "worker": "resolver_report",
+      "label": "Resolver",
+      "layer": "resolver_layer",
+      "path": "../weather-rules-research/data/outputs/resolver_report.json",
+      "status": "healthy",
+      "source_status": "ok",
+      "last_success_at": "2026-04-19T14:29:36.334321+00:00",
+      "freshness_seconds": 148.178617,
+      "stale_after_seconds": 21600,
+      "last_error": null
+    },
+    {
+      "worker": "probability_shadow",
+      "label": "Probability",
+      "layer": "probability_layer",
+      "path": "/Users/maolei/AARS-Platform/weather-comparison-engine/data/outputs/probability_shadow_report.json",
+      "status": "healthy",
+      "source_status": "ok",
+      "last_success_at": "2026-04-19T14:32:04.507493+00:00",
+      "freshness_seconds": 0.005445,
+      "stale_after_seconds": 3600,
+      "last_error": null
+    },
+    {
+      "worker": "comparison_output",
+      "label": "Comparison",
+      "layer": "comparison_layer",
+      "path": "/Users/maolei/AARS-Platform/weather-comparison-engine/data/outputs/latest_dashboard_rows.json",
+      "status": "warning",
+      "source_status": "unknown_timestamp",
+      "last_success_at": "2026-04-19T14:32:04.502410+00:00",
+      "freshness_seconds": 0.010528,
+      "stale_after_seconds": 900,
+      "last_error": null
+    },
+    {
+      "worker": "execution_gateway",
+      "label": "Gateway",
+      "layer": "authorization_execution_layer",
+      "path": "../weather-execution-gateway/data/outputs/production_readiness_report.json",
+      "status": "blocked",
+      "source_status": "blocked",
+      "last_success_at": "2026-04-18T02:39:42.274086+00:00",
+      "freshness_seconds": 129142.238852,
+      "stale_after_seconds": 3600,
+      "last_error": null
+    },
+    {
+      "worker": "model_validation",
+      "label": "Validation",
+      "layer": "validation_layer",
+      "path": "/Users/maolei/AARS-Platform/weather-comparison-engine/data/outputs/model_validation_report.json",
+      "status": "stale",
+      "source_status": "stale",
+      "last_success_at": "2026-04-18T01:13:41.243208+00:00",
+      "freshness_seconds": 134303.26973,
+      "stale_after_seconds": 5400,
+      "last_error": null
+    },
+    {
+      "worker": "validation_freshness",
+      "label": "Validation Freshness",
+      "layer": "validation_layer",
+      "path": "/Users/maolei/AARS-Platform/weather-comparison-engine/data/outputs/validation_freshness_status.json",
+      "status": "blocked",
+      "source_status": "blocked",
+      "last_success_at": "2026-04-19T14:32:04.509546+00:00",
+      "freshness_seconds": 0.003392,
+      "stale_after_seconds": 5400,
+      "last_error": null
+    },
+    {
+      "worker": "label_coverage",
+      "label": "Label Coverage",
+      "layer": "validation_layer",
+      "path": "/Users/maolei/AARS-Platform/weather-comparison-engine/data/outputs/label_coverage_report.json",
+      "status": "blocked",
+      "source_status": "blocked",
+      "last_success_at": "2026-04-19T14:32:04.509546+00:00",
+      "freshness_seconds": 0.003392,
+      "stale_after_seconds": 5400,
+      "last_error": null
+    }
+  ]
+}

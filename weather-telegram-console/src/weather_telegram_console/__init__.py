@@ -1,0 +1,2 @@
+"""weather-telegram-console package."""
+

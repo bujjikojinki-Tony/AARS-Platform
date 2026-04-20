@@ -1,0 +1,15 @@
+{
+  "market_id": "693870",
+  "market_question": "Will the minimum Arctic sea ice extent this summer be between 4.0m & 4.2m square kilometers?",
+  "market_family": "sea_ice_extent",
+  "target_date": 2026,
+  "variable_name": "minimum_sea_ice_extent",
+  "official_value": 4.1,
+  "resolved_band": "in_range",
+  "expected_band": "in_range",
+  "source": "sample.nsidc_sea_ice_extent",
+  "source_timestamp": "2026-04-17T00:00:00+00:00",
+  "unit": "million_sq_km",
+  "label_type": "snapshot_grade",
+  "notes": "Sample Arctic sea ice minimum extent snapshot for Phase 6 resolver coverage."
+}

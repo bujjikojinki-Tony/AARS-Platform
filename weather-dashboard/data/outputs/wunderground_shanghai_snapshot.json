@@ -1,0 +1,18 @@
+{
+  "history_url": "https://www.wunderground.com/history/weekly/cn/shanghai/ZSPD",
+  "forecast_api_url": "https://api.weather.com/v3/wx/forecast/daily/5day?apiKey=e1f10a1e78da46f5b10a1e78da96f525&geocode=31.15%2C121.803&units=e&language=en-US&format=json",
+  "current_api_url": "https://api.weather.com/v3/wx/observations/current?apiKey=e1f10a1e78da46f5b10a1e78da96f525&geocode=31.15%2C121.803&units=e&language=en-US&format=json",
+  "target_date": "Apr 14",
+  "forecast_target_date": "2026-04-20T07:00:00+0800",
+  "forecast_temp_max_c": 18.9,
+  "forecast_temp_min_c": 12.8,
+  "forecast_narrative": "Cloudy. Highs in the mid 60s and lows in the mid 50s.",
+  "observed_temp_c": 17.8,
+  "observed_temp_max_24h_c": 21.7,
+  "observed_temp_min_24h_c": 13.9,
+  "observed_valid_time": "2026-04-19T22:08:08+0800",
+  "station_name": "Shanghai Pudong Intl Airport Station",
+  "station_code": "ZSPD",
+  "fetched_at": "2026-04-19T14:15:18.010651+00:00",
+  "source_mode": "manual_refresh"
+}

@@ -1,0 +1,11 @@
+metric,value
+count_rows,1
+mean_error,1.1
+mae,1.1
+rmse,1.1
+band_hit_rate,0.0
+adjacent_hit_rate,1.0
+extreme_miss_rate,0.0
+avg_drift_span,0.5
+stable_groups_count,0
+stable_groups,

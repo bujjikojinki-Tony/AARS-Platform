@@ -4,8 +4,28 @@ declare namespace JSX {
   }
 }
 
+declare namespace React {
+  type ReactNode = any;
+}
+
 declare module "react" {
   export function useState<T>(initialState: T): [T, (value: T) => void];
+  export function useMemo<T>(factory: () => T, deps: unknown[]): T;
+  export function useEffect(effect: () => void | (() => void), deps?: unknown[]): void;
+  export function useReducer<S, A>(
+    reducer: (state: S | null, action: A) => S | null,
+    initialState: S,
+  ): [S | null, (value: A) => void];
+
+  const React: {
+    useState: typeof useState;
+    useMemo: typeof useMemo;
+    useEffect: typeof useEffect;
+    useReducer: typeof useReducer;
+    ReactNode: any;
+  };
+
+  export default React;
 }
 
 declare module "react/jsx-runtime" {

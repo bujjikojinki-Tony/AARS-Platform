@@ -1,3 +1,33 @@
+---
+title: CTRL-NPP-DGM-01_v0
+doc_type: control_priority_note
+project: Pilot_001_CDA
+domain: nuclear_design_construction
+case_id: CASE-NPP-DGM-01
+object_id: CTRL-NPP-DGM-01
+version: v0
+status: reviewable
+stability: conditionally_stable
+aars_step: objectized_case_execution
+control_scope: bounded_case
+scope_type: bounded_case
+tags:
+  - AARS
+  - CDA
+  - DGM
+  - control
+  - priority
+  - nuclear
+  - object
+---
+## Links
+- Case: [[CASE-NPP-DGM-01_Case_File_v0]]
+- Dependency: [[DEP-NPP-DGM-01_v0]]
+- Risk: [[RISK-NPP-DGM-01_v0]]
+- Health: [[HEALTH-NPP-DGM-01_v0]]
+- Review: [[Pilot_001_DGM_Final_Review_Note_v1]]
+- Strengthening: [[DGM_Second_Pass_Strengthening_Note_v0]]
+- Baseline: [[DGM_Glossary_Taxonomy_Mini_Baseline_v0]]
 # CTRL-NPP-DGM-01_v0
 
 **Document Type**: Control Priority Note  

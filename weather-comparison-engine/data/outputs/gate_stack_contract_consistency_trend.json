@@ -1,0 +1,433 @@
+{
+  "schema_version": "gate_stack_contract_consistency_trend.v1",
+  "total_cycles": 35,
+  "mismatch_cycles": 35,
+  "bucket_totals": {
+    "schema_drift": 0,
+    "source_drift": 68,
+    "reason_drift": 70,
+    "other_drift": 0
+  },
+  "recent_cycles": [
+    {
+      "cycle": 1,
+      "timestamp": "2026-04-19T11:36:46.286552+00:00",
+      "passed": false,
+      "mismatch_count": 2,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 0,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 1,
+      "timestamp": "2026-04-19T11:40:49.151601+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 2,
+      "timestamp": "2026-04-19T11:45:49.159959+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 3,
+      "timestamp": "2026-04-19T11:50:49.167197+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 4,
+      "timestamp": "2026-04-19T11:55:49.171900+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 5,
+      "timestamp": "2026-04-19T12:00:49.178747+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 6,
+      "timestamp": "2026-04-19T12:05:49.185942+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 7,
+      "timestamp": "2026-04-19T12:10:49.187724+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 8,
+      "timestamp": "2026-04-19T12:15:49.188791+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 9,
+      "timestamp": "2026-04-19T12:20:49.195066+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 10,
+      "timestamp": "2026-04-19T12:25:49.201644+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 11,
+      "timestamp": "2026-04-19T12:30:49.202394+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 12,
+      "timestamp": "2026-04-19T12:35:49.208990+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 13,
+      "timestamp": "2026-04-19T12:40:49.214403+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 14,
+      "timestamp": "2026-04-19T12:45:49.218604+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 15,
+      "timestamp": "2026-04-19T12:50:49.224113+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 16,
+      "timestamp": "2026-04-19T12:55:49.230203+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 17,
+      "timestamp": "2026-04-19T13:00:49.236309+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 18,
+      "timestamp": "2026-04-19T13:05:49.242703+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 19,
+      "timestamp": "2026-04-19T13:10:49.247064+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 20,
+      "timestamp": "2026-04-19T13:15:49.251401+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 21,
+      "timestamp": "2026-04-19T13:20:49.257395+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 22,
+      "timestamp": "2026-04-19T13:25:49.261454+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 23,
+      "timestamp": "2026-04-19T13:34:19.323828+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 24,
+      "timestamp": "2026-04-19T13:39:19.328118+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 25,
+      "timestamp": "2026-04-19T13:44:19.337215+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 26,
+      "timestamp": "2026-04-19T13:49:19.345163+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 27,
+      "timestamp": "2026-04-19T13:54:19.352358+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 28,
+      "timestamp": "2026-04-19T13:59:19.351148+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 29,
+      "timestamp": "2026-04-19T14:04:19.357844+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 30,
+      "timestamp": "2026-04-19T14:09:19.363583+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 31,
+      "timestamp": "2026-04-19T14:14:19.369882+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 32,
+      "timestamp": "2026-04-19T14:19:19.376183+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 33,
+      "timestamp": "2026-04-19T14:24:19.380370+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    },
+    {
+      "cycle": 34,
+      "timestamp": "2026-04-19T14:29:19.385203+00:00",
+      "passed": false,
+      "mismatch_count": 4,
+      "bucket_counts": {
+        "schema_drift": 0,
+        "source_drift": 2,
+        "reason_drift": 2,
+        "other_drift": 0
+      }
+    }
+  ]
+}

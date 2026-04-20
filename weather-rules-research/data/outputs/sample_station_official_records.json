@@ -1,0 +1,22 @@
+[
+  {
+    "market_id": "sample_market_001",
+    "target_date": "2026-04-12",
+    "official_value": 28.0,
+    "expected_band": "28",
+    "source": "sample.station_settlement",
+    "label_type": "settlement_grade",
+    "unit": "celsius",
+    "notes": "Sample Central Park settlement-grade daily high."
+  },
+  {
+    "market_id": "sample_market_shanghai_001",
+    "target_date": "2026-04-14",
+    "official_value": 27.0,
+    "expected_band": "27",
+    "source": "sample.station_settlement",
+    "label_type": "settlement_grade",
+    "unit": "celsius",
+    "notes": "Sample Shanghai Pudong settlement-grade daily high."
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "schema_version": "station_settlement_backfill_summary.v1",
+  "generated_at": "2026-04-18T00:55:33.300448+00:00",
+  "fetch_enabled": false,
+  "record_count": 2,
+  "market_family_counts": {
+    "station_temperature": 2
+  },
+  "source_counts": {
+    "sample.station_settlement": 2
+  },
+  "label_type_counts": {
+    "settlement_grade": 2
+  },
+  "note": "Station settlement backfill supports sample-mode scaffolding by default and can switch to fetch-mode when OFFICIAL_STATION_FETCH_ENABLED=1 and upstream station data credentials are available."
+}

@@ -1,0 +1,228 @@
+{
+  "schema_version": "unified_status.v1",
+  "generated_at": "2026-04-19T14:32:04.513986+00:00",
+  "overall_status": "degraded",
+  "current_market": {
+    "market_id": "390826",
+    "market_question": "Highest temperature in Shanghai on April 20?",
+    "comparison_status": "unmatched_rule",
+    "confidence_adjusted_gap": 0.0,
+    "action_hint": "watch",
+    "market_probability": null,
+    "rule_status": "matched_rule_no_station",
+    "resolver_confidence": null,
+    "source_match_grade": null,
+    "market_snapshot_ref": "2026-04-19T13:54:56.788224Z",
+    "forecast_snapshot_ref": "2026-04-19T14:29:36.557571+00:00"
+  },
+  "monitoring": {
+    "overall_status": "degraded",
+    "counts": {
+      "healthy": 3,
+      "warning": 1,
+      "stale": 2,
+      "missing": 0,
+      "blocked": 3
+    },
+    "worker_count": 9,
+    "workers": [
+      {
+        "label": "Market",
+        "layer": "market_layer",
+        "status": "stale",
+        "freshness_seconds": 2227.724714,
+        "last_success_at": "2026-04-19T13:54:56.788224+00:00"
+      },
+      {
+        "label": "Forecast",
+        "layer": "resolver_layer",
+        "status": "healthy",
+        "freshness_seconds": 147.955367,
+        "last_success_at": "2026-04-19T14:29:36.557571+00:00"
+      },
+      {
+        "label": "Resolver",
+        "layer": "resolver_layer",
+        "status": "healthy",
+        "freshness_seconds": 148.178617,
+        "last_success_at": "2026-04-19T14:29:36.334321+00:00"
+      },
+      {
+        "label": "Probability",
+        "layer": "probability_layer",
+        "status": "healthy",
+        "freshness_seconds": 0.005445,
+        "last_success_at": "2026-04-19T14:32:04.507493+00:00"
+      },
+      {
+        "label": "Comparison",
+        "layer": "comparison_layer",
+        "status": "warning",
+        "freshness_seconds": 0.010528,
+        "last_success_at": "2026-04-19T14:32:04.502410+00:00"
+      },
+      {
+        "label": "Gateway",
+        "layer": "authorization_execution_layer",
+        "status": "blocked",
+        "freshness_seconds": 129142.238852,
+        "last_success_at": "2026-04-18T02:39:42.274086+00:00"
+      },
+      {
+        "label": "Validation",
+        "layer": "validation_layer",
+        "status": "stale",
+        "freshness_seconds": 134303.26973,
+        "last_success_at": "2026-04-18T01:13:41.243208+00:00"
+      },
+      {
+        "label": "Validation Freshness",
+        "layer": "validation_layer",
+        "status": "blocked",
+        "freshness_seconds": 0.003392,
+        "last_success_at": "2026-04-19T14:32:04.509546+00:00"
+      },
+      {
+        "label": "Label Coverage",
+        "layer": "validation_layer",
+        "status": "blocked",
+        "freshness_seconds": 0.003392,
+        "last_success_at": "2026-04-19T14:32:04.509546+00:00"
+      }
+    ]
+  },
+  "probability": {
+    "market_id": "390826",
+    "probability_mode": "heuristic_not_calibrated",
+    "execution_constraint": "manual_advisory_only",
+    "calibration_status": "not_calibrated",
+    "contract_version": "probability_contract.v1",
+    "probability_contract": {
+      "contract_version": "probability_contract.v1",
+      "probability_mode": "heuristic_not_calibrated",
+      "calibration_status": "not_calibrated",
+      "execution_constraint": "manual_advisory_only",
+      "approved_for_live": false,
+      "deployment_mode": "shadow",
+      "promotion_reason": "validation_report_stale",
+      "contract_source": "validation_policy_v1"
+    },
+    "confidence_adjusted_edge": null,
+    "confidence_score": null,
+    "resolver_status": "matched"
+  },
+  "validation": {
+    "freshness_status": "blocked",
+    "freshness_seconds": 134303.266338,
+    "freshness_reason": "validation_report_stale",
+    "label_coverage_status": "blocked",
+    "labeled_rows": 4,
+    "labeled_ratio": 0.1,
+    "coverage_blockers": [
+      "labeled_rows_below_min",
+      "labeled_ratio_below_min",
+      "family:global_temperature_index:labeled_rows_below_min",
+      "family:sea_ice_extent:labeled_rows_below_min",
+      "family:unknown:labeled_rows_below_min"
+    ]
+  },
+  "execution": {
+    "status": "blocked",
+    "ready_for_live": false,
+    "decision": "LIVE_EXECUTION_BLOCKED",
+    "blocking_count": 5,
+    "warning_count": 1
+  },
+  "operator": {
+    "can_bot_trade": false,
+    "human_action_required": true,
+    "execution_mode": "manual_advisory_only",
+    "operator_mode": "dry_run_guarded",
+    "mode_badge": {
+      "label": "DRY-RUN GUARDED",
+      "tone": "info",
+      "description": "Guarded operator mode. Manual advisory and dry-run checks are allowed; no live execution."
+    },
+    "dev_controls_enabled": false
+  },
+  "gate_stack": {
+    "data_gate": "blocked",
+    "data_gate_reasons": [
+      "monitoring_not_healthy",
+      "comparison_not_actionable"
+    ],
+    "resolver_gate": "blocked",
+    "resolver_gate_reasons": [
+      "resolver_not_matched",
+      "resolver_confidence_low",
+      "resolver_source_not_exact"
+    ],
+    "probability_gate": "blocked",
+    "probability_gate_reasons": [
+      "probability_not_live_approved",
+      "execution_constraint_not_live_allowed",
+      "calibration_not_calibrated"
+    ],
+    "freshness_gate": "blocked",
+    "freshness_gate_reasons": [
+      "monitoring_not_healthy",
+      "stale_worker",
+      "validation_freshness_unhealthy",
+      "label_coverage_unhealthy"
+    ],
+    "authorization_gate": "blocked",
+    "authorization_gate_reasons": [
+      "resolver_not_matched",
+      "resolver_confidence_low",
+      "resolver_source_not_exact",
+      "probability_not_live_approved",
+      "execution_constraint_not_live_allowed",
+      "calibration_not_calibrated",
+      "monitoring_not_healthy",
+      "stale_worker",
+      "validation_freshness_unhealthy",
+      "label_coverage_unhealthy"
+    ],
+    "execution_gate": "blocked",
+    "execution_gate_reasons": [
+      "execution_not_ready",
+      "execution_not_live_ready"
+    ],
+    "block_reasons": [
+      "monitoring_not_healthy",
+      "comparison_not_actionable",
+      "resolver_not_matched",
+      "resolver_confidence_low",
+      "resolver_source_not_exact",
+      "probability_not_live_approved",
+      "execution_constraint_not_live_allowed",
+      "calibration_not_calibrated",
+      "stale_worker",
+      "validation_freshness_unhealthy",
+      "label_coverage_unhealthy",
+      "execution_not_ready",
+      "execution_not_live_ready"
+    ]
+  },
+  "block_reasons": [
+    "monitoring:degraded",
+    "worker:Market:stale",
+    "worker:Comparison:warning",
+    "worker:Gateway:blocked",
+    "worker:Validation:stale",
+    "worker:Validation Freshness:blocked",
+    "worker:Label Coverage:blocked",
+    "comparison:unmatched_rule",
+    "resolver:matched_rule_no_station",
+    "probability_mode:heuristic_not_calibrated",
+    "execution_constraint:manual_advisory_only",
+    "validation_freshness:blocked",
+    "label_coverage:blocked",
+    "coverage_blocker:labeled_rows_below_min",
+    "coverage_blocker:labeled_ratio_below_min",
+    "coverage_blocker:family:global_temperature_index:labeled_rows_below_min",
+    "coverage_blocker:family:sea_ice_extent:labeled_rows_below_min",
+    "coverage_blocker:family:unknown:labeled_rows_below_min",
+    "execution:blocked"
+  ]
+}

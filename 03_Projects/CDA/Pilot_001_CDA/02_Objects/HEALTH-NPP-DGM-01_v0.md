@@ -1,3 +1,33 @@
+---
+title: HEALTH-NPP-DGM-01_v0
+doc_type: health_snapshot
+project: Pilot_001_CDA
+domain: nuclear_design_construction
+case_id: CASE-NPP-DGM-01
+object_id: HEALTH-NPP-DGM-01
+version: v0
+status: reviewable
+stability: conditionally_stable
+aars_step: objectized_case_execution
+health_scope: bounded_case
+scope_type: bounded_case
+tags:
+  - AARS
+  - CDA
+  - DGM
+  - health
+  - nuclear
+  - snapshot
+  - object
+---
+## Links
+- Case: [[CASE-NPP-DGM-01_Case_File_v0]]
+- Dependency: [[DEP-NPP-DGM-01_v0]]
+- Risk: [[RISK-NPP-DGM-01_v0]]
+- Control: [[CTRL-NPP-DGM-01_v0]]
+- Review: [[Pilot_001_DGM_Final_Review_Note_v1]]
+- Strengthening: [[DGM_Second_Pass_Strengthening_Note_v0]]
+- Baseline: [[DGM_Glossary_Taxonomy_Mini_Baseline_v0]]
 # HEALTH-NPP-DGM-01_v0
 
 **Document Type**: Health Snapshot  

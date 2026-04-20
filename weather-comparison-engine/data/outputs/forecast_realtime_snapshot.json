@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-04-11T12:00:00+00:00",
+  "market_id": "sample_market_001",
+  "target_date": "2026-04-12",
+  "variable_name": "daily_max_temperature",
+  "value": 28.1,
+  "model_band": "28",
+  "confidence_score": 0.91,
+  "source_mode": "daily.temperature_2m_max"
+}

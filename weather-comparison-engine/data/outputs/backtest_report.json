@@ -1,0 +1,22 @@
+{
+  "sample_count": 1,
+  "trade_count": 1,
+  "edge_threshold": 0.05,
+  "total_pnl": 0.35,
+  "roi": 0.35,
+  "max_drawdown": 0.0,
+  "hit_rate": 1.0,
+  "avg_edge_captured": 0.27,
+  "turnover": 1,
+  "position_counts": {
+    "NO": 1
+  },
+  "family_breakdown": {
+    "global_temperature_index": {
+      "trade_count": 1,
+      "hit_rate": 1.0,
+      "total_pnl": 0.35
+    }
+  },
+  "note": "Heuristic backtest uses model_probability vs market_probability edge with unit stake sizing. This is a validation scaffold, not a production execution model."
+}

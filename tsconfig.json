@@ -6,6 +6,7 @@
     "jsx": "react-jsx",
     "lib": ["ES2021", "DOM"],
     "strict": false,
+    "resolveJsonModule": true,
     "skipLibCheck": true,
     "noEmit": true,
     "forceConsistentCasingInFileNames": true
@@ -21,6 +22,13 @@
     "src/data/mock/currentStepMock.ts",
     "src/data/mock/reviewDecisionMock.ts",
     "src/data/mock/activeProjectsSurfaceMock.ts",
+    "src/mock/milestone-flow.mock.json",
+    "src/state/MilestoneEventReducer.ts",
+    "src/types/milestone-flow.schema.ts",
+    "src/components/MilestoneExecutionTree.tsx",
+    "src/components/MainResultPanel.tsx",
+    "src/lib/milestoneSSEAdapter.ts",
+    "src/pages/MilestoneDemoPage.tsx",
     "src/components/aars/StatusBadge.tsx",
     "src/components/aars/LatestStableViewCard.tsx",
     "src/types/react-shim.d.ts"

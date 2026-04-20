@@ -1,0 +1,9 @@
+{
+  "timestamp": "2026-04-13T12:00:00+00:00",
+  "market_id": "693875",
+  "year": 2026,
+  "ordinal_rank": 3,
+  "band": "top_3",
+  "source": "sample.global_temperature_index",
+  "notes": "Sample climate index snapshot for the third-hottest-year market."
+}

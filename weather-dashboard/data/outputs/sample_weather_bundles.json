@@ -1,0 +1,15 @@
+[
+  {
+    "market": {
+      "market_id": "sample_market_001",
+      "market_question": "Highest temperature in Central Park on Apr 12?"
+    },
+    "price_state": {
+      "observed_at": "2026-04-11T10:00:00",
+      "favored_outcome": "27",
+      "favored_probability": 0.57,
+      "implied_band": "27",
+      "notes": "sample market context"
+    }
+  }
+]

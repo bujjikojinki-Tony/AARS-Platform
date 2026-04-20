@@ -1,0 +1,35 @@
+{
+  "schema_version": "gate_stack_automation_summary.v1",
+  "generated_at": "2026-04-19T14:29:19.384078+00:00",
+  "source_schema_version": "gate_stack_api.v1",
+  "gate_source": "api",
+  "market_id": "390826",
+  "can_execute": false,
+  "severity": "medium",
+  "recommended_operator_action": "review_resolver_contract",
+  "primary_block_reason": "comparison_not_actionable",
+  "block_reasons": [
+    "comparison_not_actionable",
+    "resolver_not_matched",
+    "resolver_confidence_low",
+    "resolver_source_not_exact",
+    "probability_not_live_approved",
+    "execution_constraint_not_live_allowed",
+    "calibration_not_calibrated",
+    "monitoring_not_healthy",
+    "stale_worker",
+    "validation_freshness_unhealthy",
+    "label_coverage_unhealthy",
+    "execution_not_ready",
+    "execution_not_live_ready"
+  ],
+  "gate_stack": {
+    "data_gate": "blocked",
+    "resolver_gate": "blocked",
+    "probability_gate": "blocked",
+    "freshness_gate": "blocked",
+    "authorization_gate": "blocked",
+    "execution_gate": "blocked"
+  },
+  "automation_signal": "amber"
+}

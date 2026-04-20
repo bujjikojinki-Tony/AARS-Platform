@@ -1,0 +1,119 @@
+[
+  {
+    "event_id": "79905",
+    "event_title": "Where will 2026 rank among the hottest years on record?",
+    "market_id": "678686",
+    "market_question": "Will 2026 be the hottest year on record?",
+    "slug": "will-2026-be-the-hottest-year-on-record",
+    "yes_asset_id": "23556429317429021692175226714041757812438092709195093999386854296551945919152",
+    "no_asset_id": "107531561888318513792277163301281336651898062064090922046801464380647002668604"
+  },
+  {
+    "event_id": "79905",
+    "event_title": "Where will 2026 rank among the hottest years on record?",
+    "market_id": "678688",
+    "market_question": "Will 2026 be the third-hottest year on record?",
+    "slug": "will-2026-be-the-third-hottest-year-on-record",
+    "yes_asset_id": "106675477628507501040585426713979928715996831915977868937330396914038840931958",
+    "no_asset_id": "1931812278439411274621562204498438445306796659080252991795999379234493648897"
+  },
+  {
+    "event_id": "79905",
+    "event_title": "Where will 2026 rank among the hottest years on record?",
+    "market_id": "678690",
+    "market_question": "Will 2026 be the fifth-hottest year on record?",
+    "slug": "will-2026-be-the-fifth-hottest-year-on-record",
+    "yes_asset_id": "36385708241103656881636928091267439785598872725658076323572114247897288109684",
+    "no_asset_id": "15336383889349013242644173673080732516940253578861664837926820391700365550025"
+  },
+  {
+    "event_id": "79905",
+    "event_title": "Where will 2026 rank among the hottest years on record?",
+    "market_id": "678687",
+    "market_question": "Will 2026 be the second-hottest year on record?",
+    "slug": "will-2026-be-the-second-hottest-year-on-record",
+    "yes_asset_id": "93766990226491733942214251921024942451432775407674989883724893659074859142435",
+    "no_asset_id": "38427187039087275831933800466434320467406541286363861727350171951133298863067"
+  },
+  {
+    "event_id": "79905",
+    "event_title": "Where will 2026 rank among the hottest years on record?",
+    "market_id": "678689",
+    "market_question": "Will 2026 be the fourth-hottest year on record?",
+    "slug": "will-2026-be-the-fourth-hottest-year-on-record",
+    "yes_asset_id": "89122639280139951852974936554756184346358334790398350569653103427135919364268",
+    "no_asset_id": "2181891582263788303439012738091569324420792649876246118480511957262994389258"
+  },
+  {
+    "event_id": "79905",
+    "event_title": "Where will 2026 rank among the hottest years on record?",
+    "market_id": "678691",
+    "market_question": "Will 2026 rank as the sixth-hottest year on record or lower?",
+    "slug": "will-2026-rank-as-the-sixth-hottest-year-on-record-or-lower",
+    "yes_asset_id": "100089942478247842028749951289465207065086650624241682127064158051748974066771",
+    "no_asset_id": "115397601203343827736128882523157817143467686822353093515494427404337634837177"
+  },
+  {
+    "event_id": "86426",
+    "event_title": "Min Arctic sea ice extent this summer?",
+    "market_id": "693869",
+    "market_question": "Will the minimum Arctic sea ice extent this summer be less than 4m square kilometers?",
+    "slug": "will-the-minimum-arctic-sea-ice-extent-this-summer-be-less-than-4m-square-kilometers",
+    "yes_asset_id": "18551885381311190346694344305259668694385517658853102333808521637816121529823",
+    "no_asset_id": "9096312778440908520692432725059403614189930001760380938918847687296943329387"
+  },
+  {
+    "event_id": "86426",
+    "event_title": "Min Arctic sea ice extent this summer?",
+    "market_id": "693871",
+    "market_question": "Will the minimum Arctic sea ice extent this summer be between 4.2m & 4.4m square kilometers?",
+    "slug": "will-the-minimum-arctic-sea-ice-extent-this-summer-be-between-4pt2m-4pt4m-square-kilometers",
+    "yes_asset_id": "41777695986599556245403457274126821715197922370040738175165004173596946317622",
+    "no_asset_id": "26797813471975030087859518037900267141548328274504733649846687375079292615236"
+  },
+  {
+    "event_id": "86426",
+    "event_title": "Min Arctic sea ice extent this summer?",
+    "market_id": "693873",
+    "market_question": "Will the minimum Arctic sea ice extent this summer be between 4.6m & 4.8m square kilometers?",
+    "slug": "will-the-minimum-arctic-sea-ice-extent-this-summer-be-between-4pt6m-4pt8m-square-kilometers",
+    "yes_asset_id": "83156357589992408901293982783019969776078410163429767712590914241969504679657",
+    "no_asset_id": "108044899170097225210694825399120238022536508936860846989957850203775347889788"
+  },
+  {
+    "event_id": "86426",
+    "event_title": "Min Arctic sea ice extent this summer?",
+    "market_id": "693875",
+    "market_question": "Will the minimum Arctic sea ice extent this summer be at least 5m square kilometers?",
+    "slug": "will-the-minimum-arctic-sea-ice-extent-this-summer-be-at-least-5m-square-kilometers",
+    "yes_asset_id": "57894756357699905449615485881755475566930526182419306343844135508888631613168",
+    "no_asset_id": "26008431342848095208338776687137181732666596173798693708537357332133080145563"
+  },
+  {
+    "event_id": "86426",
+    "event_title": "Min Arctic sea ice extent this summer?",
+    "market_id": "693870",
+    "market_question": "Will the minimum Arctic sea ice extent this summer be between 4.0m & 4.2m square kilometers?",
+    "slug": "will-the-minimum-arctic-sea-ice-extent-this-summer-be-between-4pt0m-4pt2m-square-kilometers",
+    "yes_asset_id": "4748258730063866743154225440817741601898634545205498086062514908018085180762",
+    "no_asset_id": "40460851964794034276344575891314554282287606731199261123089897212134155757236"
+  },
+  {
+    "event_id": "86426",
+    "event_title": "Min Arctic sea ice extent this summer?",
+    "market_id": "693872",
+    "market_question": "Will the minimum Arctic sea ice extent this summer be between 4.4m & 4.6m square kilometers?",
+    "slug": "will-the-minimum-arctic-sea-ice-extent-this-summer-be-between-4pt4m-4pt6m-square-kilometers",
+    "yes_asset_id": "14498449069171140091048210767776675275470228043361909433802738866555161832365",
+    "no_asset_id": "98472882426703135322986392088398913409842886502229843982890694665612639942233"
+  },
+  {
+    "event_id": "86426",
+    "event_title": "Min Arctic sea ice extent this summer?",
+    "market_id": "693874",
+    "market_question": "Will the minimum Arctic sea ice extent this summer be between 4.8m & 5m square kilometers?",
+    "slug": "will-the-minimum-arctic-sea-ice-extent-this-summer-be-between-4pt8m-5m-square-kilometers",
+    "yes_asset_id": "56174832519546664583565006174218478528179424017318292485896876171656596667823",
+    "no_asset_id": "112681993004854169211280681652964877492713408756479770464709329240422582754083"
+  }
+]

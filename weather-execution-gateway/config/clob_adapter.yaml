@@ -1,0 +1,10 @@
+adapter:
+  enabled: false
+  mode: disabled
+  allow_real_orders: false
+  require_signed_client: true
+  signed_client_configured: false
+
+safety:
+  reject_without_token_id: true
+  reject_without_operator_approval: true

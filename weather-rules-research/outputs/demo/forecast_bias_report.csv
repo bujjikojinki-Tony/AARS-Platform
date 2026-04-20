@@ -1,0 +1,3 @@
+market_id,station_id,market_type,settlement_date,predicted_temperature_c,settled_temperature_c,error_c,abs_error_c,squared_error_c,forecast_source,band_hit
+poly-daily-high-central-park-001,KNYC,daily_high_temperature,2026-06-01,30.4,29.6,0.8,0.8,0.64,open-meteo,True
+poly-daily-low-changi-001,WSSS,daily_low_temperature,2026-01-15,24.8,25.7,-0.9,0.9,0.81,open-meteo,True

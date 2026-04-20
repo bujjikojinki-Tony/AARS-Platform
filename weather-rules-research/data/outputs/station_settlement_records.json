@@ -1,0 +1,38 @@
+[
+  {
+    "market_id": "sample_market_001",
+    "market_question": "Highest temperature in Central Park on Apr 12?",
+    "market_family": "station_temperature",
+    "target_date": "2026-04-12",
+    "variable_name": "daily_max_temperature",
+    "station_id": "KNYC",
+    "official_value": 28.0,
+    "resolved_band": "28",
+    "expected_band": "28",
+    "source": "sample.station_settlement",
+    "source_timestamp": null,
+    "source_url": null,
+    "label_type": "settlement_grade",
+    "unit": "celsius",
+    "notes": "Sample Central Park settlement-grade daily high.",
+    "raw_payload_ref": null
+  },
+  {
+    "market_id": "sample_market_shanghai_001",
+    "market_question": "Highest temperature in Shanghai on Apr 14?",
+    "market_family": "station_temperature",
+    "target_date": "2026-04-14",
+    "variable_name": "daily_max_temperature",
+    "station_id": "Shanghai Pudong International Airport",
+    "official_value": 27.0,
+    "resolved_band": "27",
+    "expected_band": "27",
+    "source": "sample.station_settlement",
+    "source_timestamp": null,
+    "source_url": null,
+    "label_type": "settlement_grade",
+    "unit": "celsius",
+    "notes": "Sample Shanghai Pudong settlement-grade daily high.",
+    "raw_payload_ref": null
+  }
+]

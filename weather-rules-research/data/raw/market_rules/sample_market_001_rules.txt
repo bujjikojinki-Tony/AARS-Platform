@@ -1,0 +1,1 @@
+Resolves based on the official highest temperature recorded at the designated station for Central Park in New York on April 12, local time.

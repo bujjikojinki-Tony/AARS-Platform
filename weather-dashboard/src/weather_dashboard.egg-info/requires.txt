@@ -1,0 +1,7 @@
+streamlit>=1.44.0
+pandas>=2.2.2
+pydantic>=2.7.0
+
+[dev]
+pytest>=8.2.0
+ruff>=0.4.0

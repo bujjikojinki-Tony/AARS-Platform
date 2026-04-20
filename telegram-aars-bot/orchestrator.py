@@ -9,7 +9,9 @@ from models import (
     RiskObject,
     RecoveryPath,
     GateDecision,
+    GateLog,
 )
+from rule_registry import rule_registry
 
 
 class AARSOrchestrator:
@@ -35,48 +37,79 @@ class AARSOrchestrator:
     def run_step(self, session: ProjectSession, step_name: str) -> tuple[ProjectSession, GateDecision]:
         self.refresh_governance(session)
 
-        # Stable Gate + Risk Gate for deeper steps
         if step_name in ["Task Execution", "Concept Layer Validation"]:
-            stable_gate = self.evaluate_stable_gate(session)
-            if not stable_gate.allowed:
-                return session, stable_gate
+            decision = rule_registry.evaluate_as_gate(
+                "deeper_progression",
+                "deeper_progression_gate",
+                session,
+            )
+            self._log_gate_decision(session, decision, f"run_step:{step_name}")
+            if not decision.allowed:
+                return session, decision
 
-            risk_gate = self.evaluate_risk_gate(session)
-            if not risk_gate.allowed:
-                return session, risk_gate
+        decision = GateDecision(
+            gate_name="execution_gate",
+            allowed=True,
+            reason=f"Step '{step_name}' accepted and completed.",
+            blocking_risks=[],
+        )
+        self._log_gate_decision(session, decision, f"run_step:{step_name}")
 
         task = AgentTask(
             task_id=f"task-{uuid4().hex[:8]}",
             name=step_name,
             agent_type="builder",
             status="completed",
-            result=f"{step_name} completed"
+            result=f"{step_name} completed",
         )
         session.tasks.append(task)
         session.current_step = step_name
         session.updated_at = datetime.utcnow().isoformat()
         self.refresh_governance(session)
 
-        return session, GateDecision(
-            gate_name="execution_gate",
-            allowed=True,
-            reason=f"Step '{step_name}' accepted and completed.",
-            blocking_risks=[],
-        )
+        return session, decision
 
     def review(self, session: ProjectSession) -> str:
-        if not session.tasks:
+        self.refresh_governance(session)
+
+        results = rule_registry.evaluate("review", session)
+        failed = [r for r in results if not r.passed]
+
+        high_open_risks = [r for r in session.risk_objects if r.severity == "high" and r.status == "open"]
+        has_stable_view = session.latest_stable_view is not None
+
+        if high_open_risks:
+            session.health = "degraded"
+            risk_lines = "\n".join(f"- {r.risk_id}: {r.title}" for r in high_open_risks)
+            result = (
+                "Review Result: BLOCKED\n"
+                "Admissibility: Deeper progression is not admissible.\n"
+                "Health Assessment: High-severity open risks remain.\n"
+                f"Open Risks:\n{risk_lines}\n"
+                f"Stable View Judgment: {'Stable checkpoint exists but is insufficient for safe continuation.' if has_stable_view else 'No stable checkpoint exists.'}\n"
+                "Recommended Next Action: Resolve blocking risks and regenerate governance state."
+            )
+        elif failed:
             session.health = "warning"
+            notes = "\n".join(f"- {r.rule_name}: {r.message}" for r in failed)
             result = (
                 "Review Result: PASS WITH NOTES\n"
-                "No execution tasks found yet."
+                "Admissibility: Early or bounded progression only.\n"
+                "Health Assessment: Governance baseline checks are not fully satisfied.\n"
+                f"Open Risks:\n{notes}\n"
+                f"Stable View Judgment: {'Stable checkpoint exists.' if has_stable_view else 'Stable checkpoint is still missing.'}\n"
+                "Recommended Next Action: Satisfy missing governance conditions before deeper progression."
             )
         else:
-            session.health = "healthy"
+            session.health = "healthy" if has_stable_view else "warning"
             result = (
-                "Review Result: PASS WITH NOTES\n"
-                "Governance objects refreshed.\n"
-                "Admissibility should be checked through gates before deeper progression."
+                "Review Result: PASS\n"
+                "Admissibility: Progression is admissible.\n"
+                "Health Assessment: Governance baseline checks passed.\n"
+                "Open Risks:\n"
+                "- No high-severity open risks currently block progression.\n"
+                f"Stable View Judgment: {'Stable checkpoint exists and continuity is anchored.' if has_stable_view else 'Stable checkpoint is still missing.'}\n"
+                "Recommended Next Action: Continue governed progression."
             )
 
         session.updated_at = datetime.utcnow().isoformat()
@@ -85,7 +118,6 @@ class AARSOrchestrator:
 
     def generate_stable_view(self, session: ProjectSession) -> ProjectSession:
         accepted_outputs = [f"{t.name}: {t.result}" for t in session.tasks if t.status == "completed"]
-
         open_risks = [f"{r.risk_id} — {r.title}" for r in session.risk_objects if r.status == "open"]
 
         stable_view = LatestStableView(
@@ -103,7 +135,9 @@ class AARSOrchestrator:
     def closure(self, session: ProjectSession) -> tuple[ProjectSession, GateDecision, str]:
         self.refresh_governance(session)
 
-        closure_gate = self.evaluate_closure_gate(session)
+        closure_gate = rule_registry.evaluate_as_gate("closure", "closure_gate", session)
+        self._log_gate_decision(session, closure_gate, "closure")
+
         if not closure_gate.allowed:
             return session, closure_gate, "Closure blocked."
 
@@ -125,32 +159,34 @@ class AARSOrchestrator:
             f"Health: {session.health}\n"
             f"Status: {session.status}"
         )
-
         return session, closure_gate, summary
 
     def jump_to_step(self, session: ProjectSession, step_name: str) -> tuple[ProjectSession, GateDecision]:
         self.refresh_governance(session)
 
-        # deeper jumps also gated
         if step_name in ["Task Execution", "Concept Layer Validation"]:
-            stable_gate = self.evaluate_stable_gate(session)
-            if not stable_gate.allowed:
-                return session, stable_gate
+            decision = rule_registry.evaluate_as_gate(
+                "deeper_progression",
+                "deeper_progression_gate",
+                session,
+            )
+            self._log_gate_decision(session, decision, f"jump_to_step:{step_name}")
+            if not decision.allowed:
+                return session, decision
 
-            risk_gate = self.evaluate_risk_gate(session)
-            if not risk_gate.allowed:
-                return session, risk_gate
-
-        session.current_step = step_name
-        session.updated_at = datetime.utcnow().isoformat()
-        self.refresh_governance(session)
-
-        return session, GateDecision(
+        decision = GateDecision(
             gate_name="jump_gate",
             allowed=True,
             reason=f"Jump to '{step_name}' accepted.",
             blocking_risks=[],
         )
+        self._log_gate_decision(session, decision, f"jump_to_step:{step_name}")
+
+        session.current_step = step_name
+        session.updated_at = datetime.utcnow().isoformat()
+        self.refresh_governance(session)
+
+        return session, decision
 
     def pause_session(self, session: ProjectSession) -> ProjectSession:
         session.status = "paused"
@@ -164,72 +200,17 @@ class AARSOrchestrator:
         self._generate_recovery_path(session)
         return session
 
-    def evaluate_stable_gate(self, session: ProjectSession) -> GateDecision:
-        if session.latest_stable_view is None:
-            return GateDecision(
-                gate_name="stable_gate",
-                allowed=False,
-                reason="No Latest Stable View exists. Deeper progression is not admissible.",
-                blocking_risks=["R3"],
+    def _log_gate_decision(self, session: ProjectSession, decision: GateDecision, action_name: str) -> None:
+        session.gate_logs.append(
+            GateLog(
+                gate_name=decision.gate_name,
+                allowed=decision.allowed,
+                reason=decision.reason,
+                blocking_risks=decision.blocking_risks.copy(),
+                action_name=action_name,
             )
-
-        return GateDecision(
-            gate_name="stable_gate",
-            allowed=True,
-            reason="Stable checkpoint exists.",
-            blocking_risks=[],
         )
-
-    def evaluate_risk_gate(self, session: ProjectSession) -> GateDecision:
-        blocking = [r.risk_id for r in session.risk_objects if r.severity == "high" and r.status == "open"]
-        if blocking:
-            return GateDecision(
-                gate_name="risk_gate",
-                allowed=False,
-                reason="High-severity open risks exist.",
-                blocking_risks=blocking,
-            )
-
-        return GateDecision(
-            gate_name="risk_gate",
-            allowed=True,
-            reason="No high/open risks blocking progression.",
-            blocking_risks=[],
-        )
-
-    def evaluate_closure_gate(self, session: ProjectSession) -> GateDecision:
-        if session.latest_stable_view is None:
-            return GateDecision(
-                gate_name="closure_gate",
-                allowed=False,
-                reason="Closure requires an existing Latest Stable View.",
-                blocking_risks=["R3"],
-            )
-
-        high_open = [r.risk_id for r in session.risk_objects if r.severity == "high" and r.status == "open"]
-        if high_open:
-            return GateDecision(
-                gate_name="closure_gate",
-                allowed=False,
-                reason="Closure blocked by high/open risks.",
-                blocking_risks=high_open,
-            )
-
-        completed = len([t for t in session.tasks if t.status == "completed"])
-        if completed == 0:
-            return GateDecision(
-                gate_name="closure_gate",
-                allowed=False,
-                reason="Closure requires at least one completed task.",
-                blocking_risks=[],
-            )
-
-        return GateDecision(
-            gate_name="closure_gate",
-            allowed=True,
-            reason="Closure admissible.",
-            blocking_risks=[],
-        )
+        session.updated_at = datetime.utcnow().isoformat()
 
     def _generate_health_snapshot(self, session: ProjectSession) -> None:
         total_tasks = len(session.tasks)
@@ -245,7 +226,6 @@ class AARSOrchestrator:
             overall_health = "healthy"
 
         session.health = overall_health
-
         session.health_snapshot = HealthSnapshot(
             overall_health=overall_health,
             session_status=session.status,

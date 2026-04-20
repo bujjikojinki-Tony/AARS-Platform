@@ -1,0 +1,44 @@
+[
+  {
+    "market": {
+      "event_id": "79905",
+      "event_title": "Where will 2026 rank among the hottest years on record?",
+      "market_id": "678686",
+      "market_question": "Will 2026 be the hottest year on record?",
+      "market_slug": "will-2026-be-the-hottest-year-on-record",
+      "category": null,
+      "active": true,
+      "closed": false,
+      "volume_24hr": 1894.185434,
+      "liquidity": 30058.5663
+    },
+    "price_state": {
+      "observed_at": null,
+      "favored_outcome": null,
+      "favored_probability": null,
+      "implied_band": null,
+      "notes": "MVP builder: metadata only, no CLOB price integration yet"
+    }
+  },
+  {
+    "market": {
+      "event_id": "86426",
+      "event_title": "Min Arctic sea ice extent this summer?",
+      "market_id": "693869",
+      "market_question": "Will the minimum Arctic sea ice extent this summer be less than 4m square kilometers?",
+      "market_slug": "will-the-minimum-arctic-sea-ice-extent-this-summer-be-less-than-4m-square-kilometers",
+      "category": null,
+      "active": true,
+      "closed": false,
+      "volume_24hr": 271.965383,
+      "liquidity": 3852.635
+    },
+    "price_state": {
+      "observed_at": null,
+      "favored_outcome": null,
+      "favored_probability": null,
+      "implied_band": null,
+      "notes": "MVP builder: metadata only, no CLOB price integration yet"
+    }
+  }
+]

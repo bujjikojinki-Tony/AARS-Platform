@@ -1,0 +1,28 @@
+{
+  "schema_version": "resolved_market_rule.v2",
+  "resolver_contract_version": "resolver_contract.v1",
+  "market_id": "693875",
+  "market_question": "Will the minimum Arctic sea ice extent this summer be at least 5m square kilometers?",
+  "resolver_status": "matched",
+  "resolver_reason": "sea_ice_extent_snapshot_expected",
+  "resolver_name": "sea_ice_extent_resolver",
+  "resolver_confidence": 0.85,
+  "market_family": "sea_ice_extent",
+  "resolution_scope": "global_index",
+  "supported_by_current_pipeline": true,
+  "required_data_source": "nsidc_arctic_sea_ice_extent",
+  "required_sources": [
+    "nsidc_arctic_sea_ice_extent"
+  ],
+  "band_scheme": "sea_ice_range_3way",
+  "settlement_source_type": "climate_index_snapshot",
+  "official_vs_proxy_source": "official",
+  "source_match_grade": "family_exact",
+  "official_source_url": "https://nsidc.org/arcticseaicenews/",
+  "source_note": "Sea ice extent markets use an NSIDC-style extent snapshot contract.",
+  "location_name": "UNKNOWN",
+  "unit": "million_sq_km",
+  "question_mode": "unknown",
+  "expected_band": "in_range",
+  "comparison_hint": "Sea ice question parsed, but thresholds were not recognized."
+}

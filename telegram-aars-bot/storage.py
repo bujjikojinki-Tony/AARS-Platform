@@ -1,8 +1,7 @@
 import json
 import sqlite3
 from pathlib import Path
-from typing import Optional, List
-
+from typing import Optional, List, Any
 from models import ProjectSession
 
 
@@ -41,19 +40,26 @@ class SQLiteStorage:
             conn.commit()
 
     # =========================
-    # Active project helpers
+    # Generic JSON state helpers
     # =========================
 
-    def get_active_project_id(self) -> Optional[str]:
+    def get_json_state(self, key: str) -> Optional[Any]:
         with self._connect() as conn:
             row = conn.execute(
                 "SELECT value FROM runtime_state WHERE key = ?",
-                ("active_project_id",)
+                (key,)
             ).fetchone()
 
-        return row[0] if row else None
+        if row is None:
+            return None
+        try:
+            return json.loads(row[0])
+        except json.JSONDecodeError:
+            # Backward compatibility for legacy rows that stored plain strings.
+            return row[0]
 
-    def set_active_project_id(self, project_id: str) -> None:
+    def set_json_state(self, key: str, value: Any) -> None:
+        payload = json.dumps(value, ensure_ascii=False)
         with self._connect() as conn:
             conn.execute(
                 """
@@ -61,9 +67,20 @@ class SQLiteStorage:
                 VALUES (?, ?)
                 ON CONFLICT(key) DO UPDATE SET value = excluded.value
                 """,
-                ("active_project_id", project_id),
+                (key, payload),
             )
             conn.commit()
+
+    # =========================
+    # Active project helpers
+    # =========================
+
+    def get_active_project_id(self) -> Optional[str]:
+        value = self.get_json_state("active_project_id")
+        return value
+
+    def set_active_project_id(self, project_id: str) -> None:
+        self.set_json_state("active_project_id", project_id)
 
     def clear_active_project_id(self) -> None:
         with self._connect() as conn:
@@ -119,15 +136,12 @@ class SQLiteStorage:
             SELECT project_id, name, is_archived, updated_at
             FROM projects
         """
-        params = ()
-
         if not include_archived:
             query += " WHERE is_archived = 0"
-
         query += " ORDER BY updated_at DESC"
 
         with self._connect() as conn:
-            rows = conn.execute(query, params).fetchall()
+            rows = conn.execute(query).fetchall()
 
         return [
             {

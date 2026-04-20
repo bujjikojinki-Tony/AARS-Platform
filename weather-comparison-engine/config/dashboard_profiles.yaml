@@ -1,0 +1,15 @@
+dashboard_profiles:
+  default:
+    columns:
+      - market_id
+      - market_question
+      - location_name
+      - target_date
+      - variable_name
+      - model_band
+      - market_band
+      - band_distance
+      - confidence_score
+      - confidence_adjusted_gap
+      - comparison_status
+      - action_hint

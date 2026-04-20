@@ -1,0 +1,20 @@
+[
+  {
+    "station_name": "New York City Central Park",
+    "nws_station_id": "KNYC",
+    "cdo_station_id": "GHCND:USW00094728",
+    "latitude": 40.78,
+    "longitude": -73.97,
+    "timezone": "America/New_York",
+    "source": "manual_whitelist"
+  },
+  {
+    "station_name": "Shanghai Pudong International Airport",
+    "nws_station_id": null,
+    "cdo_station_id": null,
+    "latitude": 31.1434,
+    "longitude": 121.8052,
+    "timezone": "Asia/Shanghai",
+    "source": "wunderground:zspd"
+  }
+]

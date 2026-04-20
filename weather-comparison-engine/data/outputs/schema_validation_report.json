@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-04-17T12:41:38.334590+00:00",
+  "status": "valid",
+  "sections": {
+    "market_snapshot": {
+      "status": "valid",
+      "path": "../polymarket-weather-ingest/data/outputs/market_realtime_simple.json",
+      "market_id": "678686",
+      "schema_version": "market_snapshot.v1",
+      "errors": []
+    },
+    "forecast_snapshot": {
+      "status": "valid",
+      "path": "../weather-rules-research/data/outputs/forecast_realtime_snapshot.json",
+      "market_id": "678686",
+      "schema_version": "forecast_snapshot.v1",
+      "errors": []
+    },
+    "comparison_history": {
+      "status": "valid",
+      "path": "/Users/maolei/AARS-Platform/weather-comparison-engine/data/outputs/comparison_history.json",
+      "row_count": 39,
+      "market_count": 12,
+      "latest_market_id": "678686",
+      "latest_timestamp": "2026-04-15T14:06:07.123259+00:00",
+      "schema_version": "comparison_point.v1",
+      "errors": []
+    }
+  },
+  "errors": []
+}

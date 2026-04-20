@@ -1,0 +1,1 @@
+Resolves based on the official source highest temperature recorded at Shanghai Pudong International Airport station in Shanghai time from Wunderground.

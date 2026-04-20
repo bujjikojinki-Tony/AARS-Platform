@@ -1,0 +1,21 @@
+{
+  "schema_version": "position_snapshot.v1",
+  "updated_at": "2026-04-18T02:39:42.271611+00:00",
+  "source": "sample_account_snapshot",
+  "source_path": "/Users/maolei/AARS-Platform/weather-execution-gateway/data/outputs/sample_account_positions.json",
+  "account_id": "sample_account",
+  "balance": {
+    "available_balance": 0.0,
+    "total_balance": 0.0,
+    "currency": "USDC",
+    "manual_order_only": true,
+    "snapshot_available": true
+  },
+  "positions": [],
+  "open_orders": [],
+  "position_count": 0,
+  "open_order_count": 0,
+  "position_notional": 0,
+  "open_order_notional": 0,
+  "total_notional": 0
+}

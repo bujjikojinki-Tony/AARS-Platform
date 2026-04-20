@@ -1,0 +1,42 @@
+[
+  {
+    "market_id": "390826",
+    "label": "390826 | gamma | Highest temperature in Shanghai on April 20?",
+    "source": "recent",
+    "market_family": "gamma",
+    "chosen_at": "2026-04-19T14:30:10.505805+00:00",
+    "chosen_at_ts": 1776609010
+  },
+  {
+    "market_id": "693870",
+    "label": "693870 | sea_ice_extent | Will the minimum Arctic sea ice extent this summer be between 4.0m & 4.2m square kilometers?",
+    "source": "auto",
+    "market_family": "sea_ice_extent",
+    "chosen_at": "2026-04-18T04:05:20.986355+00:00",
+    "chosen_at_ts": 1776485120
+  },
+  {
+    "market_id": "678686",
+    "label": "678686 | global_temperature_index | Will 2026 be the hottest year on record?",
+    "source": "auto",
+    "market_family": "global_temperature_index",
+    "chosen_at": "2026-04-18T04:04:36.005185+00:00",
+    "chosen_at_ts": 1776485076
+  },
+  {
+    "market_id": "678690",
+    "label": "678690 | global_temperature_index | Will 2026 be the fifth-hottest year on record?",
+    "source": "auto",
+    "market_family": "global_temperature_index",
+    "chosen_at": "2026-04-15T13:46:29.174667+00:00",
+    "chosen_at_ts": 1776260789
+  },
+  {
+    "market_id": "693869",
+    "label": "693869 | sea_ice_extent | Will the minimum Arctic sea ice extent this summer be less than 4m square kilometers?",
+    "source": "auto",
+    "market_family": "sea_ice_extent",
+    "chosen_at": "2026-04-15T13:20:24.602496+00:00",
+    "chosen_at_ts": 1776259224
+  }
+]

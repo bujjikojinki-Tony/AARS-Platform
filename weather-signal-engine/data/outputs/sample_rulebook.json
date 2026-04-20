@@ -1,0 +1,21 @@
+{
+  "version": "0.1",
+  "generated_at": "2026-04-11T12:00:00Z",
+  "rules": [
+    {
+      "market_id": "sample_market_001",
+      "market_question": "Highest temperature in Central Park on Apr 12?",
+      "market_type": "daily_high_temperature",
+      "location_name": "Central Park",
+      "target_date": "2026-04-12",
+      "station_name": "New York City Central Park",
+      "nws_station_id": "KNYC",
+      "cdo_station_id": "GHCND:USW00094728",
+      "variable_name": "daily_max_temperature",
+      "timezone": "America/New_York",
+      "source_name": "official_source",
+      "parse_confidence": 0.93,
+      "needs_review": false
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "market_id": "sample_market_shanghai_001",
+    "market_question": "Highest temperature in Shanghai on Apr 14?",
+    "market_type": "daily_high_temperature",
+    "location_name": "Shanghai",
+    "target_date": "Apr 14",
+    "station_name": "Shanghai Pudong International Airport",
+    "nws_station_id": null,
+    "cdo_station_id": null,
+    "variable_name": "daily_max_temperature",
+    "timezone": "Asia/Shanghai",
+    "source_name": "official_source",
+    "raw_rules_text": "Resolves based on the official source highest temperature recorded at Shanghai Pudong International Airport station in Shanghai time from Wunderground.\n",
+    "parse_confidence": 0.92,
+    "needs_review": false
+  }
+]

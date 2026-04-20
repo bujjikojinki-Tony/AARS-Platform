@@ -1,0 +1,2 @@
+[console_scripts]
+weather-telegram-console = weather_telegram_console.app:main

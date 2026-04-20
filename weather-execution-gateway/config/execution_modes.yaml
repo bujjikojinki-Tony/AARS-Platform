@@ -1,0 +1,4 @@
+modes:
+  - manual_advisory
+  - dry_run
+  - live_disabled

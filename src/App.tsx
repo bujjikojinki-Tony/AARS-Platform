@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { ActiveProjectsSurface } from "./pages/ActiveProjectsSurface";
+import { ControlConsolePage } from "./pages/ControlConsolePage";
 import { CurrentStepPage } from "./pages/CurrentStepPage";
 import { ProjectOverviewPage } from "./pages/ProjectOverviewPage";
 import { ReviewDecisionPage } from "./pages/ReviewDecisionPage";
@@ -9,7 +10,8 @@ type AcceptedSurfaceId =
   | "overview"
   | "current-step"
   | "review-decision"
-  | "active-projects";
+  | "active-projects"
+  | "control-console";
 
 type SurfaceOption = {
   id: AcceptedSurfaceId;
@@ -38,6 +40,11 @@ const surfaceOptions: SurfaceOption[] = [
     label: "Active Projects",
     note: "Multi-project surface",
   },
+  {
+    id: "control-console",
+    label: "Control Console",
+    note: "Sketch-style procedure surface",
+  },
 ];
 
 type SurfaceNavigationHandlers = {
@@ -45,6 +52,7 @@ type SurfaceNavigationHandlers = {
   openCurrentStep: () => void;
   openReviewDecision: () => void;
   openActiveProjects: () => void;
+  openControlConsole: () => void;
 };
 
 function renderSurface(
@@ -73,6 +81,8 @@ function renderSurface(
           onReviewProjectState={navigationHandlers.openReviewDecision}
         />
       );
+    case "control-console":
+      return <ControlConsolePage />;
     case "overview":
     default:
       return (
@@ -100,6 +110,9 @@ export function App() {
     },
     openActiveProjects: () => {
       setActiveSurfaceId("active-projects");
+    },
+    openControlConsole: () => {
+      setActiveSurfaceId("control-console");
     },
   };
 

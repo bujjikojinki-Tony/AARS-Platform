@@ -1,3 +1,33 @@
+---
+title: DEP-NPP-DGM-01_v0
+doc_type: dependency_object
+project: Pilot_001_CDA
+domain: nuclear_design_construction
+case_id: CASE-NPP-DGM-01
+object_id: DEP-NPP-DGM-01
+version: v0
+status: reviewable
+stability: conditionally_stable
+aars_step: objectized_case_execution
+dependency_cluster: baseline_interface_construction_package
+scope_type: bounded_case
+tags:
+  - AARS
+  - CDA
+  - DGM
+  - dependency
+  - nuclear
+  - design-change
+  - object
+---
+## Links
+- Case: [[CASE-NPP-DGM-01_Case_File_v0]]
+- Risk: [[RISK-NPP-DGM-01_v0]]
+- Health: [[HEALTH-NPP-DGM-01_v0]]
+- Control: [[CTRL-NPP-DGM-01_v0]]
+- Review: [[Pilot_001_DGM_Final_Review_Note_v1]]
+- Strengthening: [[DGM_Second_Pass_Strengthening_Note_v0]]
+- Baseline: [[DGM_Glossary_Taxonomy_Mini_Baseline_v0]]
 # DEP-NPP-DGM-01_v0
 
 **Document Type**: Dependency Object  

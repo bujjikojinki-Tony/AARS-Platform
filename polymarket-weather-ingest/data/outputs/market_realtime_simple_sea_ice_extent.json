@@ -1,0 +1,17 @@
+{
+  "market_id": "693874",
+  "market_question": "Will the minimum Arctic sea ice extent this summer be between 4.8m & 5m square kilometers?",
+  "location_name": "UNKNOWN",
+  "updated_at": "2026-04-19T12:41:28.923289+00:00",
+  "favored_side": "yes",
+  "market_probability": 0.01,
+  "market_family": "sea_ice_extent",
+  "market_band": "in_range",
+  "market_band_scheme": "sea_ice_range_3way",
+  "market_band_label": "4_8_to_5_0",
+  "market_band_lower": 4.8,
+  "market_band_upper": 5.0,
+  "market_band_unit": "million_sq_km",
+  "yes_price": 0.01,
+  "no_price": 0.004
+}

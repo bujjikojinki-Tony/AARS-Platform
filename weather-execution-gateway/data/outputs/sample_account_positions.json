@@ -1,0 +1,12 @@
+{
+  "source": "sample_account_snapshot",
+  "account_id": "sample_account",
+  "balance": {
+    "available_balance": 0.0,
+    "total_balance": 0.0,
+    "currency": "USDC",
+    "manual_order_only": true
+  },
+  "positions": [],
+  "open_orders": []
+}

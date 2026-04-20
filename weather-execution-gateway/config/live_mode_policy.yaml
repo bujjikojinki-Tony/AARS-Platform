@@ -1,0 +1,17 @@
+policy:
+  policy_id: production_live_gate_v1
+  enabled: false
+  allow_live_execution: false
+  approved_by: []
+  min_approver_count: 2
+  expires_at: null
+
+required_checks:
+  kill_switch: true
+  approval_required: true
+  market_whitelist: true
+  exposure_limits: true
+  model_validation: true
+  approval_probe: true
+  clob_adapter: true
+  execution_modes: true

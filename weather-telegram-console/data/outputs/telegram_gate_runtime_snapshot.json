@@ -1,0 +1,45 @@
+{
+  "schema_version": "telegram_gate_runtime_snapshot.v1",
+  "generated_at": "2026-04-19T11:21:34.066646+00:00",
+  "market_id": "678687",
+  "gate_stack": {
+    "market_id": "678687",
+    "market_question": "Will 2026 be the second-hottest year on record?",
+    "comparison_status": "mild_divergence",
+    "action_hint": "watch",
+    "data_gate": "pass",
+    "data_gate_reasons": [],
+    "resolver_gate": "blocked",
+    "resolver_gate_reasons": [
+      "resolver_confidence_low",
+      "resolver_source_not_exact"
+    ],
+    "probability_gate": "blocked",
+    "probability_gate_reasons": [],
+    "freshness_gate": "blocked",
+    "freshness_gate_reasons": [],
+    "authorization_gate": "blocked",
+    "authorization_gate_reasons": [
+      "resolver_confidence_low",
+      "resolver_source_not_exact"
+    ],
+    "execution_gate": "blocked",
+    "execution_gate_reasons": [],
+    "block_reasons": [
+      "resolver_confidence_low",
+      "resolver_source_not_exact"
+    ],
+    "can_execute": false,
+    "primary_block_reason": "resolver_confidence_low",
+    "severity": "medium",
+    "recommended_operator_action": "review_resolver_contract"
+  },
+  "block_reasons": [
+    "resolver_confidence_low",
+    "resolver_source_not_exact"
+  ],
+  "severity": "medium",
+  "recommended_operator_action": "review_resolver_contract",
+  "gate_source": "api",
+  "source_schema_version": "unified_status.v1"
+}

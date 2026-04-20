@@ -1,8 +1,27 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
-
 from storage import storage
 from orchestrator import orchestrator
+from rule_registry import rule_registry
+
+
+RULE_CONFIG_STATE_KEY = "rule_registry_config"
+RULE_CHANGE_LOG_STATE_KEY = "rule_change_logs"
+
+
+def load_rule_config_from_storage() -> None:
+    config = storage.get_json_state(RULE_CONFIG_STATE_KEY)
+    if config:
+        rule_registry.import_config(config)
+
+    logs = storage.get_json_state(RULE_CHANGE_LOG_STATE_KEY)
+    if logs:
+        rule_registry.import_change_logs(logs)
+
+
+def save_rule_config_to_storage() -> None:
+    storage.set_json_state(RULE_CONFIG_STATE_KEY, rule_registry.export_config())
+    storage.set_json_state(RULE_CHANGE_LOG_STATE_KEY, rule_registry.export_change_logs())
 
 
 # =========================
@@ -51,11 +70,39 @@ def build_governance_menu() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("Risks", callback_data="action:risks")],
         [InlineKeyboardButton("Recovery", callback_data="action:recovery")],
         [InlineKeyboardButton("Gate Logs", callback_data="action:gate_logs")],
+        [InlineKeyboardButton("Rule Change Logs", callback_data="action:rule_change_logs")],
+        [InlineKeyboardButton("Rule Registry", callback_data="action:rule_registry")],
+        [InlineKeyboardButton("Inspect Rules", callback_data="nav:rule_inspector")],
+        [InlineKeyboardButton("Rule Config", callback_data="nav:rule_config")],
         [InlineKeyboardButton("Jump to Step 1", callback_data="action:jump_step_1")],
         [InlineKeyboardButton("Jump to Step 2", callback_data="action:jump_step_2")],
         [InlineKeyboardButton("Jump to Step 5", callback_data="action:jump_step_5")],
         [InlineKeyboardButton("Back Home", callback_data="nav:home")],
     ]
+    return InlineKeyboardMarkup(keyboard)
+
+
+def build_rule_inspector_menu() -> InlineKeyboardMarkup:
+    keyboard = [
+        [InlineKeyboardButton("Inspect deeper_progression", callback_data="action:inspect_rule_group:deeper_progression")],
+        [InlineKeyboardButton("Inspect closure", callback_data="action:inspect_rule_group:closure")],
+        [InlineKeyboardButton("Inspect review", callback_data="action:inspect_rule_group:review")],
+        [InlineKeyboardButton("Back Governance", callback_data="nav:governance")],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+
+def build_rule_config_menu() -> InlineKeyboardMarkup:
+    entries = rule_registry.list_rule_entries()
+    keyboard = []
+
+    for e in entries[:10]:
+        label = f"{'ON' if e['enabled'] else 'OFF'}: {e['name'][:24]}"
+        keyboard.append([
+            InlineKeyboardButton(label, callback_data=f"action:toggle_rule:{e['name']}")
+        ])
+
+    keyboard.append([InlineKeyboardButton("Back Governance", callback_data="nav:governance")])
     return InlineKeyboardMarkup(keyboard)
 
 
@@ -133,6 +180,10 @@ def get_session_summary() -> str:
         f"Stable Step: {stable_step}"
     )
 
+
+# =========================
+# Readers
+# =========================
 
 def read_health_snapshot_text() -> str:
     session = get_session()
@@ -259,6 +310,82 @@ def read_project_list_text() -> str:
     return "\n".join(parts)
 
 
+def read_rule_registry_text() -> str:
+    groups = rule_registry.list_groups()
+    if not groups:
+        return "Rule Registry\n\nNo rule groups registered."
+
+    parts = ["Rule Registry"]
+    for g in groups:
+        rules = rule_registry.describe_group(g)
+        parts.append(f"\n[{g}]")
+        for r in rules:
+            parts.append(f"- {r}")
+    return "\n".join(parts)
+
+
+def read_rule_group_inspection_text(group: str) -> str:
+    session = get_session()
+    if session is None:
+        return f"Rule Group Inspection: {group}\n\nNo active session."
+
+    inspection = rule_registry.inspect_group(group, session)
+    results = inspection["results"]
+
+    parts = [f"Rule Group Inspection: {group}"]
+
+    if not results:
+        parts.append("\nNo rules registered in this group.")
+        return "\n".join(parts)
+
+    for r in results:
+        risk_text = ", ".join(r.blocking_risks) if r.blocking_risks else "None"
+        parts.append(
+            f"\nRule: {r.rule_name}\n"
+            f"Passed: {r.passed}\n"
+            f"Severity: {r.severity}\n"
+            f"Message: {r.message}\n"
+            f"Blocking Risks: {risk_text}"
+        )
+
+    return "\n".join(parts)
+
+
+def read_rule_config_text() -> str:
+    entries = rule_registry.list_rule_entries()
+    if not entries:
+        return "Rule Config\n\nNo rules registered."
+
+    parts = ["Rule Config"]
+    for e in entries:
+        status = "ENABLED" if e["enabled"] else "DISABLED"
+        parts.append(
+            f"\n[{e['group']}] {e['name']}\n"
+            f"Status: {status}\n"
+            f"Priority: {e['priority']}"
+        )
+    return "\n".join(parts)
+
+
+def read_rule_change_logs_text(limit: int = 10) -> str:
+    logs = rule_registry.list_change_logs(limit=limit)
+    if not logs:
+        return "Rule Change Logs\n\nNo rule changes recorded."
+
+    parts = ["Rule Change Logs (latest first)"]
+    for log in logs:
+        parts.append(
+            f"\n[{log.changed_at}]\n"
+            f"Rule: {log.rule_name}\n"
+            f"Group: {log.group}\n"
+            f"Field: {log.field_name}\n"
+            f"Old: {log.old_value}\n"
+            f"New: {log.new_value}\n"
+            f"Action: {log.action_name}"
+        )
+    return "\n".join(parts)
+
+
 def format_gate_decision(decision) -> str:
     lines = [
         f"Gate: {decision.gate_name}",
@@ -271,13 +398,13 @@ def format_gate_decision(decision) -> str:
 
 
 # =========================
-# Screen renderers
+# Renderers
 # =========================
 
 def render_home_text(extra: str = "") -> str:
     text = (
-        "AARS Telegram Control Console v8\n"
-        "Mode: Multi Project\n\n"
+        "AARS Telegram Control Console v9\n"
+        "Mode: Rule Inspector\n\n"
         "== Current Summary ==\n"
         f"{get_session_summary()}"
     )
@@ -316,6 +443,43 @@ def render_governance_text(extra: str = "") -> str:
     )
     if extra:
         text += f"\n\n== Governance Output ==\n{extra}"
+    return text
+
+
+def render_rule_inspector_text(extra: str = "") -> str:
+    text = (
+        "AARS Console — Rule Inspector\n\n"
+        "== Current Summary ==\n"
+        f"{get_session_summary()}"
+    )
+    if extra:
+        text += f"\n\n== Rule Output ==\n{extra}"
+    return text
+
+
+def render_rule_config_text(extra: str = "") -> str:
+    text = (
+        "AARS Console — Rule Config\n\n"
+        "== Current Summary ==\n"
+        f"{get_session_summary()}\n\n"
+        "== Rule Configuration ==\n"
+        f"{read_rule_config_text()}"
+    )
+    if extra:
+        text += f"\n\n== Result ==\n{extra}"
+    return text
+
+
+def render_rule_change_logs_text(extra: str = "") -> str:
+    text = (
+        "AARS Console — Rule Change Logs\n\n"
+        "== Current Summary ==\n"
+        f"{get_session_summary()}\n\n"
+        "== Change Log ==\n"
+        f"{read_rule_change_logs_text()}"
+    )
+    if extra:
+        text += f"\n\n== Result ==\n{extra}"
     return text
 
 
@@ -367,25 +531,22 @@ async def safe_edit(query, text: str, reply_markup: InlineKeyboardMarkup) -> Non
 # =========================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    load_rule_config_from_storage()
     await update.message.reply_text(render_home_text(), reply_markup=build_home_menu())
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = (
-        "Multi Project 已启用。\n"
+        "Rule Inspector 已启用。\n"
         "新增能力：\n"
-        "- Project List\n"
-        "- Switch Active Project\n"
-        "- Archive Current Project"
+        "- 查看 Rule Registry\n"
+        "- Inspect deeper_progression / closure / review"
     )
     await update.message.reply_text(text, reply_markup=build_home_menu())
 
 
 async def projects_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text(
-        render_project_list_text(),
-        reply_markup=build_project_list_menu(),
-    )
+    await update.message.reply_text(render_project_list_text(), reply_markup=build_project_list_menu())
 
 
 async def use_project_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -444,10 +605,7 @@ async def spawn(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     session = orchestrator.spawn_agents(session, count)
     storage.save_active_session(session)
 
-    await update.message.reply_text(
-        render_runtime_text(f"已启动 {count} 个 agent。"),
-        reply_markup=build_runtime_menu(),
-    )
+    await update.message.reply_text(render_runtime_text(f"已启动 {count} 个 agent。"), reply_markup=build_runtime_menu())
 
 
 async def run_step(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -488,10 +646,7 @@ async def stable_view(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     session = orchestrator.generate_stable_view(session)
     storage.save_active_session(session)
 
-    await update.message.reply_text(
-        render_stable_view_text(read_stable_view_text()),
-        reply_markup=build_stable_view_menu(),
-    )
+    await update.message.reply_text(render_stable_view_text(read_stable_view_text()), reply_markup=build_stable_view_menu())
 
 
 async def closure(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -515,10 +670,7 @@ async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     session = orchestrator.pause_session(session)
     storage.save_active_session(session)
-    await update.message.reply_text(
-        render_project_text(f"项目已暂停：{session.name}"),
-        reply_markup=build_project_menu(),
-    )
+    await update.message.reply_text(render_project_text(f"项目已暂停：{session.name}"), reply_markup=build_project_menu())
 
 
 # =========================
@@ -547,6 +699,15 @@ async def button_router(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         await safe_edit(query, render_governance_text(), build_governance_menu())
         return
 
+    if data == "nav:rule_inspector":
+        await safe_edit(query, render_rule_inspector_text("Choose a rule group to inspect."), build_rule_inspector_menu())
+        return
+
+    if data == "nav:rule_config":
+        load_rule_config_from_storage()
+        await safe_edit(query, render_rule_config_text(), build_rule_config_menu())
+        return
+
     if data == "nav:stable_view":
         await safe_edit(query, render_stable_view_text(), build_stable_view_menu())
         return
@@ -560,7 +721,7 @@ async def button_router(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         return
 
     if data == "action:new_project":
-        session = orchestrator.create_project("AARS Governed Project Multi")
+        session = orchestrator.create_project("AARS Governed Project Inspector")
         storage.save_active_session(session)
         result = (
             f"项目已创建并设为 active\n"
@@ -584,11 +745,7 @@ async def button_router(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             return
 
         storage.set_active_project_id(project_id)
-        await safe_edit(
-            query,
-            render_project_text(f"Switched active project to: {session.name} ({session.project_id})"),
-            build_project_menu(),
-        )
+        await safe_edit(query, render_project_text(f"Switched active project to: {session.name} ({session.project_id})"), build_project_menu())
         return
 
     if data == "action:archive_current":
@@ -598,11 +755,7 @@ async def button_router(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             return
 
         storage.archive_project(session.project_id)
-        await safe_edit(
-            query,
-            render_project_text(f"Archived project: {session.name} ({session.project_id})"),
-            build_project_menu(),
-        )
+        await safe_edit(query, render_project_text(f"Archived project: {session.name} ({session.project_id})"), build_project_menu())
         return
 
     if data == "action:status":
@@ -708,6 +861,40 @@ async def button_router(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             await safe_edit(query, render_governance_text("当前没有活动项目。"), build_governance_menu())
             return
         await safe_edit(query, render_governance_text(read_gate_logs_text()), build_governance_menu())
+        return
+
+    if data == "action:rule_change_logs":
+        load_rule_config_from_storage()
+        await safe_edit(query, render_rule_change_logs_text(), build_governance_menu())
+        return
+
+    if data == "action:rule_registry":
+        await safe_edit(query, render_governance_text(read_rule_registry_text()), build_governance_menu())
+        return
+
+    if data.startswith("action:toggle_rule:"):
+        rule_name = data.split(":", 2)[2]
+        load_rule_config_from_storage()
+        ok = rule_registry.toggle_rule(rule_name, action_name="telegram_toggle_rule")
+
+        if ok:
+            save_rule_config_to_storage()
+            await safe_edit(
+                query,
+                render_rule_config_text(f"Toggled rule: {rule_name}"),
+                build_rule_config_menu(),
+            )
+        else:
+            await safe_edit(
+                query,
+                render_rule_config_text(f"Rule not found: {rule_name}"),
+                build_rule_config_menu(),
+            )
+        return
+
+    if data.startswith("action:inspect_rule_group:"):
+        group = data.split(":", 2)[2]
+        await safe_edit(query, render_rule_inspector_text(read_rule_group_inspection_text(group)), build_rule_inspector_menu())
         return
 
     if data == "action:jump_step_1":

@@ -1,0 +1,5 @@
+signal_thresholds:
+  alert_edge_min: 0.75
+  watch_edge_min: 0.25
+  high_confidence_min: 0.8
+  medium_confidence_min: 0.5

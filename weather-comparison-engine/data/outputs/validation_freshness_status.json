@@ -1,0 +1,12 @@
+{
+  "schema_version": "validation_freshness_status.v1",
+  "generated_at": "2026-04-19T14:32:04.509546+00:00",
+  "status": "blocked",
+  "validation_generated_at": "2026-04-18T01:13:41.243208+00:00",
+  "freshness_seconds": 134303.266338,
+  "warning_after_seconds": 3600,
+  "stale_after_seconds": 5400,
+  "probability_mode": "unknown",
+  "execution_constraint": "manual_advisory_only",
+  "reason": "validation_report_stale"
+}

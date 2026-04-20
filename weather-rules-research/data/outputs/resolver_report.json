@@ -1,0 +1,119 @@
+{
+  "schema_version": "resolver_report.v2",
+  "generated_at": "2026-04-19T14:29:36.334321+00:00",
+  "tracked_markets": 3,
+  "matched": 3,
+  "unmatched": 0,
+  "family_counts": {
+    "station_temperature": 1,
+    "global_temperature_index": 1,
+    "sea_ice_extent": 1
+  },
+  "matched_family_counts": {
+    "station_temperature": 1,
+    "global_temperature_index": 1,
+    "sea_ice_extent": 1
+  },
+  "unmatched_family_counts": {},
+  "source_match_grade_counts": {
+    "exact_station": 1,
+    "family_exact": 2
+  },
+  "source_policy_counts": {
+    "official": 2,
+    "proxy": 1
+  },
+  "rules": [
+    {
+      "schema_version": "resolved_market_rule.v2",
+      "resolver_contract_version": "resolver_contract.v1",
+      "market_id": "390826",
+      "market_question": "Highest temperature in Shanghai on April 20?",
+      "resolver_status": "matched",
+      "resolver_reason": "matched_by_question_and_location",
+      "resolver_name": "station_temperature_resolver",
+      "resolver_confidence": 0.93,
+      "market_family": "station_temperature",
+      "resolution_scope": "station_weather",
+      "supported_by_current_pipeline": true,
+      "required_data_source": "wunderground_zspd",
+      "required_sources": [
+        "wunderground_zspd_history",
+        "wunderground_zspd_realtime",
+        "forecast_station_mapping"
+      ],
+      "band_scheme": "temperature_4_bucket",
+      "settlement_source_type": "station_observation",
+      "official_vs_proxy_source": "official",
+      "source_match_grade": "exact_station",
+      "official_source_url": "https://www.wunderground.com/history/weekly/cn/shanghai/ZSPD",
+      "source_note": "Shanghai weather markets are pinned to Pudong Airport (ZSPD).",
+      "location_name": "Shanghai",
+      "station_name": "Shanghai Pudong International Airport",
+      "station_id": "ZSPD",
+      "target_date": "Apr 14",
+      "variable_name": "daily_max_temperature",
+      "timezone": "Asia/Shanghai",
+      "unit": "celsius",
+      "source_rule_market_id": "sample_market_shanghai_001"
+    },
+    {
+      "schema_version": "resolved_market_rule.v2",
+      "resolver_contract_version": "resolver_contract.v1",
+      "market_id": "678686",
+      "market_question": "Will 2026 be the hottest year on record?",
+      "resolver_status": "matched",
+      "resolver_reason": "global_temperature_index_snapshot_expected",
+      "resolver_name": "global_temperature_index_resolver",
+      "resolver_confidence": 0.85,
+      "market_family": "global_temperature_index",
+      "resolution_scope": "global_index",
+      "supported_by_current_pipeline": true,
+      "required_data_source": "global_temperature_index_snapshot",
+      "required_sources": [
+        "global_temperature_index_snapshot"
+      ],
+      "band_scheme": "global_temperature_index_ordinal",
+      "settlement_source_type": "climate_index_rank",
+      "official_vs_proxy_source": "proxy",
+      "source_match_grade": "family_exact",
+      "official_source_url": "https://berkeleyearth.org/data/",
+      "source_note": "Global temperature rank markets are matched at the family level. Exact settlement wording should still be reviewed before live promotion.",
+      "location_name": "UNKNOWN",
+      "question_mode": "ordinal_hottest_year",
+      "ordinal_rank": 1,
+      "expected_band": "top_1",
+      "comparison_hint": "Compare the climate index outcome against hottest-year rank 1."
+    },
+    {
+      "schema_version": "resolved_market_rule.v2",
+      "resolver_contract_version": "resolver_contract.v1",
+      "market_id": "693874",
+      "market_question": "Will the minimum Arctic sea ice extent this summer be between 4.8m & 5m square kilometers?",
+      "resolver_status": "matched",
+      "resolver_reason": "sea_ice_extent_snapshot_expected",
+      "resolver_name": "sea_ice_extent_resolver",
+      "resolver_confidence": 0.85,
+      "market_family": "sea_ice_extent",
+      "resolution_scope": "global_index",
+      "supported_by_current_pipeline": true,
+      "required_data_source": "nsidc_arctic_sea_ice_extent",
+      "required_sources": [
+        "nsidc_arctic_sea_ice_extent"
+      ],
+      "band_scheme": "sea_ice_range_3way",
+      "settlement_source_type": "climate_index_snapshot",
+      "official_vs_proxy_source": "official",
+      "source_match_grade": "family_exact",
+      "official_source_url": "https://nsidc.org/arcticseaicenews/",
+      "source_note": "Sea ice extent markets use an NSIDC-style extent snapshot contract.",
+      "location_name": "UNKNOWN",
+      "unit": "million_sq_km",
+      "question_mode": "between",
+      "threshold_lower": 4.8,
+      "threshold_upper": 5.0,
+      "expected_band": "in_range",
+      "comparison_hint": "Compare observed sea ice extent against the stated range."
+    }
+  ]
+}

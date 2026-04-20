@@ -1,0 +1,8 @@
+{
+  "intent_id": "intent_0252ec141b",
+  "status": "blocked",
+  "mode": "dry_run",
+  "accepted": false,
+  "reason": "execution_disabled_dry_run_only",
+  "simulated_order_id": null
+}

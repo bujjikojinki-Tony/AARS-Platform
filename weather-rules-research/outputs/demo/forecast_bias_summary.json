@@ -1,0 +1,8 @@
+{
+  "sample_size": 2,
+  "mean_error_c": -0.05,
+  "mae_c": 0.85,
+  "rmse_c": 0.851,
+  "band_c": 2.0,
+  "band_hit_rate": 1.0
+}

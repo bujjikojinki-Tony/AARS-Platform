@@ -1,0 +1,47 @@
+{
+  "schema_version": "label_coverage_report.v1",
+  "generated_at": "2026-04-19T14:32:04.509546+00:00",
+  "status": "blocked",
+  "tracked_rows": 40,
+  "labeled_rows": 4,
+  "unlabeled_rows": 36,
+  "labeled_ratio": 0.1,
+  "minimum_labeled_rows": 25,
+  "minimum_labeled_ratio": 0.2,
+  "minimum_family_labeled_rows": 3,
+  "official_record_count": 4,
+  "validation_sample_count": 40,
+  "validation_labeled_sample_count": 4,
+  "market_family_coverage": {
+    "global_temperature_index": {
+      "tracked_rows": 12,
+      "labeled_rows": 2,
+      "labeled_ratio": 0.166667,
+      "status": "blocked"
+    },
+    "sea_ice_extent": {
+      "tracked_rows": 15,
+      "labeled_rows": 1,
+      "labeled_ratio": 0.066667,
+      "status": "blocked"
+    },
+    "unknown": {
+      "tracked_rows": 13,
+      "labeled_rows": 1,
+      "labeled_ratio": 0.076923,
+      "status": "blocked"
+    }
+  },
+  "official_source_counts": {
+    "sample.global_temperature_index": 1,
+    "sample.nsidc_sea_ice_extent": 1,
+    "sample.station_settlement": 2
+  },
+  "blockers": [
+    "labeled_rows_below_min",
+    "labeled_ratio_below_min",
+    "family:global_temperature_index:labeled_rows_below_min",
+    "family:sea_ice_extent:labeled_rows_below_min",
+    "family:unknown:labeled_rows_below_min"
+  ]
+}

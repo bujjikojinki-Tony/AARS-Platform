@@ -1,0 +1,18 @@
+execution:
+  enabled: false
+  require_approval: true
+  mode: dry_run
+
+pricing:
+  max_slippage_pct: 0.02
+  max_price_drift_pct: 0.02
+
+exposure:
+  max_notional_per_market: 100
+  max_total_notional: 500
+
+timing:
+  min_minutes_to_resolution: 180
+
+safety:
+  kill_switch_enabled: true

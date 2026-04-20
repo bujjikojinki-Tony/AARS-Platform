@@ -1,3 +1,35 @@
+---
+title: CASE-NPP-DGM-01_Case_File_v0
+doc_type: case_file
+project: Pilot_001_CDA
+domain: nuclear_design_construction
+case_id: CASE-NPP-DGM-01
+version: v0
+status: reviewable
+stability: conditionally_stable
+aars_step: bounded_case_design
+scene: design_change_impact_analysis_model
+scope_type: bounded_case
+tags:
+  - AARS
+  - CDA
+  - DGM
+  - nuclear
+  - case
+  - design-change
+  - bounded-case
+---
+## Links
+- Project: [[Pilot_001_CDA_Project_Charter]]
+- Mapping: [[CDA_Legacy_to_AARS_vNext_Mapping]]
+- Capability Catalog: [[CDA_Capability_Catalog_v0]]
+- Review: [[Pilot_001_DGM_Final_Review_Note_v1]]
+- Strengthening: [[DGM_Second_Pass_Strengthening_Note_v0]]
+- Baseline: [[DGM_Glossary_Taxonomy_Mini_Baseline_v0]]
+- Dependency: [[DEP-NPP-DGM-01_v0]]
+- Risk: [[RISK-NPP-DGM-01_v0]]
+- Health: [[HEALTH-NPP-DGM-01_v0]]
+- Control: [[CTRL-NPP-DGM-01_v0]]
 # CASE-NPP-DGM-01_Case_File_v0
 
 **Document Type**: Case File  

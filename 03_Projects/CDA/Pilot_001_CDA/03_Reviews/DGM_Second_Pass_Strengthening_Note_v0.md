@@ -1,3 +1,32 @@
+---
+title: DGM_Second_Pass_Strengthening_Note_v0
+doc_type: strengthening_note
+project: Pilot_001_CDA
+domain: nuclear_design_construction
+case_id: CASE-NPP-DGM-01
+version: v0
+status: reviewable
+stability: improved_but_reviewable
+aars_step: final_review
+strengthening_round: second_pass
+scope_type: bounded_case
+tags:
+  - AARS
+  - CDA
+  - DGM
+  - strengthening
+  - second-pass
+  - nuclear
+  - review
+---
+## Links
+- Case: [[CASE-NPP-DGM-01_Case_File_v0]]
+- Dependency: [[DEP-NPP-DGM-01_v0]]
+- Risk: [[RISK-NPP-DGM-01_v0]]
+- Health: [[HEALTH-NPP-DGM-01_v0]]
+- Control: [[CTRL-NPP-DGM-01_v0]]
+- Final Review: [[Pilot_001_DGM_Final_Review_Note_v1]]
+- Baseline: [[DGM_Glossary_Taxonomy_Mini_Baseline_v0]]
 # DGM_Second_Pass_Strengthening_Note_v0
 
 **Document Type**: Second-Pass Strengthening Note  

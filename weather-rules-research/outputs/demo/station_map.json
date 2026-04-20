@@ -1,0 +1,38 @@
+[
+  {
+    "market_id": "poly-daily-high-central-park-001",
+    "station": {
+      "station_id": "KNYC",
+      "station_name": "New York City Central Park",
+      "city": "Central Park",
+      "provider": "manual_whitelist",
+      "latitude": 40.78,
+      "longitude": -73.97,
+      "timezone": "America/New_York",
+      "source": "manual_whitelist",
+      "aliases": [
+        "NYC Central Park",
+        "New York Central Park",
+        "Central Park NYC"
+      ]
+    }
+  },
+  {
+    "market_id": "poly-daily-low-changi-001",
+    "station": {
+      "station_id": "WSSS",
+      "station_name": "Singapore Changi Airport",
+      "city": "Singapore Changi Airport",
+      "provider": "manual_whitelist",
+      "latitude": 1.36,
+      "longitude": 103.99,
+      "timezone": "Asia/Singapore",
+      "source": "manual_whitelist",
+      "aliases": [
+        "Singapore Changi",
+        "Changi Airport",
+        "Singapore Airport"
+      ]
+    }
+  }
+]

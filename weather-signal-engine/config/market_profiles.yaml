@@ -1,0 +1,5 @@
+market_profiles:
+  daily_high_temperature:
+    variable_name: daily_max_temperature
+    default_unit: C
+    supported_edge: model_band_vs_market_expectation

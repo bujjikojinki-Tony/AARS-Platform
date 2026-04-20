@@ -1,0 +1,11 @@
+{
+  "intent_id": "intent_a164353bcc",
+  "market_id": "sample_market_001",
+  "signal_id": "sig_1",
+  "side": "buy",
+  "price": 0.42,
+  "size": 10.0,
+  "post_only": true,
+  "max_slippage_pct": 0.02,
+  "approved": true
+}

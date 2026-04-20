@@ -1,0 +1,16 @@
+{
+  "schema_version": "official_label_summary.v1",
+  "generated_at": "2026-04-18T00:59:35.514223+00:00",
+  "record_count": 4,
+  "market_family_counts": {
+    "global_temperature_index": 1,
+    "sea_ice_extent": 1,
+    "station_temperature": 2
+  },
+  "source_counts": {
+    "sample.global_temperature_index": 1,
+    "sample.nsidc_sea_ice_extent": 1,
+    "sample.station_settlement": 2
+  },
+  "note": "Snapshot-grade official labels are persisted for market families whose final observable state can be derived from current external snapshots."
+}

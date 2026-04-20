@@ -8,3 +8,12 @@
 ## Existing Formal Structure
 - Current AARS knowledge notes live under `02_Knowledge/AARS/` with glossary, schemas, templates, and summary sections already present.
 - There is no current specs directory, so adding `02_Knowledge/AARS/05_Specs/` is the cleanest canonical target.
+
+## Polymarket Bot Research
+- Existing workspace already contains a small Telegram bot scaffold under `telegram-aars-bot/`, which may be reusable for operator command UX and notification patterns.
+- This research track needs two distinct outputs: GitHub ecosystem capability mapping and a target-system recommendation that is safer than a copy-paste trading bot.
+- Official Polymarket repositories provide a solid execution foundation: authenticated CLOB SDKs in Python/TypeScript plus an official market-maker keeper with midpoint-driven re-quoting loops.
+- Official WebSocket coverage is asymmetric for this use case: market channels are public and useful for signal detection, while user channels only cover the bot owner's own account, so whale tracking needs chain analytics or third-party wallet event feeds.
+- `structbuild/polymarket-telegram-alerts-bot` is the strongest reference for Telegram-side monitor UX, filter state, webhook verification, and subscriber routing.
+- `voicegn/polymarket-bot` contains real code for copy-trade and smart execution patterns, but some data dependencies appear to rely on weakly documented public endpoints and should not be treated as stable infrastructure.
+- The most defensible product path is phased: alerting first, decision support second, controlled execution third, maker-follow last and isolated.

@@ -1,0 +1,4 @@
+PROBABILITY_CONTRACT_VERSION = "probability_contract.v1"
+UNIFIED_STATUS_CONTRACT_VERSION = "unified_status.v1"
+EXECUTION_INTENT_CONTRACT_VERSION = "execution_intent.v1"
+

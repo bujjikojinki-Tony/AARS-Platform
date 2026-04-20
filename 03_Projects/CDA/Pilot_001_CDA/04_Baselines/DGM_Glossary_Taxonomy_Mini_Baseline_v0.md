@@ -1,3 +1,33 @@
+---
+title: DGM_Glossary_Taxonomy_Mini_Baseline_v0
+doc_type: glossary_taxonomy_mini_baseline
+project: Pilot_001_CDA
+domain: nuclear_design_construction
+case_id: CASE-NPP-DGM-01
+version: v0
+status: reviewable
+stability: more_stable
+aars_step: terminology_concept_stabilization
+baseline_scope: bounded_case_labels
+scope_type: bounded_case
+tags:
+  - AARS
+  - CDA
+  - DGM
+  - glossary
+  - taxonomy
+  - baseline
+  - nuclear
+---
+## Links
+- Project: [[Pilot_001_CDA_Project_Charter]]
+- Case: [[CASE-NPP-DGM-01_Case_File_v0]]
+- Dependency: [[DEP-NPP-DGM-01_v0]]
+- Risk: [[RISK-NPP-DGM-01_v0]]
+- Health: [[HEALTH-NPP-DGM-01_v0]]
+- Control: [[CTRL-NPP-DGM-01_v0]]
+- Final Review: [[Pilot_001_DGM_Final_Review_Note_v1]]
+- Strengthening: [[DGM_Second_Pass_Strengthening_Note_v0]]
 # DGM_Glossary_Taxonomy_Mini_Baseline_v0
 
 **Document Type**: Glossary + Taxonomy Mini-Baseline  

@@ -1,0 +1,5 @@
+cities:
+  - canonical_name: Central Park
+    timezone: America/New_York
+    latitude: 40.78
+    longitude: -73.97

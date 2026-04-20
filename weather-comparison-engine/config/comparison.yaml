@@ -1,0 +1,6 @@
+comparison:
+  band_order:
+    - 26_or_below
+    - 27
+    - 28
+    - 29_plus

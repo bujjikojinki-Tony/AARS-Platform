@@ -1,0 +1,29 @@
+{
+  "schema_version": "feature_store_summary.v1",
+  "generated_at": "2026-04-18T00:59:34.962412+00:00",
+  "tracked_rows": 40,
+  "tracked_markets": 13,
+  "labeled_rows": 4,
+  "unlabeled_rows": 36,
+  "market_family_counts": {
+    "unknown": 13,
+    "sea_ice_extent": 15,
+    "global_temperature_index": 12
+  },
+  "comparison_status_counts": {
+    "aligned": 3,
+    "unknown": 10,
+    "strong_divergence": 6,
+    "market_mismatch": 2,
+    "unmatched_rule": 17,
+    "mild_divergence": 2
+  },
+  "label_counts": {
+    "YES": 2,
+    "unlabeled": 36,
+    "NO": 2
+  },
+  "avg_abs_edge": 0.27,
+  "avg_abs_confidence_adjusted_edge": 0.2295,
+  "note": "Phase 7 feature store is point-in-time from comparison history with optional official-label join. Official labels remain sparse until settlement-grade history is persisted."
+}

@@ -1,0 +1,58 @@
+{
+  "schema_version": "calibration_report.v1",
+  "generated_at": "2026-04-18T01:13:41.243208+00:00",
+  "model_probability": {
+    "sample_count": 3,
+    "bucket_count": 10,
+    "probability_field": "model_probability",
+    "brier_score": 0.1628,
+    "log_loss": 0.510826,
+    "calibration_error": 0.393333,
+    "hit_rate": 0.666667,
+    "reliability_curve": [
+      {
+        "bucket": 4,
+        "bucket_start": 0.4,
+        "bucket_end": 0.5,
+        "count": 1,
+        "avg_probability": 0.4,
+        "empirical_yes_rate": 0.0
+      },
+      {
+        "bucket": 5,
+        "bucket_start": 0.5,
+        "bucket_end": 0.6,
+        "count": 1,
+        "avg_probability": 0.5,
+        "empirical_yes_rate": 0.0
+      },
+      {
+        "bucket": 7,
+        "bucket_start": 0.7,
+        "bucket_end": 0.8,
+        "count": 1,
+        "avg_probability": 0.72,
+        "empirical_yes_rate": 1.0
+      }
+    ]
+  },
+  "market_probability_baseline": {
+    "sample_count": 1,
+    "bucket_count": 10,
+    "probability_field": "market_probability",
+    "brier_score": 0.4489,
+    "log_loss": 1.108663,
+    "calibration_error": 0.67,
+    "hit_rate": 0.0,
+    "reliability_curve": [
+      {
+        "bucket": 6,
+        "bucket_start": 0.6,
+        "bucket_end": 0.7,
+        "count": 1,
+        "avg_probability": 0.67,
+        "empirical_yes_rate": 0.0
+      }
+    ]
+  }
+}

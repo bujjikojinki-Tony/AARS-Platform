@@ -1,0 +1,21 @@
+{
+  "schema_version": "resolved_market_rule.v1",
+  "market_id": "693870",
+  "market_question": "Will the minimum Arctic sea ice extent this summer be between 4.0m & 4.2m square kilometers?",
+  "resolver_status": "matched",
+  "resolver_reason": "sea_ice_extent_snapshot_expected",
+  "resolver_name": "sea_ice_extent_resolver",
+  "resolver_confidence": 0.85,
+  "market_family": "sea_ice_extent",
+  "resolution_scope": "global_index",
+  "supported_by_current_pipeline": true,
+  "required_data_source": "nsidc_arctic_sea_ice_extent",
+  "band_scheme": "sea_ice_range_3way",
+  "location_name": "UNKNOWN",
+  "unit": "million_sq_km",
+  "question_mode": "between",
+  "threshold_lower": 4.0,
+  "threshold_upper": 4.2,
+  "expected_band": "in_range",
+  "comparison_hint": "Compare observed sea ice extent against the stated range."
+}

@@ -1,0 +1,43 @@
+{
+  "timestamp": "2026-04-19T12:40:33.847710+00:00",
+  "market_id": "678686",
+  "market_question": "Will 2026 be the hottest year on record?",
+  "location_name": "UNKNOWN",
+  "target_date": null,
+  "variable_name": "global_temperature_index",
+  "value": 3,
+  "model_band": "top_3",
+  "band_scheme": "global_temperature_index_ordinal",
+  "confidence_score": 1.0,
+  "source_mode": "global_temperature_index.snapshot",
+  "notes": "Sample climate index snapshot for the third-hottest-year market.",
+  "rule_status": "matched_index",
+  "rule_market_id": "678686",
+  "station_name": null,
+  "station_id": null,
+  "market_family": "global_temperature_index",
+  "resolution_scope": "global_index",
+  "supported_by_current_pipeline": true,
+  "required_data_source": "global_temperature_index_snapshot",
+  "taxonomy_notes": "Supported by a climate index snapshot feed.",
+  "resolution_snapshot": {
+    "market_family": "global_temperature_index",
+    "resolution_scope": "global_index",
+    "supported_by_current_pipeline": true,
+    "required_data_source": "global_temperature_index_snapshot",
+    "band_scheme": "global_temperature_index_ordinal",
+    "question_mode": "ordinal_hottest_year",
+    "ordinal_rank": 1,
+    "expected_band": "top_1",
+    "comparison_hint": "Compare the climate index outcome against hottest-year rank 1."
+  },
+  "index_snapshot": {
+    "timestamp": "2026-04-13T12:00:00+00:00",
+    "market_id": "693875",
+    "year": 2026,
+    "ordinal_rank": 3,
+    "band": "top_3",
+    "source": "sample.global_temperature_index",
+    "notes": "Sample climate index snapshot for the third-hottest-year market."
+  }
+}

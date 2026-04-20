@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-04-17T00:00:00+00:00",
+  "season_year": 2026,
+  "minimum_extent": 4.1,
+  "unit": "million_sq_km",
+  "source": "sample.nsidc_sea_ice_extent",
+  "notes": "Sample Arctic sea ice minimum extent snapshot for Phase 6 resolver coverage."
+}

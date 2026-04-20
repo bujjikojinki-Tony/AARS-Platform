@@ -1,0 +1,86 @@
+{
+  "flowId": "FLOW-001",
+  "goalId": "GOAL-001",
+  "taskId": "TASK-001",
+  "title": "AARS current step state synchronization",
+  "currentNodeId": "N2",
+  "overallStatus": "active",
+  "nodes": [
+    {
+      "id": "N1",
+      "title": "Analyze current state",
+      "description": "Inspect the current app flow and identify stale state behavior after jump.",
+      "owner": "gpt",
+      "status": "accepted",
+      "order": 1,
+      "riskLevel": "low",
+      "notes": [
+        "Formal flow already restored.",
+        "Jumped step may still render stale process state."
+      ]
+    },
+    {
+      "id": "N2",
+      "title": "Implement state sync fix",
+      "description": "Update App and step status presentation so active step and viewed step are kept consistent.",
+      "owner": "codex",
+      "status": "running",
+      "order": 2,
+      "riskLevel": "medium",
+      "relatedFiles": [
+        "src/App.tsx",
+        "src/ui/StepStatusBar.tsx",
+        "src/pages/CurrentStepPage.tsx"
+      ],
+      "notes": [
+        "Prefer minimal change footprint.",
+        "Do not expand into routing redesign."
+      ]
+    },
+    {
+      "id": "N3",
+      "title": "Run validation",
+      "description": "Check jump behavior, process map state, and badge consistency.",
+      "owner": "codex",
+      "status": "planned",
+      "order": 3,
+      "riskLevel": "medium"
+    },
+    {
+      "id": "N4",
+      "title": "Review implementation",
+      "description": "Review scope adherence and determine whether the result is acceptable as stable progression.",
+      "owner": "gpt",
+      "status": "planned",
+      "order": 4,
+      "riskLevel": "low"
+    },
+    {
+      "id": "N5",
+      "title": "Update Stable View",
+      "description": "Accept the current bounded result as the latest stable state and define safe next moves.",
+      "owner": "gpt",
+      "status": "planned",
+      "order": 5,
+      "riskLevel": "low"
+    }
+  ],
+  "latestReview": {
+    "reviewId": "REV-000",
+    "nodeId": "N1",
+    "decision": "accept",
+    "summary": "State analysis accepted as current baseline."
+  },
+  "latestStableView": {
+    "stableViewId": "SV-000",
+    "summary": "Formal flow restored; runtime console remains auxiliary.",
+    "acceptedChanges": [
+      "Overview as default formal entry",
+      "Closure page refactored to payload-driven structure"
+    ],
+    "safeNextMoves": [
+      "Fix state sync after jump",
+      "Validate blocked/skipped rendering"
+    ]
+  }
+}

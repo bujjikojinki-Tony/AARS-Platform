@@ -1,0 +1,17 @@
+{
+  "market_id": "678686",
+  "market_question": "Will 2026 be the hottest year on record?",
+  "location_name": "UNKNOWN",
+  "updated_at": "2026-04-19T12:15:30.509627+00:00",
+  "favored_side": "yes",
+  "market_probability": 0.35,
+  "market_family": "global_temperature_index",
+  "market_band": "top_3",
+  "market_band_scheme": "global_temperature_index_ordinal",
+  "market_band_label": "ordinal_rank",
+  "market_band_lower": null,
+  "market_band_upper": null,
+  "market_band_unit": "ordinal_rank",
+  "yes_price": 0.35,
+  "no_price": 0.35
+}

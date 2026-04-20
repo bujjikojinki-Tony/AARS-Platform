@@ -1,0 +1,473 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { 
+  Shield, 
+  AlertTriangle, 
+  CheckCircle2, 
+  Info, 
+  Lock, 
+  Unlock, 
+  TrendingUp, 
+  Activity, 
+  ChevronRight, 
+  ChevronDown,
+  Cpu,
+  Zap,
+  Layers,
+  BarChart3
+} from 'lucide-react';
+
+// --- 模拟规程数据 (基于 E-0 紧急操作程序) ---
+const PROCEDURE_DATA = {
+  id: "E-0",
+  title: "反应堆跳闸或安全注入",
+  steps: [
+    { id: 1, title: "验证反应堆已跳闸", status: "completed", logic: "确认所有控制棒底灯亮且中子通量下降。" },
+    { id: 2, title: "验证汽轮机已跳闸", status: "completed", logic: "确认主汽门已关闭且发电机输出功率为零。" },
+    { id: 3, title: "核实交流应急母线带电", status: "active", logic: "检查母线电压 > 370V 且柴油发电机运行正常。" },
+    { id: 4, title: "检查安注水箱 (RWST) 液位", status: "pending", logic: "若液位低于低限，需手动切换吸入口。" },
+    { id: 5, title: "控制主汽隔离阀 (MSIV)", status: "pending", logic: "基于二回路降压速率判断是否隔离。" }
+  ]
+};
+
+// --- 子组件: CSF (关键安全功能) 雷达图 ---
+const CSFRadar = () => (
+  <div className="relative w-40 h-40 flex items-center justify-center">
+    <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-2xl">
+      {/* 背景圆环 */}
+      <circle cx="50" cy="50" r="45" fill="none" stroke="#334155" strokeWidth="0.5" strokeDasharray="2" />
+      <circle cx="50" cy="50" r="30" fill="none" stroke="#334155" strokeWidth="0.5" strokeDasharray="2" />
+      
+      {/* 坐标轴线 */}
+      {[0, 60, 120, 180, 240, 300].map(deg => (
+        <line 
+          key={deg} 
+          x1="50" y1="50" 
+          x2={50 + 45 * Math.cos(deg * Math.PI / 180)} 
+          y2={50 + 45 * Math.sin(deg * Math.PI / 180)} 
+          stroke="#475569" strokeWidth="0.5" 
+        />
+      ))}
+
+      {/* 态势多边形 - 动态模拟电厂安全边界 */}
+      <polygon 
+        points="50,15 80,40 75,70 50,85 25,70 20,40" 
+        fill="rgba(34, 197, 94, 0.2)" 
+        stroke="#22c55e" 
+        strokeWidth="1.5" 
+        className="animate-pulse"
+      />
+
+      {/* 标签 */}
+      <text x="50" y="8" fontSize="4" textAnchor="middle" fill="#94a3b8" fontWeight="bold">次临界</text>
+      <text x="92" y="40" fontSize="4" textAnchor="start" fill="#fbbf24" fontWeight="bold">核心冷却</text>
+      <text x="92" y="70" fontSize="4" textAnchor="start" fill="#94a3b8" fontWeight="bold">热阱</text>
+      <text x="50" y="97" fontSize="4" textAnchor="middle" fill="#94a3b8" fontWeight="bold">完整性</text>
+      <text x="8" y="70" fontSize="4" textAnchor="end" fill="#94a3b8" fontWeight="bold">容器</text>
+      <text x="8" y="40" fontSize="4" textAnchor="end" fill="#94a3b8" fontWeight="bold">水容量</text>
+    </svg>
+  </div>
+);
+
+// --- 主应用组件 ---
+export default function App() {
+  const [activeStepId, setActiveStepId] = useState(3);
+  const [showXaiLevel, setShowXaiLevel] = useState(1);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [pressure, setPressure] = useState(15.2);
+  const [temp, setTemp] = useState(312.4);
+  const [aiConfidence, setAiConfidence] = useState(96);
+
+  // 模拟传感器实时数据波动
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPressure(p => +(p + (Math.random() - 0.5) * 0.05).toFixed(2));
+      setTemp(t => +(t + (Math.random() - 0.5) * 0.1).toFixed(1));
+      setAiConfidence(c => Math.max(92, Math.min(99, +(c + (Math.random() - 0.5)).toFixed(1))));
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="flex flex-col h-screen w-full bg-[#0f172a] text-slate-100 font-sans overflow-hidden select-none">
+      
+      {/* --- 顶部全局状态显示 (Header) --- */}
+      <header className="h-20 border-b border-slate-700 bg-slate-900/80 backdrop-blur-md px-8 flex items-center justify-between z-10">
+        <div className="flex items-center gap-5">
+          <div className="p-2.5 bg-blue-600 rounded-xl shadow-lg shadow-blue-900/20">
+            <Shield className="w-7 h-7 text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+              AI-CPS 智能规程控制系统
+            </h1>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[10px] px-1.5 py-0.5 bg-slate-800 rounded text-slate-400 font-mono border border-slate-700">
+                PROV: {PROCEDURE_DATA.id}
+              </span>
+              <p className="text-xs text-slate-500 font-medium">当前任务: {PROCEDURE_DATA.title}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-10">
+          <div className="flex gap-6 border-l border-slate-700 pl-10">
+            <div className="text-right">
+              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">一回路压力 (PZR)</p>
+              <p className={`text-xl font-mono font-bold ${pressure > 15.5 ? 'text-red-400' : 'text-emerald-400'}`}>
+                {pressure} <span className="text-xs ml-1">MPa</span>
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">堆芯平均温度</p>
+              <p className="text-xl font-mono font-bold text-sky-400">
+                {temp} <span className="text-xs ml-1">°C</span>
+              </p>
+            </div>
+          </div>
+          <CSFRadar />
+        </div>
+      </header>
+
+      {/* --- 主体双栏布局 (Main Content) --- */}
+      <main className="flex-1 flex overflow-hidden">
+        
+        {/* 左栏：标准规程执行区 (Procedural Logic) */}
+        <section className="w-[45%] border-r border-slate-700/50 bg-slate-900/30 flex flex-col">
+          <div className="p-5 bg-slate-800/40 border-b border-slate-700/50 flex justify-between items-center shadow-sm">
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-300 uppercase tracking-wider">
+              <Layers className="w-4 h-4 text-blue-400" />
+              规程逻辑序列 (Type-3 协同)
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+              <span className="text-[10px] text-emerald-500 font-bold uppercase">SSOT 实时同步中</span>
+            </div>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+            {PROCEDURE_DATA.steps.map((step) => (
+              <div 
+                key={step.id}
+                className={`relative group p-5 rounded-2xl border transition-all duration-500 ${
+                  step.status === 'active' 
+                  ? 'bg-blue-600/10 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.15)] ring-1 ring-blue-500/50' 
+                  : step.status === 'completed' 
+                  ? 'bg-slate-800/20 border-slate-800 opacity-50 grayscale-[0.5]' 
+                  : 'bg-slate-800/10 border-slate-800/50 hover:border-slate-700'
+                }`}
+              >
+                <div className="flex items-start gap-5">
+                  <div className={`mt-1 flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black shadow-inner ${
+                    step.status === 'completed' ? 'bg-emerald-500/20 text-emerald-500' : 
+                    step.status === 'active' ? 'bg-blue-600 text-white animate-bounce-subtle' : 'bg-slate-800 text-slate-600'
+                  }`}>
+                    {step.status === 'completed' ? <CheckCircle2 className="w-5 h-5" /> : step.id}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex justify-between items-start">
+                      <h3 className={`text-base font-bold ${step.status === 'active' ? 'text-white' : 'text-slate-400'}`}>
+                        {step.title}
+                      </h3>
+                      {step.status === 'active' && (
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-blue-500/20 rounded border border-blue-500/30">
+                           <Activity size={10} className="text-blue-400 animate-pulse" />
+                           <span className="text-[10px] text-blue-400 font-black tracking-tighter">执行中</span>
+                        </div>
+                      )}
+                    </div>
+                    <p className={`text-xs mt-2 leading-relaxed ${step.status === 'active' ? 'text-slate-300' : 'text-slate-500'}`}>
+                      {step.logic}
+                    </p>
+                  </div>
+                </div>
+                {/* 装饰性连接线 */}
+                {step.id !== 5 && (
+                  <div className="absolute left-9 bottom-[-20px] w-px h-5 bg-slate-800" />
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className="p-6 border-t border-slate-700/50 bg-slate-900/60 flex gap-3">
+            <button className="flex-1 py-3 bg-red-950/20 border border-red-900/50 text-red-500 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-900/30 transition-all active:scale-95">
+              紧急终止规程
+            </button>
+            <button className="flex-1 py-3 bg-slate-800 border border-slate-700 text-slate-400 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-700 transition-all active:scale-95">
+              降级/离线模式
+            </button>
+          </div>
+        </section>
+
+        {/* 右栏：AI 认知伙伴与 XAI 解释面板 (Cognitive Partner) */}
+        <section className="flex-1 flex flex-col bg-[#0b1120] relative">
+          
+          {/* AI 顶层核心建议面板 (Level 1) */}
+          <div className="m-6 p-6 rounded-[2rem] bg-gradient-to-br from-indigo-950/40 via-slate-900 to-slate-900 border border-indigo-500/20 shadow-2xl overflow-hidden relative">
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-600/10 rounded-full blur-[80px]" />
+            
+            <div className="flex items-start justify-between relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-indigo-500 rounded-2xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity" />
+                  <div className="relative p-3 bg-indigo-600/20 border border-indigo-400/30 rounded-2xl">
+                    <Cpu className="w-8 h-8 text-indigo-400" />
+                  </div>
+                </div>
+                <div>
+                  <h2 className="text-lg font-black text-white flex items-center gap-3 tracking-tight">
+                    AI 智能优化建议
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-500/20 text-indigo-400 rounded-full border border-indigo-500/30 font-mono text-[10px]">
+                      <Activity size={10} />
+                      置信度 {aiConfidence}%
+                    </div>
+                  </h2>
+                  <p className="text-sm text-indigo-100/70 mt-1 max-w-md leading-relaxed">
+                    系统检测到二回路压力下降过快，AI 建议<span className="text-white font-bold underline decoration-amber-500 underline-offset-4"> 立即隔离 V-101 阀门 </span>以维持蒸汽发生器液位。
+                  </p>
+                </div>
+              </div>
+              
+              <button 
+                onClick={() => setIsAuthorized(!isAuthorized)}
+                className={`group flex items-center gap-3 px-6 py-3 rounded-2xl font-black text-sm transition-all duration-300 shadow-xl ${
+                  isAuthorized 
+                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white ring-4 ring-emerald-500/10' 
+                  : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed grayscale'
+                }`}
+                disabled={!isAuthorized}
+              >
+                {isAuthorized ? <CheckCircle2 className="w-5 h-5 animate-pulse" /> : <Lock className="w-5 h-5" />}
+                {isAuthorized ? "确认执行" : "等待授权"}
+              </button>
+            </div>
+
+            {/* XAI 渐进式披露控制 (XAI Transparency Layers) */}
+            <div className="mt-8 border-t border-slate-700/50 pt-6">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-amber-500" />
+                  <span className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em]">可解释人工智能 (XAI) 证据链</span>
+                </div>
+                <div className="flex gap-1.5 bg-slate-950/50 p-1 rounded-xl border border-slate-800">
+                  {[
+                    { l: 1, n: '安全收益', icon: <Shield size={12}/> },
+                    { l: 2, n: '物理POE', icon: <Layers size={12}/> },
+                    { l: 3, n: '数字孪生', icon: <TrendingUp size={12}/> }
+                  ].map(level => (
+                    <button 
+                      key={level.l}
+                      onClick={() => setShowXaiLevel(level.l)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[11px] font-bold transition-all duration-300 ${
+                        showXaiLevel === level.l ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800'
+                      }`}
+                    >
+                      {level.icon} {level.n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 动态内容渲染 */}
+              <div className="min-h-[140px] bg-slate-950/30 rounded-2xl p-5 border border-slate-800/50 relative overflow-hidden">
+                {showXaiLevel === 1 && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-bottom-3">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+                        <p className="text-[10px] text-slate-500 font-bold uppercase">预期收益</p>
+                        <p className="text-sm text-emerald-400 font-bold mt-1">+15.4% 堆芯裕量</p>
+                      </div>
+                      <div className="p-3 rounded-xl bg-blue-500/5 border border-blue-500/10">
+                        <p className="text-[10px] text-slate-500 font-bold uppercase">合规对标</p>
+                        <p className="text-sm text-blue-400 font-bold mt-1">符合 IEEE 1786</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-400 italic leading-relaxed pl-3 border-l-2 border-indigo-500/50">
+                      "依据 RAG 技术检索：该工况与 2019 年 A 机组历史故障特征匹配度为 94.2%。执行该操作可防止二回路过冷导致的反应堆重临界风险。"
+                    </p>
+                  </div>
+                )}
+                {showXaiLevel === 2 && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-bottom-3">
+                    <div className="flex items-start gap-3 p-3 bg-red-500/5 border border-red-500/10 rounded-xl text-red-400">
+                      <AlertTriangle size={16} className="mt-0.5" />
+                      <div>
+                        <p className="text-xs font-bold">检测到逻辑冲突 (POE-2)</p>
+                        <p className="text-[10px] opacity-70">流量计 FI-203 与 PZR 压力趋势背离，暗示存在蒸汽泄漏。</p>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-800 font-mono text-[10px] leading-relaxed">
+                      <span className="text-indigo-400 font-bold">IF</span> [主蒸汽降压] <span className="text-slate-500">AND</span> [阀门状态 = OPEN] <br/>
+                      <span className="text-indigo-400 font-bold">THEN</span> <span className="text-amber-500 font-bold italic">PROBABLE [管线破裂]</span> <br/>
+                      <span className="text-slate-500">ROOT CAUSE: MSIV 卡涩或信号延迟</span>
+                    </div>
+                  </div>
+                )}
+                {showXaiLevel === 3 && (
+                  <div className="animate-in fade-in slide-in-from-bottom-3 space-y-4">
+                    <div className="flex justify-between items-center px-1">
+                       <p className="text-[10px] font-bold text-slate-500 uppercase">未来 30 分钟参数预测 (Digital Twin)</p>
+                       <span className="text-[10px] text-emerald-400 font-mono font-bold">预测精度: 98.7%</span>
+                    </div>
+                    <div className="h-20 flex items-end gap-1.5 px-2 border-b border-l border-slate-800/50">
+                      {[35, 42, 58, 75, 72, 65, 55, 45, 40, 38, 37, 36].map((h, i) => (
+                        <div key={i} className="group relative flex-1 h-full flex flex-col justify-end">
+                           <div className={`transition-all duration-700 rounded-t-sm ${i === 3 ? 'bg-red-500 animate-pulse' : 'bg-indigo-500/30 group-hover:bg-indigo-500/60'}`} style={{height: `${h}%`}} />
+                           {i === 3 && <div className="absolute -top-4 w-full text-center text-[8px] text-red-500 font-bold">执行点</div>}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex justify-between text-[9px] text-slate-500 font-bold px-1">
+                      <span>T+0</span>
+                      <span>建议时间窗</span>
+                      <span>未来预测稳定区</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* 实时监视与授权闭环 (Control & Monitoring) */}
+          <div className="flex-1 p-6 grid grid-cols-2 gap-6 overflow-hidden">
+            {/* 报警监视 */}
+            <div className="bg-slate-900/40 rounded-[2rem] border border-slate-800 p-6 flex flex-col">
+              <h4 className="text-xs font-bold text-slate-400 mb-4 flex items-center gap-2 uppercase tracking-widest">
+                <Activity className="w-4 h-4 text-rose-500" />
+                关键事件队列 (12)
+              </h4>
+              <div className="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar">
+                {[
+                  { id: 1, type: 'CRIT', msg: 'RWST 液位低限报警 (L-1)', time: '02:14:05', color: 'red' },
+                  { id: 2, type: 'WARN', msg: 'AFW 泵 B 联锁启动失效', time: '02:15:21', color: 'amber' },
+                  { id: 3, type: 'INFO', msg: '应急柴油发电机 1A 同步完成', time: '02:13:58', color: 'slate' }
+                ].map(item => (
+                  <div key={item.id} className={`flex items-center justify-between p-3 rounded-xl border ${
+                    item.color === 'red' ? 'bg-red-500/10 border-red-500/20 text-red-400' :
+                    item.color === 'amber' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : 'bg-slate-800/50 border-slate-700/50 text-slate-400'
+                  }`}>
+                    <div className="flex items-center gap-2 truncate">
+                       <span className={`w-1.5 h-1.5 rounded-full ${item.color === 'red' ? 'bg-red-500' : 'bg-amber-500'}`} />
+                       <span className="text-[11px] font-bold truncate">{item.msg}</span>
+                    </div>
+                    <span className="text-[9px] font-mono opacity-60 ml-2">{item.time}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 软控制交互/授权 */}
+            <div className="bg-slate-900/40 rounded-[2rem] border border-slate-800 p-6 flex flex-col relative group">
+               <div className="absolute top-6 right-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                 <Zap className="w-16 h-16" />
+               </div>
+               <h4 className="text-xs font-bold text-slate-400 mb-4 flex items-center gap-2 uppercase tracking-widest">
+                <Unlock className="w-4 h-4 text-emerald-500" />
+                管理授权区 (MB-Consent)
+              </h4>
+              
+              <div className="space-y-4">
+                <div className={`p-4 rounded-2xl transition-all border ${isAuthorized ? 'bg-slate-800 border-indigo-500/50 shadow-lg shadow-indigo-500/5' : 'bg-slate-800/40 border-slate-700/50 opacity-60'}`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-black text-slate-200 uppercase tracking-tighter">V-101 远程隔离阀</p>
+                      <p className="text-[10px] text-slate-500 font-mono mt-0.5">CURRENT: OPEN 100%</p>
+                    </div>
+                    <button 
+                      onClick={() => isAuthorized && alert('正在执行强制隔离指令...')}
+                      className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${
+                        isAuthorized 
+                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 hover:scale-105 active:scale-95' 
+                        : 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                      }`}
+                    >
+                      执行隔离
+                    </button>
+                  </div>
+                </div>
+
+                <div className="p-5 border-2 border-dashed border-slate-800 rounded-2xl flex flex-col items-center justify-center gap-3 text-center transition-all hover:bg-slate-800/20">
+                  <div 
+                    onClick={() => setIsAuthorized(!isAuthorized)}
+                    className={`p-4 rounded-2xl cursor-pointer transition-all duration-500 shadow-2xl ${
+                      isAuthorized ? 'bg-emerald-600 text-white scale-110' : 'bg-slate-800 text-slate-600 hover:text-slate-400'
+                    }`}
+                  >
+                    {isAuthorized ? <Unlock size={24} /> : <Lock size={24} />}
+                  </div>
+                  <div className="space-y-1">
+                    <p className={`text-[11px] font-bold ${isAuthorized ? 'text-emerald-400' : 'text-slate-500'}`}>
+                      {isAuthorized ? "操作员授权已生效" : "锁定：请先验证 XAI 证据点"}
+                    </p>
+                    <p className="text-[9px] text-slate-600 px-4 leading-tight">依据 NUREG-0700 Rev3 规定，重要操作前必须通过两级物理验证</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 底部控制工具栏 */}
+          <div className="p-5 border-t border-slate-800 bg-slate-900/90 backdrop-blur-md flex items-center justify-between">
+            <div className="flex items-center gap-6">
+               <div className="flex items-center gap-2">
+                 <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                 <span className="text-[10px] font-black font-mono text-slate-400 uppercase tracking-widest">AI AGENT: ACTIVE</span>
+               </div>
+               <div className="h-4 w-px bg-slate-700" />
+               <div className="flex items-center gap-2 text-slate-500">
+                 <Shield size={12} />
+                 <span className="text-[10px] font-bold uppercase">Safety Class 1E Support</span>
+               </div>
+            </div>
+            <div className="flex gap-2">
+               <button className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border border-slate-700 shadow-lg">
+                 工况分析报表
+               </button>
+               <button className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all shadow-xl shadow-indigo-900/20 active:scale-95">
+                 同步至大屏显示
+               </button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {/* --- 底部动态通告带 (Footer) --- */}
+      <footer className="h-10 bg-indigo-600 flex items-center px-8 shadow-2xl z-20 overflow-hidden relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-700 via-transparent to-indigo-700 opacity-50" />
+        <div className="flex items-center gap-3 animate-marquee whitespace-nowrap">
+          <AlertTriangle className="w-4 h-4 text-white animate-pulse" />
+          <p className="text-[11px] font-black text-white uppercase tracking-[0.15em] drop-shadow-sm">
+            [ 系统通知 ]：AI-CPS 正在持续监测堆芯出口热电偶温度 (T-CET)。当前二回路降压趋势已趋于平稳。下个规程关键点：切换至 AFW 供水流道 A。
+          </p>
+        </div>
+      </footer>
+
+      {/* 自定义样式 */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes marquee {
+          0% { transform: translateX(50%); }
+          100% { transform: translateX(-100%); }
+        }
+        .animate-marquee {
+          animation: marquee 30s linear infinite;
+        }
+        .animate-bounce-subtle {
+          animation: bounce-subtle 2s infinite;
+        }
+        @keyframes bounce-subtle {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-3px); }
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #334155;
+          border-radius: 10px;
+        }
+      `}} />
+    </div>
+  );
+}

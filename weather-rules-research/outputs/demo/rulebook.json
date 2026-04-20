@@ -1,0 +1,32 @@
+[
+  {
+    "market_id": "poly-daily-high-central-park-001",
+    "market_question": "Highest temperature in Central Park on 2026-06-01?",
+    "market_type": "daily_high_temperature",
+    "location_name": "Central Park",
+    "target_date": "2026-06-01",
+    "station_name": "New York City Central Park",
+    "station_id": "KNYC",
+    "variable_name": "daily_max_temperature",
+    "timezone": "America/New_York",
+    "source_name": "official_source",
+    "raw_rules_text": "Resolves using official station data from Central Park in New York time for the daily high.",
+    "parse_confidence": 0.92,
+    "needs_review": true
+  },
+  {
+    "market_id": "poly-daily-low-changi-001",
+    "market_question": "Lowest temperature in Singapore Changi Airport on 2026-01-15?",
+    "market_type": "daily_low_temperature",
+    "location_name": "Singapore Changi Airport",
+    "target_date": "2026-01-15",
+    "station_name": "Singapore Changi Airport",
+    "station_id": "WSSS",
+    "variable_name": "daily_min_temperature",
+    "timezone": "Asia/Singapore",
+    "source_name": "official_source",
+    "raw_rules_text": "Resolves using official station data from Changi Airport in Singapore time for the daily low.",
+    "parse_confidence": 0.92,
+    "needs_review": true
+  }
+]

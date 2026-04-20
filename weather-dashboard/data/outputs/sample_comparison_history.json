@@ -1,0 +1,42 @@
+[
+  {
+    "timestamp": "2026-04-11T00:00:00",
+    "market_id": "sample_market_001",
+    "model_band": "27",
+    "market_band": "27",
+    "confidence_score": 0.72,
+    "confidence_adjusted_gap": 0.0,
+    "comparison_status": "aligned",
+    "action_hint": "watch"
+  },
+  {
+    "timestamp": "2026-04-11T06:00:00",
+    "market_id": "sample_market_001",
+    "model_band": "28",
+    "market_band": "27",
+    "confidence_score": 0.81,
+    "confidence_adjusted_gap": 0.81,
+    "comparison_status": "mild_divergence",
+    "action_hint": "watch"
+  },
+  {
+    "timestamp": "2026-04-11T12:00:00",
+    "market_id": "sample_market_001",
+    "model_band": "28",
+    "market_band": "27",
+    "confidence_score": 0.91,
+    "confidence_adjusted_gap": 0.91,
+    "comparison_status": "mild_divergence",
+    "action_hint": "approve_small"
+  },
+  {
+    "timestamp": "2026-04-11T18:00:00",
+    "market_id": "sample_market_001",
+    "model_band": "29_plus",
+    "market_band": "27",
+    "confidence_score": 0.95,
+    "confidence_adjusted_gap": 1.90,
+    "comparison_status": "strong_divergence",
+    "action_hint": "approve_small"
+  }
+]

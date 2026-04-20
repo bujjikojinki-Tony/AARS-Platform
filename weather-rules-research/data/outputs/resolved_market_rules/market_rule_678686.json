@@ -1,0 +1,28 @@
+{
+  "schema_version": "resolved_market_rule.v2",
+  "resolver_contract_version": "resolver_contract.v1",
+  "market_id": "678686",
+  "market_question": "Will 2026 be the hottest year on record?",
+  "resolver_status": "matched",
+  "resolver_reason": "global_temperature_index_snapshot_expected",
+  "resolver_name": "global_temperature_index_resolver",
+  "resolver_confidence": 0.85,
+  "market_family": "global_temperature_index",
+  "resolution_scope": "global_index",
+  "supported_by_current_pipeline": true,
+  "required_data_source": "global_temperature_index_snapshot",
+  "required_sources": [
+    "global_temperature_index_snapshot"
+  ],
+  "band_scheme": "global_temperature_index_ordinal",
+  "settlement_source_type": "climate_index_rank",
+  "official_vs_proxy_source": "proxy",
+  "source_match_grade": "family_exact",
+  "official_source_url": "https://berkeleyearth.org/data/",
+  "source_note": "Global temperature rank markets are matched at the family level. Exact settlement wording should still be reviewed before live promotion.",
+  "location_name": "UNKNOWN",
+  "question_mode": "ordinal_hottest_year",
+  "ordinal_rank": 1,
+  "expected_band": "top_1",
+  "comparison_hint": "Compare the climate index outcome against hottest-year rank 1."
+}

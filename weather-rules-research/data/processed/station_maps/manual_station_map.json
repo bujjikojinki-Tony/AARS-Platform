@@ -1,0 +1,79 @@
+[
+  {
+    "canonical_location": "Central Park",
+    "selected_station": {
+      "station_name": "New York City Central Park",
+      "nws_station_id": "KNYC",
+      "cdo_station_id": "GHCND:USW00094728",
+      "latitude": 40.78,
+      "longitude": -73.97,
+      "timezone": "America/New_York",
+      "source": "manual_whitelist"
+    },
+    "aliases": [
+      "NYC Central Park",
+      "New York Central Park",
+      "Central Park NYC"
+    ],
+    "mapping_method": "manual_whitelist",
+    "mapping_confidence": 0.99
+  },
+  {
+    "canonical_location": "Singapore Changi Airport",
+    "selected_station": {
+      "station_name": "Singapore Changi Airport",
+      "nws_station_id": null,
+      "cdo_station_id": null,
+      "latitude": 1.36,
+      "longitude": 103.99,
+      "timezone": "Asia/Singapore",
+      "source": "manual_whitelist"
+    },
+    "aliases": [
+      "Singapore Changi",
+      "Changi Airport",
+      "Singapore Airport"
+    ],
+    "mapping_method": "manual_whitelist",
+    "mapping_confidence": 0.99
+  },
+  {
+    "canonical_location": "Hong Kong Observatory",
+    "selected_station": {
+      "station_name": "Hong Kong Observatory",
+      "nws_station_id": null,
+      "cdo_station_id": null,
+      "latitude": 22.3,
+      "longitude": 114.17,
+      "timezone": "Asia/Hong_Kong",
+      "source": "manual_whitelist"
+    },
+    "aliases": [
+      "Hong Kong",
+      "HKO",
+      "Hong Kong Obs"
+    ],
+    "mapping_method": "manual_whitelist",
+    "mapping_confidence": 0.97
+  },
+  {
+    "canonical_location": "Shanghai",
+    "selected_station": {
+      "station_name": "Shanghai Pudong International Airport",
+      "nws_station_id": null,
+      "cdo_station_id": null,
+      "latitude": 31.1434,
+      "longitude": 121.8052,
+      "timezone": "Asia/Shanghai",
+      "source": "wunderground:zspd"
+    },
+    "aliases": [
+      "Shanghai Pudong Airport",
+      "Pudong Airport",
+      "Shanghai Airport",
+      "Shanghai Pudong International Airport"
+    ],
+    "mapping_method": "manual_whitelist",
+    "mapping_confidence": 0.96
+  }
+]

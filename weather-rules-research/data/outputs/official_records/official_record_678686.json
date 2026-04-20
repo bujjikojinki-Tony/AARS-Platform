@@ -1,0 +1,14 @@
+{
+  "market_id": "678686",
+  "market_question": "Will 2026 be the hottest year on record?",
+  "market_family": "global_temperature_index",
+  "target_date": 2026,
+  "variable_name": "global_temperature_index",
+  "official_value": 3.0,
+  "resolved_band": "top_3",
+  "expected_band": "top_1",
+  "source": "sample.global_temperature_index",
+  "source_timestamp": "2026-04-13T12:00:00+00:00",
+  "label_type": "snapshot_grade",
+  "notes": "Sample climate index snapshot for the third-hottest-year market."
+}

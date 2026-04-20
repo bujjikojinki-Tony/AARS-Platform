@@ -101,6 +101,15 @@ class GateLog:
 
 
 @dataclass
+class RuleResult:
+    rule_name: str
+    passed: bool
+    severity: str
+    message: str
+    blocking_risks: List[str] = field(default_factory=list)
+
+
+@dataclass
 class ProjectSession:
     project_id: str
     name: str

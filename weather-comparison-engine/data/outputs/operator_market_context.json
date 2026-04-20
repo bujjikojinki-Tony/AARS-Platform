@@ -1,0 +1,15 @@
+{
+  "schema_version": "operator_market_context.v1",
+  "generated_at": "2026-04-19T14:30:10.506740+00:00",
+  "source": "weather-dashboard",
+  "selection_source": "recent",
+  "market_id": "390826",
+  "label": "390826 | gamma | Highest temperature in Shanghai on April 20?",
+  "market_family": "gamma",
+  "market_question": "Highest temperature in Shanghai on April 20?",
+  "comparison_status": "unmatched_rule",
+  "action_hint": "watch",
+  "probability_mode": "heuristic_not_calibrated",
+  "execution_constraint": "manual_advisory_only",
+  "resolver_status": "matched"
+}

@@ -1,0 +1,245 @@
+{
+  "schema_version": "gate_stack_contract_consistency.v1",
+  "market_id": "390826",
+  "passed": false,
+  "schema_health": {
+    "level": "ok",
+    "issue_count": 0,
+    "issues": []
+  },
+  "fallback_stats": {
+    "api": 3,
+    "unified_fallback": 0,
+    "local_fallback": 0,
+    "unknown": 0
+  },
+  "mismatch_buckets": {
+    "counts": {
+      "schema_drift": 0,
+      "source_drift": 2,
+      "reason_drift": 2,
+      "other_drift": 0
+    },
+    "details": {
+      "schema_drift": [],
+      "source_drift": [
+        "telegram_market_id_alignment",
+        "gateway_market_id_alignment"
+      ],
+      "reason_drift": [
+        "telegram_block_reasons_alignment",
+        "gateway_block_reasons_alignment"
+      ],
+      "other_drift": []
+    }
+  },
+  "checks": [
+    {
+      "name": "source_schema_alignment",
+      "passed": true,
+      "actual": "gate_stack_api.v1",
+      "expected": "gate_stack_api.v1"
+    },
+    {
+      "name": "market_id_alignment",
+      "passed": true,
+      "actual": "390826",
+      "expected": "390826"
+    },
+    {
+      "name": "can_execute_alignment",
+      "passed": true,
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "severity_alignment",
+      "passed": true,
+      "actual": "medium",
+      "expected": "medium"
+    },
+    {
+      "name": "primary_block_reason_alignment",
+      "passed": true,
+      "actual": "comparison_not_actionable",
+      "expected": "comparison_not_actionable"
+    },
+    {
+      "name": "recommended_action_alignment",
+      "passed": true,
+      "actual": "review_resolver_contract",
+      "expected": "review_resolver_contract"
+    },
+    {
+      "name": "block_reasons_alignment",
+      "passed": true,
+      "actual": [
+        "comparison_not_actionable",
+        "resolver_not_matched",
+        "resolver_confidence_low",
+        "resolver_source_not_exact",
+        "probability_not_live_approved",
+        "execution_constraint_not_live_allowed",
+        "calibration_not_calibrated",
+        "monitoring_not_healthy",
+        "stale_worker",
+        "validation_freshness_unhealthy",
+        "label_coverage_unhealthy",
+        "execution_not_ready",
+        "execution_not_live_ready"
+      ],
+      "expected": [
+        "comparison_not_actionable",
+        "resolver_not_matched",
+        "resolver_confidence_low",
+        "resolver_source_not_exact",
+        "probability_not_live_approved",
+        "execution_constraint_not_live_allowed",
+        "calibration_not_calibrated",
+        "monitoring_not_healthy",
+        "stale_worker",
+        "validation_freshness_unhealthy",
+        "label_coverage_unhealthy",
+        "execution_not_ready",
+        "execution_not_live_ready"
+      ]
+    },
+    {
+      "name": "gate_source_enum",
+      "passed": true,
+      "actual": "api",
+      "expected": "api|unified_fallback|local_fallback"
+    },
+    {
+      "name": "telegram_market_id_alignment",
+      "passed": false,
+      "actual": "678687",
+      "expected": "390826"
+    },
+    {
+      "name": "telegram_gate_source_alignment",
+      "passed": true,
+      "actual": "api",
+      "expected": "api"
+    },
+    {
+      "name": "telegram_block_reasons_alignment",
+      "passed": false,
+      "actual": [
+        "resolver_confidence_low",
+        "resolver_source_not_exact"
+      ],
+      "expected": [
+        "comparison_not_actionable",
+        "resolver_not_matched",
+        "resolver_confidence_low",
+        "resolver_source_not_exact",
+        "probability_not_live_approved",
+        "execution_constraint_not_live_allowed",
+        "calibration_not_calibrated",
+        "monitoring_not_healthy",
+        "stale_worker",
+        "validation_freshness_unhealthy",
+        "label_coverage_unhealthy",
+        "execution_not_ready",
+        "execution_not_live_ready"
+      ]
+    },
+    {
+      "name": "gateway_market_id_alignment",
+      "passed": false,
+      "actual": "678687",
+      "expected": "390826"
+    },
+    {
+      "name": "gateway_gate_source_alignment",
+      "passed": true,
+      "actual": "api",
+      "expected": "api"
+    },
+    {
+      "name": "gateway_block_reasons_alignment",
+      "passed": false,
+      "actual": [
+        "resolver_confidence_low",
+        "resolver_source_not_exact"
+      ],
+      "expected": [
+        "comparison_not_actionable",
+        "resolver_not_matched",
+        "resolver_confidence_low",
+        "resolver_source_not_exact",
+        "probability_not_live_approved",
+        "execution_constraint_not_live_allowed",
+        "calibration_not_calibrated",
+        "monitoring_not_healthy",
+        "stale_worker",
+        "validation_freshness_unhealthy",
+        "label_coverage_unhealthy",
+        "execution_not_ready",
+        "execution_not_live_ready"
+      ]
+    }
+  ],
+  "mismatch_count": 4,
+  "mismatches": [
+    {
+      "name": "telegram_market_id_alignment",
+      "passed": false,
+      "actual": "678687",
+      "expected": "390826"
+    },
+    {
+      "name": "telegram_block_reasons_alignment",
+      "passed": false,
+      "actual": [
+        "resolver_confidence_low",
+        "resolver_source_not_exact"
+      ],
+      "expected": [
+        "comparison_not_actionable",
+        "resolver_not_matched",
+        "resolver_confidence_low",
+        "resolver_source_not_exact",
+        "probability_not_live_approved",
+        "execution_constraint_not_live_allowed",
+        "calibration_not_calibrated",
+        "monitoring_not_healthy",
+        "stale_worker",
+        "validation_freshness_unhealthy",
+        "label_coverage_unhealthy",
+        "execution_not_ready",
+        "execution_not_live_ready"
+      ]
+    },
+    {
+      "name": "gateway_market_id_alignment",
+      "passed": false,
+      "actual": "678687",
+      "expected": "390826"
+    },
+    {
+      "name": "gateway_block_reasons_alignment",
+      "passed": false,
+      "actual": [
+        "resolver_confidence_low",
+        "resolver_source_not_exact"
+      ],
+      "expected": [
+        "comparison_not_actionable",
+        "resolver_not_matched",
+        "resolver_confidence_low",
+        "resolver_source_not_exact",
+        "probability_not_live_approved",
+        "execution_constraint_not_live_allowed",
+        "calibration_not_calibrated",
+        "monitoring_not_healthy",
+        "stale_worker",
+        "validation_freshness_unhealthy",
+        "label_coverage_unhealthy",
+        "execution_not_ready",
+        "execution_not_live_ready"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+[
+  {
+    "station_name": "Shanghai Pudong International Airport",
+    "nws_station_id": null,
+    "cdo_station_id": null,
+    "latitude": 31.1434,
+    "longitude": 121.8052,
+    "timezone": "Asia/Shanghai",
+    "source": "wunderground:zspd"
+  }
+]

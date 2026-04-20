@@ -1,0 +1,19 @@
+{
+  "signal_id": "sig_1350a641c4",
+  "market_id": "sample_market_001",
+  "location_name": "Central Park",
+  "target_date": "2026-04-12",
+  "variable_name": "daily_max_temperature",
+  "model_value": 28.1,
+  "model_band": "28",
+  "market_band": "27",
+  "confidence": {
+    "score": 0.91,
+    "level": "high",
+    "reasons": [
+      "market_context_available",
+      "forecast_stable"
+    ]
+  },
+  "action_hint": "approve_small"
+}
