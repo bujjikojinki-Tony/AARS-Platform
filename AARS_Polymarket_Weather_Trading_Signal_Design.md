@@ -1,7 +1,7 @@
 # AARS Polymarket Weather Trading Signal Design
 
-版本：v0.1  
-日期：2026-04-18
+版本：v0.2  
+日期：2026-04-21
 
 ## 1. 目的
 
@@ -23,6 +23,7 @@
 - `Dashboard approval signal`
 - `OrderIntent`
 - `Manual advisory audit event`
+- `TopParameterView`
 
 ## 2.1 Resolver Source Contract
 
@@ -45,6 +46,16 @@
 | `required_sources` | 当前市场链路需要的关键输入源列表 |
 
 这些字段必须被 dashboard 与 gate 直接消费，而不能只留在 resolver report 中。
+
+`TopParameterView` 应作为 dashboard / telegram / gateway 的统一首屏载体，承载：
+
+- `market_id`
+- `market_question`
+- `market_family`
+- `polymarket` 盘口摘要
+- `weather` / `forecast` 参数摘要
+- `source_contract`
+- `decision`
 
 ## 3. Probability Contract
 
@@ -99,9 +110,21 @@ Phase 14 当前默认使用：
 - `dry_run_only`
 - `live_execution_allowed`
 
+注意：
+
+- `approved_for_live` 是 validation 侧的布尔输入，用来允许概率层进入 live promotion 候选。
+- `live_approved` 是 `probability_mode` 的输出状态，表示概率层已经通过准入。
+- 两者不应混为同一个字段。
+- `execution_constraint` 只表示概率层允许到哪一步，不等于最终执行结果。
+
 ### 3.4 Phase 17 / Phase 21 概率契约状态机
 
 Phase 17 已把 `probability_mode` 从静态字段提升成 validation-driven 状态机。Phase 21 已将其收口为 `probability_contract.v1`，由 comparison-engine、dashboard、Telegram、unified status 与 gateway live gate 共同消费。
+
+注意：
+
+- `approved_for_live` 是 validation 侧的输入条件，不是 `probability_mode` 的状态名。
+- `live_approved` 才是 probability layer 最终输出的 live 准入状态。
 
 ```mermaid
 stateDiagram-v2

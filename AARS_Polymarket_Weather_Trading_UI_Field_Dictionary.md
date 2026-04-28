@@ -33,10 +33,10 @@ Version: `dashboard_ui_field_dictionary.v1`
 | 字段名 | 统一显示名 | 定义 | 允许值 / 格式 | 主要来源 | 默认展示位置 |
 |---|---|---|---|---|---|
 | `probability_mode` | Probability Mode | 概率层可信度和 promotion 状态。它不等于交易许可，只说明概率层处在哪个阶段。 | `heuristic_not_calibrated` / `shadow_calibrated_candidate` / `live_approved` | `probability_contract.v1` | Page Focus、Command.Probability、Validation |
-| `execution_constraint` | Execution Constraint | probability contract 允许的最高执行级别。 | `manual_advisory_only` / `dry_run_only` / `live_execution_allowed` | `probability_contract.v1` | Page Focus、Command.Probability、Trade Decision.Constraint |
+| `execution_constraint` | Execution Constraint | probability contract 允许的最高执行级别；它只是上限，不直接等于执行决策。 | `manual_advisory_only` / `dry_run_only` / `live_execution_allowed` | `probability_contract.v1` | Page Focus、Command.Probability、Trade Decision.Constraint |
 | `edge` / `confidence_adjusted_edge` | Edge | 置信度调整后的模型观点与市场隐含概率差。正值通常表示模型相对市场更看好 favored side。 | decimal probability difference | probability state | Command.Probability、Trade Decision |
 | `market_probability` | Market Probability | Polymarket 当前 favored side 的市场隐含概率。 | `0.00-1.00` | market snapshot | Command.Probability、Trade Decision、Live Status |
-| `calibration_status` | Calibration Status | 概率模型校准状态，是 probability promotion 的输入。 | `not_calibrated` / `calibrated` / `stale` / `live_approved` | validation report / probability contract | Validation.Promotion |
+| `calibration_status` | Calibration Status | 概率模型校准状态，是 probability promotion 的输入；它只描述校准新鲜度与质量，不等于 promotion outcome。 | `not_calibrated` / `calibrated` / `stale` | validation report / probability contract | Validation.Promotion |
 
 ---
 
@@ -103,7 +103,7 @@ Version: `dashboard_ui_field_dictionary.v1`
 | `support_score` | Forecast Support | forecast 与市场方向的一致支持度。 | `0.00-1.00` | dashboard decision helper | Trade Decision.Decision |
 | `confidence_score` | Forecast Confidence | forecast snapshot 的置信度。 | `0.00-1.00` | forecast / comparison row | Trade Decision.Decision |
 | `contrarian_probability` | Counter Probability | 与 heuristic choice 相反方向的概率提示。 | `0.00-1.00` | dashboard decision helper | Trade Decision details |
-| `can_live` | Can Live | probability constraint 是否允许 live execution。 | `yes` / `no` | derived from `execution_constraint` | Trade Decision.Constraint |
+| `can_live` | Can Live | `execution_constraint` 是否已经放行到 live execution 层。 | `yes` / `no` | derived from `execution_constraint` | Trade Decision.Constraint |
 
 ---
 
@@ -111,7 +111,7 @@ Version: `dashboard_ui_field_dictionary.v1`
 
 | 字段名 | 统一显示名 | 定义 | 允许值 / 格式 | 主要来源 | 默认展示位置 |
 |---|---|---|---|---|---|
-| `approved_for_live` | Approved For Live | validation policy 是否允许 live promotion。 | boolean | model validation report | Validation.Promotion |
+| `approved_for_live` | Approved For Live | validation 侧布尔输入，表示模型是否可被纳入 live promotion 候选；它不等于 `live_approved`。 | boolean | model validation report | Validation.Promotion |
 | `deployment_mode` | Deployment Mode | 当前 probability/model 部署模式。 | `manual_advisory` / `shadow` / `dry_run` / `live` | model validation report | Validation.Promotion |
 | `labeled_sample_count` | Labeled Samples | 已具备 official label 的样本数量。 | integer | validation / label coverage | Validation.Coverage |
 | `labeled_ratio` | Labeled Ratio | tracked samples 中已标注样本占比。 | `0.00-1.00` | label coverage report | Validation.Coverage |
@@ -155,4 +155,3 @@ Version: `dashboard_ui_field_dictionary.v1`
 | `Blocked` | `Primary Blocker` + `Block Reasons` | blocked 必须给出原因 |
 | `Action` | `Next Action` / `Action Hint` | action 要区分 gate 推荐与市场上下文提示 |
 | `Freshness` | `Freshness Gate` / `Validation Freshness` / `Freshness Age` | freshness 可能指 gate、validation 或 worker age |
-

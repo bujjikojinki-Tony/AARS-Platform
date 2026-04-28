@@ -8,6 +8,7 @@ from weather_comparison_engine.ingest.realtime_forecast_loader import RealtimeFo
 from weather_comparison_engine.ingest.realtime_market_loader import RealtimeMarketLoader
 from weather_comparison_engine.monitoring import MonitoringStatusBuilder
 from weather_comparison_engine.outputs.history_appender import ComparisonHistoryAppender
+from weather_comparison_engine.outputs.dashboard_row_builder import build_latest_dashboard_row
 from weather_comparison_engine.probability import build_probability_shadow_outputs
 from weather_comparison_engine.settings import (
     COMPARISON_HISTORY_JSON,
@@ -36,6 +37,7 @@ from weather_comparison_engine.settings import (
     OFFICIAL_RECORDS_GLOB,
 )
 from weather_comparison_engine.status import UnifiedStatusBuilder, load_optional_json
+from weather_comparison_engine.status.top_parameter_view import build_top_parameter_view
 from weather_comparison_engine.validation import ValidationQualityReportBuilder, load_training_samples_jsonl
 from weather_comparison_engine.features import load_optional_json_records
 
@@ -97,42 +99,20 @@ async def run_once() -> dict:
         confidence_score=float(forecast_snapshot.get("confidence_score", 0.0)),
         action_hint="watch",
     )
+    top_parameter_view = build_top_parameter_view(
+        current_market=market_snapshot,
+        forecast_snapshot=forecast_snapshot,
+        comparison_point=point,
+    )
+    point["top_parameter_view"] = top_parameter_view
 
     appended = appender.append(point)
 
-    latest_row = {
-        "market_id": market_snapshot["market_id"],
-        "market_question": market_snapshot.get("market_question"),
-        "location_name": market_snapshot.get("location_name", "UNKNOWN"),
-        "target_date": forecast_snapshot.get("target_date"),
-        "variable_name": forecast_snapshot.get("variable_name"),
-        "market_probability": market_snapshot.get("market_probability"),
-        "favored_side": market_snapshot.get("favored_side"),
-        "yes_price": market_snapshot.get("yes_price"),
-        "no_price": market_snapshot.get("no_price"),
-        "model_value": point.get("model_value"),
-        "model_band": point.get("model_band"),
-        "market_band": point.get("market_band"),
-        "band_scheme": point.get("band_scheme"),
-        "market_band_scheme": point.get("market_band_scheme"),
-        "forecast_market_id": forecast_snapshot.get("market_id"),
-        "rule_status": point.get("rule_status"),
-        "rule_market_id": point.get("rule_market_id"),
-        "market_family": point.get("market_family"),
-        "resolution_scope": point.get("resolution_scope"),
-        "supported_by_current_pipeline": point.get("supported_by_current_pipeline"),
-        "required_data_source": point.get("required_data_source"),
-        "band_distance": compute_band_distance_from_status(
-            point.get("comparison_status", "unknown")
-        ),
-        "confidence_score": point.get("confidence_score"),
-        "confidence_adjusted_gap": point.get("confidence_adjusted_gap"),
-        "comparison_status": point.get("comparison_status"),
-        "action_hint": point.get("action_hint"),
-        "market_snapshot_ref": point.get("market_snapshot_ref"),
-        "forecast_snapshot_ref": point.get("forecast_snapshot_ref"),
-        "comparison_reason": point.get("comparison_reason"),
-    }
+    latest_row = build_latest_dashboard_row(
+        market_snapshot=market_snapshot,
+        forecast_snapshot=forecast_snapshot,
+        point=point,
+    )
 
     appender.overwrite_latest_dashboard_rows(
         [latest_row],

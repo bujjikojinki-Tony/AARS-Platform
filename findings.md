@@ -17,3 +17,8 @@
 - `structbuild/polymarket-telegram-alerts-bot` is the strongest reference for Telegram-side monitor UX, filter state, webhook verification, and subscriber routing.
 - `voicegn/polymarket-bot` contains real code for copy-trade and smart execution patterns, but some data dependencies appear to rely on weakly documented public endpoints and should not be treated as stable infrastructure.
 - The most defensible product path is phased: alerting first, decision support second, controlled execution third, maker-follow last and isolated.
+
+## Operations Monitor Reuse
+- The dashboard already has first-class sources for scanner status, alert queue, market alerts, family anomaly summaries, opportunity board rows, market workstation summaries, and unified status, so Operations Monitor can be assembled as a read-only aggregation layer instead of inventing new facts.
+- `weather-dashboard/src/weather_dashboard/app.py` already loads `render_monitoring_signals_panel`, `render_opportunity_board_panel`, and `render_market_workstation_page`, which gives a direct path to a new homepage-level Operations Monitor layout.
+- Telegram already exposes `/monitoring`, `/scanstatus`, `/alerts`, `/anomalies`, `/market`, and `/opportunities`, so the new monitor view can be surfaced as lightweight read-only summaries rather than a new command family.

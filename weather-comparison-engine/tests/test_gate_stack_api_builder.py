@@ -92,6 +92,7 @@ def test_build_unified_status_cli_also_writes_gate_stack_api(monkeypatch, tmp_pa
     readiness_path = tmp_path / "production_readiness_report.json"
     validation_freshness_path = tmp_path / "validation_freshness_status.json"
     coverage_path = tmp_path / "label_coverage_report.json"
+    source_policy_path = tmp_path / "source_policy_status.json"
     unified_out = tmp_path / "unified_status.json"
     gate_out = tmp_path / "gate_stack_api.json"
 
@@ -154,6 +155,23 @@ def test_build_unified_status_cli_also_writes_gate_stack_api(monkeypatch, tmp_pa
         json.dumps({"status": "healthy", "labeled_rows": 100, "labeled_ratio": 0.8}),
         encoding="utf-8",
     )
+    source_policy_path.write_text(
+        json.dumps(
+            {
+                "schema_version": "source_policy_status.v1",
+                "generated_at": "2026-04-19T09:00:00+00:00",
+                "registry_schema_version": "source_policy_registry.v1",
+                "overall_status": "healthy",
+                "counts": {"fresh": 4, "stale": 0, "unavailable": 0},
+                "priority_counts": {"critical": 1, "high": 2, "medium": 1},
+                "problem_sources": [],
+                "sources": [
+                    {"source_name": "polymarket_clob", "freshness_status": "fresh", "priority_level": "critical"}
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
 
     monkeypatch.setattr(comparison_main, "MONITORING_STATUS_JSON", monitoring_path)
     monkeypatch.setattr(comparison_main, "LATEST_DASHBOARD_ROWS_JSON", latest_rows_path)
@@ -161,6 +179,12 @@ def test_build_unified_status_cli_also_writes_gate_stack_api(monkeypatch, tmp_pa
     monkeypatch.setattr(comparison_main, "EXECUTION_GATEWAY_PRODUCTION_READINESS_JSON", readiness_path)
     monkeypatch.setattr(comparison_main, "VALIDATION_FRESHNESS_STATUS_JSON", validation_freshness_path)
     monkeypatch.setattr(comparison_main, "LABEL_COVERAGE_REPORT_JSON", coverage_path)
+    monkeypatch.setattr(comparison_main, "SOURCE_POLICY_STATUS_JSON", source_policy_path)
+    monkeypatch.setattr(
+        comparison_main,
+        "_write_source_policy_status",
+        lambda: source_policy_path,
+    )
     monkeypatch.setattr(comparison_main, "UNIFIED_STATUS_JSON", unified_out)
     monkeypatch.setattr(comparison_main, "GATE_STACK_API_JSON", gate_out)
 
@@ -176,3 +200,4 @@ def test_build_unified_status_cli_also_writes_gate_stack_api(monkeypatch, tmp_pa
     assert gate_payload["market_count"] == 1
     assert gate_payload["market_gate_views"][0]["market_id"] == "m-200"
     assert gate_payload["recommended_operator_action"] == "allow_live_execution"
+    assert gate_payload["source_policy"]["schema_version"] == "source_policy_status.v1"

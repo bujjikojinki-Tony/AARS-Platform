@@ -5,6 +5,7 @@ Telegram control surface for weather market signals.
 ## Purpose
 
 This repository presents structured signal events to human operators.
+It also consumes the shared upstream market / resolver / forecast facts through `TopParameterView` and `gate_stack_api.v1`.
 
 It does:
 - receive signal payloads
@@ -12,6 +13,7 @@ It does:
 - expose approval / rejection actions
 - store operator actions
 - support lightweight status / control commands
+- render the shared `TopParameterView` first-screen contract
 
 It does not:
 - generate weather forecasts
@@ -24,6 +26,8 @@ The first MVP supports:
 - `/start`
 - `/status`
 - `/signals`
+- `/market [market_id]`
+- `/timeline [market_id]`
 - inline actions:
   - Watch
   - Approve Small
@@ -31,7 +35,10 @@ The first MVP supports:
 
 ## Input
 
-This bot consumes `SignalEvent`-style payloads produced by `weather-signal-engine`.
+This bot consumes:
+- `SignalEvent`-style payloads
+- `TopParameterView`
+- `gate_stack_api.v1`
 
 ## Output
 
@@ -39,6 +46,7 @@ This bot produces:
 - Telegram messages
 - operator decisions
 - stored approval / rejection actions
+- unified status / market summaries
 
 ## Dashboard Approval Bridge
 
@@ -52,6 +60,10 @@ The Telegram console prefers the dashboard approval signal when it exists, so
 actions can bind the operator decision to the same `intent_id` consumed by the
 execution gateway.
 
+The top surface also follows the same family-specific parameter contract as the
+dashboard, so non-applicable fields are hidden instead of printed as `-`.
+It should not independently rewrite market facts or infer alternative upstream truth.
+
 If the signal uses `execution_mode=manual_advisory`, approval means operator
 acknowledgement only. It does not authorize autonomous BOT trading. The handler
 also appends an `operator_acknowledged_manual_advisory` event to the shared
@@ -61,6 +73,18 @@ The Telegram card also displays probability contract fields such as
 `probability_mode` and `execution_constraint`, so heuristic shadow probabilities
 are not confused with future calibrated live-approved probabilities.
 
+## Phase 31 Scan Commands
+
+Telegram now reads the Phase 31 scan artifacts in read-only mode:
+
+- `/scanstatus`
+- `/alerts`
+- `/anomalies`
+- `/scanmarket <id>`
+
+These commands consume the same scanner / alert files as dashboard monitoring
+surfaces and do not alter execution permissions.
+
 Useful env overrides:
 
 ```bash
@@ -68,6 +92,35 @@ export DASHBOARD_APPROVAL_SIGNAL_JSON_PATH=data/outputs/dashboard_approval_signa
 export DASHBOARD_INTENT_PREVIEW_PATH=../weather-execution-gateway/data/outputs/dashboard_intent_preview.json
 export MANUAL_ADVISORY_AUDIT_JSONL=../weather-execution-gateway/data/outputs/manual_advisory_audit.jsonl
 ```
+
+## Start
+
+Recommended console entry:
+
+```bash
+PYTHONPATH=src weather-telegram-console
+```
+
+Bridge entry for the existing bot wrapper:
+
+```bash
+cd ../telegram-aars-bot
+python app.py
+```
+
+## Network / Proxy
+
+If the bot cannot reach Telegram from the current machine, set one of these
+before starting it:
+
+```bash
+export TELEGRAM_API_BASE_URL="https://api.telegram.org/bot"
+export TELEGRAM_PROXY="http://proxy.example:8080"
+export TELEGRAM_GET_UPDATES_PROXY="http://proxy.example:8080"
+```
+
+The bot logs the resolved network settings at startup, which makes DNS / proxy
+failures easier to diagnose.
 
 ## Ops Alert Bridge
 

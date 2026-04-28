@@ -11,6 +11,7 @@ It does:
 - load event / market metadata
 - normalize market content
 - build market snapshots for downstream comparison
+- prefer priceful markets when building the realtime primary snapshot
 
 It does not:
 - generate weather forecasts
@@ -30,12 +31,15 @@ Support:
 - search / filter workflows
 - building one normalized weather market bundle
 - exporting JSON for downstream comparison
+- keeping `market_realtime_simple.json` populated with markets that have price data
 
 ## Output Objects
 
 - `MarketContent`
 - `MarketPriceState`
 - `WeatherMarketBundle`
+- `market_realtime_simple.json`
+- `market_realtime_snapshot.json`
 
 ## Suggested Flow
 
@@ -43,5 +47,12 @@ Support:
 Gamma API discovery
 → weather filtering
 → normalized market content
+→ select priceful primary market
 → market snapshot export
+```
+
+## Run
+
+```bash
+PYTHONPATH=src python scripts/run_polymarket_realtime.py
 ```

@@ -1,0 +1,43 @@
+{
+  "skill_name": "safety-critical-hmi-frontend-design",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Design a multi-market monitoring console frontend. The current UI hides the highest-risk items in tabs. The new page should surface system state, selected market situation, alert and risk queues, weather evidence, data freshness, latest stable view, and recommended actions.",
+      "expected_output": "A page HMI design spec that treats the console as a task-centered control surface rather than a generic dashboard.",
+      "files": [],
+      "expectations": [
+        "The output includes the full 13-section HMI design structure",
+        "The output includes an HMI Review Gate with G1 through G10",
+        "The output includes sections for alarm and risk design, automation or AI design, and degraded mode and recovery",
+        "The output includes a Codex implementation prompt"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Review this frontend wireframe concept: the page has hidden alerts in tabs, disabled buttons with no explanation, and an AI suggestion panel with no evidence. Provide findings first, ordered by severity, then a short summary and a review gate result.",
+      "expected_output": "A UI review that surfaces HMI gate failures clearly and prioritizes blocking findings before the summary.",
+      "files": [],
+      "expectations": [
+        "The output starts with findings before the summary",
+        "The output identifies hidden alerts as a risk visibility problem",
+        "The output identifies unexplained disabled buttons as an action gating problem",
+        "The output identifies AI suggestions without evidence as an automation transparency problem",
+        "The output includes a review gate result using G1 through G10 or equivalent HMI gate language"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Create a React implementation prompt for a mission-critical current-step control page. It should include system status, current task, highest risk, data freshness, latest stable view, gated actions, automation transparency, degraded mode handling, and the minimum safe component set.",
+      "expected_output": "A Codex-ready implementation prompt that translates the HMI rules into frontend constraints.",
+      "files": [],
+      "expectations": [
+        "The output includes a React implementation prompt",
+        "The output includes a minimum safe component set or component list",
+        "The output includes data model guidance",
+        "The output includes action gating and automation transparency guidance",
+        "The output includes degraded mode and recovery handling"
+      ]
+    }
+  ]
+}

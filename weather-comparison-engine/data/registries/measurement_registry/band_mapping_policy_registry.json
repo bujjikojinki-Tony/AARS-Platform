@@ -1,0 +1,36 @@
+{
+  "schema_version": "band_mapping_policy_registry.v1",
+  "generated_at": "2026-04-21T00:00:00Z",
+  "policies": [
+    {
+      "policy_id": "band_mapping.temperature_celsius_integer.v1",
+      "band_scheme": "temperature_celsius_integer",
+      "canonical_unit": "celsius",
+      "band_precision": "integer",
+      "rounding_rule": "round_half_up",
+      "mapping_formula": "band = int(round_half_up(canonical_value))",
+      "status": "active",
+      "version": "v1"
+    },
+    {
+      "policy_id": "band_mapping.wind_speed_threshold_knots.v1",
+      "band_scheme": "wind_speed_threshold_knots",
+      "canonical_unit": "kt",
+      "band_precision": 1,
+      "rounding_rule": "round_half_up",
+      "mapping_formula": "compare threshold against canonical kt using policy precision",
+      "status": "active",
+      "version": "v1"
+    },
+    {
+      "policy_id": "band_mapping.precipitation_mm_threshold.v1",
+      "band_scheme": "precipitation_mm_threshold",
+      "canonical_unit": "mm",
+      "band_precision": 1,
+      "rounding_rule": "exact_no_rounding",
+      "mapping_formula": "threshold compare uses canonical mm without pre-rounding",
+      "status": "active",
+      "version": "v1"
+    }
+  ]
+}

@@ -89,7 +89,50 @@ def _argument_level_for_step(step_id: int) -> str:
 
 
 def render_app_header() -> None:
-    render_panel_title("Polymarket Weather Desk", "Forecast Edge Command Center")
+    st.markdown(
+        """
+        <style>
+        .command-app-header {
+            display: flex;
+            align-items: baseline;
+            gap: 0.55rem;
+            margin: 0.04rem 0 0.14rem;
+            padding: 0.06rem 0 0.02rem;
+            color: #f7fbff;
+        }
+        .command-app-header__brand {
+            color: #f7fbff;
+            font-family: "Avenir Next Condensed", "DIN Condensed", "Trebuchet MS", sans-serif;
+            font-size: 0.92rem;
+            font-weight: 950;
+            letter-spacing: 0.01em;
+            line-height: 1.02;
+        }
+        .command-app-header__meta {
+            color: #93a0aa;
+            font-size: 0.6rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            line-height: 1.08;
+        }
+        .command-app-header__dot {
+            width: 0.35rem;
+            height: 0.35rem;
+            border-radius: 999px;
+            background: #69d39a;
+            box-shadow: 0 0 0 0.12rem rgba(105, 211, 154, 0.15);
+            flex: 0 0 auto;
+        }
+        </style>
+        <div class="command-app-header">
+          <div class="command-app-header__brand">Polymarket Weather Desk</div>
+          <div class="command-app-header__dot"></div>
+          <div class="command-app-header__meta">Forecast Edge Command Center</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def render_command_center(
@@ -209,7 +252,28 @@ def render_command_center(
     previous_step = st.session_state.get("weather_console_prev_step")
 
     render_panel_title("State Machine Controls")
-    with st.container(border=True):
+    st.markdown(
+        """
+        <style>
+        .state-machine-shell {
+            margin: 0.18rem 0 0.42rem;
+            padding: 0.56rem 0.62rem 0.58rem;
+            border-radius: 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background:
+                linear-gradient(180deg, rgba(15, 18, 24, 0.99), rgba(9, 12, 16, 0.99));
+            box-shadow: none;
+        }
+        .state-machine-shell [data-testid="stCaptionContainer"] p {
+            color: #a3adb7;
+            font-size: 0.76rem;
+        }
+        </style>
+        <div class="state-machine-shell">
+        """,
+        unsafe_allow_html=True,
+    )
+    with st.container(border=False):
         step_col, xai_col = st.columns([1.3, 1])
         with step_col:
             st.caption("论证规程 / activeStepId")
@@ -274,6 +338,7 @@ def render_command_center(
                 key="weather_console_return_overview",
                 on_click=_return_to_overview,
             )
+    st.markdown("</div>", unsafe_allow_html=True)
 
     active_step_id = int(active_step_choice.split(" ", 1)[0])
     active_xai_level = _argument_level_for_step(active_step_id)
@@ -335,7 +400,7 @@ def render_command_center(
 
 
 def render_deerflow_signature() -> None:
-    st.caption("Created By Deerflow · https://deerflow.tech")
+    return None
 
 
 def _inline_metric(col, label: str, value: object) -> None:

@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from weather_comparison_engine.probability.promotion_policy import PromotionPolicy
+from weather_comparison_engine.status.top_parameter_view import build_top_parameter_view
 
 
 class UnifiedStatusBuilder:
@@ -22,6 +23,7 @@ class UnifiedStatusBuilder:
         production_readiness_report: dict | None,
         validation_freshness_status: dict | None = None,
         label_coverage_report: dict | None = None,
+        source_policy_status: dict | None = None,
     ) -> dict:
         current_market = _first_row(latest_dashboard_rows)
         market_id = str((current_market or {}).get("market_id") or "")
@@ -41,12 +43,19 @@ class UnifiedStatusBuilder:
             label_coverage_report,
             promotion_state=promotion_state,
         )
+        source_policy = _build_source_policy_section(source_policy_status)
+        top_parameter_view = _build_top_parameter_view(
+            current_market=current_market,
+            probability=probability,
+            gate_stack=None,
+        )
         block_reasons = _build_block_reasons(
             monitoring=monitoring,
             probability=probability,
             execution=execution,
             market=market,
             validation=validation,
+            source_policy=source_policy,
         )
         gate_stack = _build_gate_stack(
             monitoring=monitoring,
@@ -54,6 +63,7 @@ class UnifiedStatusBuilder:
             execution=execution,
             market=market,
             validation=validation,
+            source_policy=source_policy,
         )
         can_bot_trade = _can_bot_trade(
             monitoring=monitoring,
@@ -61,6 +71,7 @@ class UnifiedStatusBuilder:
             execution=execution,
             market=market,
             validation=validation,
+            source_policy=source_policy,
         )
         operator_mode = _resolve_operator_mode(execution=execution)
         operator = {
@@ -92,6 +103,8 @@ class UnifiedStatusBuilder:
             "operator": operator,
             "gate_stack": gate_stack,
             "block_reasons": block_reasons,
+            "top_parameter_view": top_parameter_view,
+            "source_policy": source_policy,
         }
 
     def write(
@@ -104,6 +117,7 @@ class UnifiedStatusBuilder:
         production_readiness_report: dict | None,
         validation_freshness_status: dict | None = None,
         label_coverage_report: dict | None = None,
+        source_policy_status: dict | None = None,
     ) -> Path:
         out = Path(path)
         out.parent.mkdir(parents=True, exist_ok=True)
@@ -114,6 +128,7 @@ class UnifiedStatusBuilder:
             production_readiness_report=production_readiness_report,
             validation_freshness_status=validation_freshness_status,
             label_coverage_report=label_coverage_report,
+            source_policy_status=source_policy_status,
         )
         out.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
         return out
@@ -233,6 +248,25 @@ def _build_validation_section(
     }
 
 
+def _build_source_policy_section(source_policy_status: dict | None) -> dict:
+    source_policy_status = source_policy_status or {}
+    sources = source_policy_status.get("sources") or []
+    problem_sources = source_policy_status.get("problem_sources") or []
+    freshness_counts = source_policy_status.get("counts") or {}
+    return {
+        "schema_version": str(source_policy_status.get("schema_version") or "source_policy_status.v1"),
+        "overall_status": str(source_policy_status.get("overall_status") or "unknown"),
+        "registry_schema_version": str(source_policy_status.get("registry_schema_version") or "-"),
+        "fresh_count": int(freshness_counts.get("fresh") or 0),
+        "stale_count": int(freshness_counts.get("stale") or 0),
+        "unavailable_count": int(freshness_counts.get("unavailable") or 0),
+        "priority_counts": source_policy_status.get("priority_counts") or {},
+        "source_count": len(sources),
+        "problem_sources": problem_sources[:5],
+        "sources": sources,
+    }
+
+
 def _build_market_section(row: dict | None) -> dict:
     row = row or {}
     return {
@@ -250,6 +284,42 @@ def _build_market_section(row: dict | None) -> dict:
     }
 
 
+def _build_top_parameter_view(
+    *,
+    current_market: dict | None,
+    probability: dict | None,
+    gate_stack: dict | None,
+) -> dict:
+    current_market = current_market or {}
+    probability = probability or {}
+    gate_stack = gate_stack or {}
+    return build_top_parameter_view(
+        current_market=current_market,
+        forecast_snapshot=current_market,
+        comparison_point={
+            **probability,
+            **gate_stack,
+            "comparison_status": current_market.get("comparison_status"),
+            "required_data_source": current_market.get("required_data_source"),
+        },
+    )
+
+
+def _infer_unit(market_family: str) -> str:
+    family = str(market_family or "").lower()
+    if "temperature" in family:
+        return "celsius"
+    if "precipitation" in family:
+        return "mm"
+    if "wind" in family:
+        return "m/s"
+    if "snow" in family:
+        return "cm"
+    if "sea_ice" in family:
+        return "km²"
+    return "-"
+
+
 def _build_block_reasons(
     *,
     monitoring: dict,
@@ -257,6 +327,7 @@ def _build_block_reasons(
     execution: dict,
     market: dict,
     validation: dict,
+    source_policy: dict | None = None,
 ) -> list[str]:
     reasons: list[str] = []
     monitoring_status = str(monitoring.get("overall_status") or "unknown")
@@ -293,6 +364,11 @@ def _build_block_reasons(
     for blocker in validation.get("coverage_blockers") or []:
         reasons.append(f"coverage_blocker:{blocker}")
 
+    source_policy = source_policy or {}
+    source_policy_status = str(source_policy.get("overall_status") or "unknown")
+    if source_policy_status != "healthy":
+        reasons.append(f"source_policy:{source_policy_status}")
+
     execution_status = str(execution.get("status") or "unknown")
     if execution_status != "ready":
         reasons.append(f"execution:{execution_status}")
@@ -307,6 +383,7 @@ def _can_bot_trade(
     execution: dict,
     market: dict,
     validation: dict,
+    source_policy: dict | None = None,
 ) -> bool:
     monitoring_healthy = str(monitoring.get("overall_status") or "") == "healthy"
     comparison_status = str(market.get("comparison_status") or "")
@@ -316,6 +393,7 @@ def _can_bot_trade(
     comparison_actionable = comparison_status in {"aligned", "mild_divergence", "strong_divergence"}
     validation_fresh = str(validation.get("freshness_status") or "") == "healthy"
     coverage_healthy = str(validation.get("label_coverage_status") or "") == "healthy"
+    source_policy_healthy = str((source_policy or {}).get("overall_status") or "") == "healthy"
     return all(
         [
             monitoring_healthy,
@@ -324,6 +402,7 @@ def _can_bot_trade(
             constraint_live,
             validation_fresh,
             coverage_healthy,
+            source_policy_healthy,
             execution_ready,
         ]
     )
@@ -336,6 +415,7 @@ def _build_gate_stack(
     execution: dict,
     market: dict,
     validation: dict,
+    source_policy: dict | None = None,
 ) -> dict:
     data_reasons: list[str] = []
     if str(monitoring.get("overall_status") or "").lower() != "healthy":
@@ -378,6 +458,8 @@ def _build_gate_stack(
         freshness_reasons.append("validation_freshness_unhealthy")
     if str(validation.get("label_coverage_status") or "").lower() != "healthy":
         freshness_reasons.append("label_coverage_unhealthy")
+    if str((source_policy or {}).get("overall_status") or "").lower() != "healthy":
+        freshness_reasons.append("source_policy_unhealthy")
 
     execution_reasons: list[str] = []
     if str(execution.get("status") or "").lower() != "ready":

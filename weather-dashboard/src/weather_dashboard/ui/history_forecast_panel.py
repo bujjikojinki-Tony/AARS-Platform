@@ -84,7 +84,7 @@ def render_history_forecast_panel(
             st.markdown(
                 f"**Confidence Score:** {sanitize_text(realtime_forecast.get('confidence_score', '-'))}"
             )
-            st.markdown(f"**Source Mode:** {sanitize_text(realtime_forecast.get('source_mode', '-'))}")
+            st.markdown(f"**Forecast Status:** {sanitize_text(realtime_forecast.get('source_mode', '-'))}")
         elif _is_shanghai_market(selected_market_snapshot) and shanghai_history_reference:
             st.markdown(
                 f"**Reference Forecast Value:** {sanitize_text(shanghai_history_reference.get('forecast_value', '-'))}"

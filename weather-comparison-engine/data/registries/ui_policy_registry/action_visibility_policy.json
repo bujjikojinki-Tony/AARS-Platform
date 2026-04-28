@@ -1,0 +1,94 @@
+{
+  "schema_version": "action_visibility_policy.v1",
+  "policy_id": "action_visibility_policy.default.v1",
+  "description": "Defines where actions may appear and whether they may be primary actions.",
+  "rules": [
+    {
+      "action": "disable_critical_rule",
+      "allowed_pages": ["alerts_rules"],
+      "requires_confirmation": true,
+      "primary_allowed": false,
+      "creates_intent": false,
+      "changes_gate": false
+    },
+    {
+      "action": "disable_critical_source",
+      "allowed_pages": ["data_sources"],
+      "requires_confirmation": true,
+      "primary_allowed": false,
+      "creates_intent": false,
+      "changes_gate": false
+    },
+    {
+      "action": "system_maintenance",
+      "allowed_pages": ["system"],
+      "requires_confirmation": true,
+      "primary_allowed": false,
+      "creates_intent": false,
+      "changes_gate": false
+    },
+    {
+      "action": "open_workstation",
+      "allowed_pages": ["operations_monitor", "monitoring_signals", "opportunity_board", "command", "markets", "history"],
+      "requires_market_id": true,
+      "primary_allowed": true,
+      "creates_intent": false,
+      "changes_gate": false
+    },
+    {
+      "action": "add_to_focus",
+      "allowed_pages": ["opportunity_board", "markets", "workstation", "command"],
+      "requires_market_id": true,
+      "primary_allowed": true,
+      "creates_intent": false,
+      "changes_gate": false
+    },
+    {
+      "action": "send_to_command",
+      "allowed_pages": ["operations_monitor", "monitoring_signals", "opportunity_board", "workstation"],
+      "requires_market_id": true,
+      "primary_allowed": false,
+      "creates_intent": false,
+      "changes_gate": false
+    },
+    {
+      "action": "create_pending_intent",
+      "allowed_pages": ["command"],
+      "requires_market_id": true,
+      "requires_gate_allow": true,
+      "requires_operator_reason": true,
+      "primary_allowed": true,
+      "creates_intent": true,
+      "changes_gate": false
+    },
+    {
+      "action": "run_dry_run_check",
+      "allowed_pages": ["command", "workstation"],
+      "requires_pending_intent": true,
+      "requires_gateway_available": true,
+      "primary_allowed": false,
+      "creates_intent": false,
+      "changes_gate": false
+    },
+    {
+      "action": "request_approval",
+      "allowed_pages": ["command"],
+      "requires_market_id": true,
+      "requires_pending_intent": true,
+      "requires_gateway_available": true,
+      "primary_allowed": false,
+      "creates_intent": false,
+      "changes_gate": false
+    },
+    {
+      "action": "live_execute",
+      "allowed_pages": ["command"],
+      "primary_allowed": false,
+      "requires_gate_allow": true,
+      "requires_valid_approval": true,
+      "requires_live_mode_enabled": true,
+      "creates_intent": true,
+      "changes_gate": true
+    }
+  ]
+}

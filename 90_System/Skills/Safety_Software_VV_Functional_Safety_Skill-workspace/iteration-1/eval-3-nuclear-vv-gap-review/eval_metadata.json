@@ -1,0 +1,12 @@
+{
+  "eval_id": 3,
+  "eval_name": "nuclear-vv-gap-review",
+  "prompt": "请审查一个核电 digital I&C 软件包当前是否具备进入下一生命周期阶段的条件。已知信息：系统边界基本描述清楚，安全分级暂未最终冻结；有 software requirements spec、部分 design review 记录、单元测试记录、集成测试记录，但 validation scenarios 不完整，配置基线也没有形成正式发布包。请按 IEEE 1012 为主、IEC 61508 / 61511 仅作参考的原则，输出 findings first 的 review / gap analysis，并明确给出 phase-gate recommendation。",
+  "assertions": [
+    "The output presents a review conclusion and findings before any brief summary",
+    "The output treats IEEE 1012 as the primary V&V logic and does not substitute IEC 61508 / 61511 for nuclear-specific requirements",
+    "The output identifies gaps in validation coverage and configuration baseline control",
+    "The output includes required evidence and corrective actions",
+    "The output ends with a phase-gate recommendation using Pass, Conditional Pass, Hold, Fail, or Insufficient Evidence"
+  ]
+}

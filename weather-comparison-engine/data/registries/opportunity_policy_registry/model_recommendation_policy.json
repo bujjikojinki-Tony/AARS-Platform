@@ -1,0 +1,46 @@
+{
+  "policy_id": "model_recommendation_policy.v1",
+  "schema_version": "model_recommendation_policy.v1",
+  "applicable_scope": "opportunity_board.best_model",
+  "formula_or_mapping": "family_candidate_stack",
+  "family_candidates": {
+    "temperature_daily_max": {
+      "best_model": "ECMWF",
+      "best_source_stack": ["ecmwf", "metar", "official_obs"],
+      "reason": "temperature daily markets favor ECMWF plus realtime station observation and official truth alignment"
+    },
+    "temperature_daily_min": {
+      "best_model": "ECMWF",
+      "best_source_stack": ["ecmwf", "metar", "official_obs"],
+      "reason": "temperature daily markets favor ECMWF plus realtime station observation and official truth alignment"
+    },
+    "station_temperature": {
+      "best_model": "ECMWF",
+      "best_source_stack": ["ecmwf", "metar", "official_obs"],
+      "reason": "station temperature markets favor ECMWF plus exact-station observations"
+    },
+    "weather_metric.wind_speed": {
+      "best_model": "HRRR",
+      "best_source_stack": ["hrrr", "metar", "official_obs"],
+      "reason": "wind markets favor short-range high-resolution model support where available"
+    },
+    "weather_metric.precipitation": {
+      "best_model": "HRRR",
+      "best_source_stack": ["hrrr", "ecmwf", "official_obs"],
+      "reason": "precipitation markets favor short-range model support and official observation truth"
+    },
+    "global_temperature_index": {
+      "best_model": "Climate Index Baseline",
+      "best_source_stack": ["climate_index_source", "official_obs"],
+      "reason": "global index family favors official climate index support"
+    },
+    "sea_ice_extent": {
+      "best_model": "Sea Ice Dataset",
+      "best_source_stack": ["sea_ice_dataset", "official_obs"],
+      "reason": "sea ice family favors official dataset support"
+    }
+  },
+  "version": "v1",
+  "status": "active",
+  "notes": "Manual seed best_model may provide cold-start prior until system evidence supersedes it."
+}

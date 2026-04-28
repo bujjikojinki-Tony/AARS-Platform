@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from weather_rules_research.governance import build_policy_refs
 from weather_rules_research.models.market_rule import MarketRule
 from weather_rules_research.official_obs import WundergroundHistoryHelper
 from weather_rules_research.registries.source_registry import (
@@ -23,6 +24,11 @@ class ResolverSourceContract:
     source_note: str | None = None
     station_id: str | None = None
     unit: str | None = None
+    source_policy_ref: str | None = None
+    unit_policy_ref: str | None = None
+    precision_policy_ref: str | None = None
+    rounding_policy_ref: str | None = None
+    band_mapping_policy_ref: str | None = None
 
 
 class ResolverContractRegistry:
@@ -46,6 +52,12 @@ class ResolverContractRegistry:
             )
         if family == "sea_ice_extent":
             profile = get_source_contract_profile("sea_ice_family_exact")
+            policy_refs = build_policy_refs(
+                market_family=family,
+                variable_name=taxonomy.primary_variable_name,
+                band_scheme=taxonomy.band_scheme,
+                source_policy_ref="sea_ice_dataset",
+            )
             return ResolverSourceContract(
                 required_data_source=profile.get("required_data_source")
                 or taxonomy.required_data_source
@@ -57,9 +69,16 @@ class ResolverContractRegistry:
                 official_source_url=profile.get("official_source_url"),
                 source_note=profile.get("source_note"),
                 unit=resolution_snapshot.get("unit") or "million_sq_km",
+                **policy_refs,
             )
         if family == "global_temperature_index":
             profile = get_source_contract_profile("global_temperature_family_exact")
+            policy_refs = build_policy_refs(
+                market_family=family,
+                variable_name=taxonomy.primary_variable_name,
+                band_scheme=taxonomy.band_scheme,
+                source_policy_ref="climate_index_source",
+            )
             return ResolverSourceContract(
                 required_data_source=profile.get("required_data_source")
                 or taxonomy.required_data_source
@@ -70,8 +89,14 @@ class ResolverContractRegistry:
                 source_match_grade=profile.get("source_match_grade"),
                 official_source_url=profile.get("official_source_url"),
                 source_note=profile.get("source_note"),
+                **policy_refs,
             )
         profile = get_source_contract_profile("unknown_unmatched")
+        policy_refs = build_policy_refs(
+            market_family=family,
+            variable_name=taxonomy.primary_variable_name,
+            band_scheme=taxonomy.band_scheme,
+        )
         return ResolverSourceContract(
             required_data_source=taxonomy.required_data_source or required_data_source_for_family(family),
             required_sources=tuple(profile.get("required_sources") or ()),
@@ -81,6 +106,7 @@ class ResolverContractRegistry:
             official_source_url=profile.get("official_source_url"),
             source_note=profile.get("source_note"),
             unit=resolution_snapshot.get("unit"),
+            **policy_refs,
         )
 
     def _build_station_contract(
@@ -101,6 +127,12 @@ class ResolverContractRegistry:
         unit = resolution_snapshot.get("unit") or _unit_for_variable(
             rule.variable_name if rule is not None else taxonomy.primary_variable_name
         )
+        policy_refs = build_policy_refs(
+            market_family=taxonomy.market_family,
+            variable_name=rule.variable_name if rule is not None else taxonomy.primary_variable_name,
+            band_scheme=taxonomy.band_scheme,
+            source_policy_ref="wunderground_station",
+        )
 
         if self._is_shanghai_station(location_name=location_name, station_name=station_name, station_id=station_id):
             profile = get_source_contract_profile("station_shanghai_exact")
@@ -114,6 +146,7 @@ class ResolverContractRegistry:
                 source_note=profile.get("source_note"),
                 station_id="ZSPD",
                 unit=unit,
+                **policy_refs,
             )
 
         if rule is None:
@@ -130,6 +163,7 @@ class ResolverContractRegistry:
                 source_note=profile.get("source_note"),
                 station_id=station_id,
                 unit=unit,
+                **policy_refs,
             )
 
         profile = get_source_contract_profile("station_exact")
@@ -145,6 +179,7 @@ class ResolverContractRegistry:
             source_note=profile.get("source_note"),
             station_id=station_id,
             unit=unit,
+            **policy_refs,
         )
 
     @staticmethod

@@ -30,6 +30,36 @@ def test_market_handler(monkeypatch) -> None:
             "market_id": market_id or "mkt_123",
             "market_question": "Will NYC hit 95F?",
             "comparison_status": "aligned",
+            "top_parameter_view": {
+                "schema_version": "top_parameter_view.v1",
+                "market_id": market_id or "mkt_123",
+                "market_family": "temperature_daily_max",
+                "market_question": "Will NYC hit 95F?",
+                "location_name": "New York City",
+                "target_date": "2026-07-04",
+                "variable_name": "temperature_max",
+                "polymarket": {
+                    "yes_price": 0.41,
+                    "no_price": 0.59,
+                    "market_implied_probability": 0.41,
+                    "favored_side": "yes",
+                    "market_band": "91-95F",
+                },
+                "weather": {
+                    "forecast_value": 93.2,
+                    "station_id": "USW00094728",
+                    "station_name": "Central Park",
+                    "freshness_status": "healthy",
+                },
+                "source_contract": {
+                    "source_match_grade": "exact_station",
+                    "freshness_status": "healthy",
+                },
+                "decision": {
+                    "can_execute": "no",
+                    "primary_block_reason": "shadow_only",
+                },
+            },
         },
     )
 

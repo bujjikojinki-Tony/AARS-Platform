@@ -23,6 +23,7 @@ from weather_rules_research.stations.mapper import StationMapper
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
+CANONICAL_STATION_MAP_JSON = BASE_DIR / "data" / "processed" / "station_maps" / "manual_station_map.json"
 OUTPUT_DIR = BASE_DIR / "data" / "outputs"
 OUTPUT_PATH = OUTPUT_DIR / "forecast_realtime_snapshot.json"
 SNAPSHOTS_DIR = OUTPUT_DIR / "forecast_realtime_snapshots"
@@ -47,7 +48,7 @@ RULEBOOK_JSON = Path(
 STATION_MAP_JSON = Path(
     os.getenv(
         "STATION_MAP_JSON",
-        str(OUTPUT_DIR / "sample_station_map.json"),
+        str(CANONICAL_STATION_MAP_JSON),
     )
 )
 GLOBAL_TEMPERATURE_INDEX_JSON = Path(
@@ -79,13 +80,13 @@ def classify_temperature_band(value: float) -> str:
     return "29_plus"
 
 
-def confidence_from_source_mode(source_mode: str, value: float | None) -> float:
+def confidence_from_source_path(source_path: str | None, value: float | None) -> float:
     if value is None:
         return 0.0
 
-    if source_mode.startswith("daily."):
+    if (source_path or "").startswith("daily."):
         return 0.90
-    if source_mode.startswith("hourly."):
+    if (source_path or "").startswith("hourly."):
         return 0.75
     return 0.50
 
@@ -115,6 +116,54 @@ def request_params_for_variable(variable_name: str) -> dict[str, str | None]:
         "hourly": "temperature_2m",
         "daily": "temperature_2m_max,temperature_2m_min",
     }
+
+
+def _normalize_market_question_target_date(question: object | None) -> str | None:
+    text = str(question or "").strip()
+    if not text:
+        return None
+    import re
+
+    match = re.search(
+        r"\b(?P<month>jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|"
+        r"jun(?:e)?|jul(?:y)?|aug(?:ust)?|sept?(?:ember)?|oct(?:ober)?|"
+        r"nov(?:ember)?|dec(?:ember)?)\.?\s+(?P<day>\d{1,2})(?:,\s*(?P<year>\d{4}))?\b",
+        text,
+        re.IGNORECASE,
+    )
+    if not match:
+        return None
+    month_key = match.group("month").lower().rstrip(".")
+    month_map = {
+        "jan": "Jan",
+        "january": "Jan",
+        "feb": "Feb",
+        "february": "Feb",
+        "mar": "Mar",
+        "march": "Mar",
+        "apr": "Apr",
+        "april": "Apr",
+        "may": "May",
+        "jun": "Jun",
+        "june": "Jun",
+        "jul": "Jul",
+        "july": "Jul",
+        "aug": "Aug",
+        "august": "Aug",
+        "sep": "Sep",
+        "sept": "Sep",
+        "september": "Sep",
+        "oct": "Oct",
+        "october": "Oct",
+        "nov": "Nov",
+        "november": "Nov",
+        "dec": "Dec",
+        "december": "Dec",
+    }
+    month = month_map.get(month_key)
+    if not month:
+        return None
+    return f"{month} {int(match.group('day'))}"
 
 
 def classify_model_band(
@@ -187,6 +236,30 @@ def build_and_write_snapshot(snapshot: dict) -> dict:
     return snapshot
 
 
+def _sync_station_map() -> Path | None:
+    source = CANONICAL_STATION_MAP_JSON
+    target = STATION_MAP_JSON
+    if not source.exists():
+        return None
+    payload = json.loads(source.read_text(encoding="utf-8"))
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    return target
+
+
+async def startup_self_check_and_sync(live_market: dict | None = None) -> dict:
+    result: dict = {
+        "station_map_synced": False,
+        "snapshot_refreshed": False,
+    }
+    synced_path = _sync_station_map()
+    result["station_map_synced"] = synced_path is not None
+    snapshot = await poll_once(live_market=live_market)
+    result["snapshot_refreshed"] = True
+    result["snapshot"] = snapshot
+    return result
+
+
 async def poll_once(live_market: dict | None = None) -> dict:
     live_market = live_market or load_live_market_snapshot()
     rules = load_rulebook(RULEBOOK_JSON)
@@ -195,6 +268,7 @@ async def poll_once(live_market: dict | None = None) -> dict:
     selection_reason = resolution.reason
     taxonomy = resolution.taxonomy
     resolution_snapshot = resolution.snapshot
+    synced_target_date = _normalize_market_question_target_date(live_market.get("market_question"))
 
     if selected_rule is None:
         if taxonomy.market_family == "global_temperature_index":
@@ -207,13 +281,14 @@ async def poll_once(live_market: dict | None = None) -> dict:
                     "market_id": live_market.get("market_id"),
                     "market_question": live_market.get("market_question"),
                     "location_name": live_market.get("location_name"),
-                    "target_date": live_market.get("target_date"),
+                    "target_date": synced_target_date or live_market.get("target_date"),
                     "variable_name": "global_temperature_index",
                     "value": ordinal_rank,
                     "model_band": model_band,
                     "band_scheme": taxonomy.band_scheme,
                     "confidence_score": 1.0,
-                    "source_mode": "global_temperature_index.snapshot",
+                    "source_mode": "Global temperature index snapshot",
+                    "source_path": "global_temperature_index.snapshot",
                     "notes": index_snapshot.get("notes") or "Loaded global temperature index snapshot",
                     "rule_status": "matched_index",
                     "rule_market_id": live_market.get("market_id"),
@@ -245,13 +320,14 @@ async def poll_once(live_market: dict | None = None) -> dict:
                     "market_id": live_market.get("market_id"),
                     "market_question": live_market.get("market_question"),
                     "location_name": live_market.get("location_name"),
-                    "target_date": live_market.get("target_date"),
+                    "target_date": synced_target_date or live_market.get("target_date"),
                     "variable_name": "minimum_sea_ice_extent",
                     "value": extent_value,
                     "model_band": model_band,
                     "band_scheme": taxonomy.band_scheme,
                     "confidence_score": 0.95 if extent_value is not None else 0.0,
-                    "source_mode": "sea_ice_extent.snapshot",
+                    "source_mode": "Sea ice extent snapshot",
+                    "source_path": "sea_ice_extent.snapshot",
                     "notes": sea_ice_snapshot.get("notes") or "Loaded sea ice extent snapshot",
                     "rule_status": "matched_snapshot",
                     "rule_market_id": live_market.get("market_id"),
@@ -272,13 +348,14 @@ async def poll_once(live_market: dict | None = None) -> dict:
             "market_id": live_market.get("market_id"),
             "market_question": live_market.get("market_question"),
             "location_name": live_market.get("location_name"),
-            "target_date": live_market.get("target_date"),
+            "target_date": synced_target_date or live_market.get("target_date"),
             "variable_name": live_market.get("variable_name"),
             "value": None,
             "model_band": None,
             "band_scheme": taxonomy.band_scheme,
             "confidence_score": 0.0,
-            "source_mode": "no_matching_rule",
+            "source_mode": "No matching rule",
+            "source_path": "no_matching_rule",
             "notes": selection_reason,
             "rule_status": "no_matching_rule",
             "rule_market_id": None,
@@ -301,13 +378,14 @@ async def poll_once(live_market: dict | None = None) -> dict:
             "market_id": live_market.get("market_id"),
             "market_question": live_market.get("market_question"),
             "location_name": selected_rule.location_name,
-            "target_date": selected_rule.target_date or live_market.get("target_date"),
+            "target_date": synced_target_date or selected_rule.target_date or live_market.get("target_date"),
             "variable_name": selected_rule.variable_name,
             "value": None,
             "model_band": None,
             "band_scheme": taxonomy.band_scheme,
             "confidence_score": 0.0,
-            "source_mode": "no_station_mapping",
+            "source_mode": "Station mapping unavailable",
+            "source_path": "no_station_mapping",
             "notes": "Matched a rule, but station mapping failed",
             "rule_status": "matched_rule_no_station",
             "rule_market_id": selected_rule.market_id,
@@ -335,7 +413,7 @@ async def poll_once(live_market: dict | None = None) -> dict:
 
     extracted = extractor.extract_for_market_rule(
         payload=payload,
-        target_date=selected_rule.target_date or live_market.get("target_date") or "",
+        target_date=synced_target_date or selected_rule.target_date or live_market.get("target_date") or "",
         variable_name=selected_rule.variable_name,
     )
 
@@ -345,7 +423,7 @@ async def poll_once(live_market: dict | None = None) -> dict:
         value=model_value,
         resolution_snapshot=resolution_snapshot,
     )
-    confidence_score = confidence_from_source_mode(extracted.source_mode, model_value)
+    confidence_score = confidence_from_source_path(extracted.source_path, model_value)
     station_history_url = WundergroundHistoryHelper.build_history_url_for_station(station)
     notes = extracted.notes
     if station_history_url:
@@ -357,13 +435,14 @@ async def poll_once(live_market: dict | None = None) -> dict:
         "market_id": live_market.get("market_id"),
         "market_question": live_market.get("market_question"),
         "location_name": selected_rule.location_name,
-        "target_date": extracted.target_date,
+        "target_date": synced_target_date or extracted.target_date,
         "variable_name": extracted.variable_name,
         "value": model_value,
         "model_band": model_band,
         "band_scheme": taxonomy.band_scheme,
         "confidence_score": confidence_score,
         "source_mode": extracted.source_mode,
+        "source_path": extracted.source_path,
         "notes": notes,
         "rule_status": "matched",
         "rule_market_id": selected_rule.market_id,
@@ -405,6 +484,17 @@ async def main() -> None:
     print(f"Poll Interval  : {MARKET_CHECK_INTERVAL_SECONDS}s")
     print("=" * 80)
 
+    try:
+        bootstrap = await startup_self_check_and_sync()
+        print(
+            "[startup-sync] "
+            f"station_map_synced={bootstrap.get('station_map_synced')} "
+            f"snapshot_refreshed={bootstrap.get('snapshot_refreshed')} "
+            f"source_mode={((bootstrap.get('snapshot') or {}).get('source_mode') or '-')}"
+        )
+    except Exception as exc:
+        print(f"[startup-sync] error: {exc}")
+
     last_fingerprint: tuple[str | None, str | None, str | None] | None = None
     last_refresh_at: datetime | None = None
 
@@ -430,7 +520,8 @@ async def main() -> None:
                     "value": None,
                     "model_band": None,
                     "confidence_score": 0.0,
-                    "source_mode": "unchanged_market_skipped",
+                    "source_mode": "Market unchanged; forecast not refreshed",
+                    "source_path": "unchanged_market_skipped",
                     "rule_status": "unchanged",
                 }
             print(

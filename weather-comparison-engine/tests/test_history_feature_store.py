@@ -19,6 +19,45 @@ def test_feature_store_builds_labeled_precipitation_sample():
                 "confidence_adjusted_gap": 0.0,
                 "comparison_status": "aligned",
                 "action_hint": "watch",
+                "source_policy_ref": "source_policy_registry.v1",
+                "precision_policy_ref": "precision_policy.weather_metric.precipitation.v1",
+                "rounding_policy_ref": "rounding_policy.weather_metric.precipitation.v1",
+                "band_mapping_policy_ref": "band_mapping.precipitation_mm_threshold.v1",
+                "normalization_version": "measurement_normalization.v1",
+                "top_parameter_view": {
+                    "forecast": {
+                        "raw_value": 12.0,
+                        "raw_unit": "mm",
+                        "canonical_value": 12.0,
+                        "canonical_unit": "mm",
+                        "display_value": 12.0,
+                        "display_unit": "mm",
+                        "conversion_rule": "identity",
+                        "conversion_applied": False,
+                        "normalization_version": "measurement_normalization.v1",
+                    },
+                    "weather": {
+                        "raw_value": 11.0,
+                        "raw_unit": "mm",
+                        "canonical_value": 11.0,
+                        "canonical_unit": "mm",
+                        "display_value": 11.0,
+                        "display_unit": "mm",
+                        "conversion_rule": "identity",
+                        "conversion_applied": False,
+                        "normalization_version": "measurement_normalization.v1",
+                    },
+                    "source_contract": {
+                        "source_policy_ref": "source_policy_registry.v1",
+                    },
+                    "normalization": {
+                        "source_policy_ref": "source_policy_registry.v1",
+                        "precision_policy_ref": "precision_policy.weather_metric.precipitation.v1",
+                        "rounding_policy_ref": "rounding_policy.weather_metric.precipitation.v1",
+                        "band_mapping_policy_ref": "band_mapping.precipitation_mm_threshold.v1",
+                        "normalization_version": "measurement_normalization.v1",
+                    },
+                },
             }
         ],
         resolver_report={
@@ -61,6 +100,11 @@ def test_feature_store_builds_labeled_precipitation_sample():
     assert sample.outcome == "YES"
     assert sample.model_probability == 0.72
     assert sample.edge == 0.12
+    assert sample.schema_version == "training_sample.v2"
+    assert sample.source_policy_ref == "source_policy_registry.v1"
+    assert sample.normalization_version == "measurement_normalization.v1"
+    assert sample.forecast_canonical_value == 12.0
+    assert sample.observation_canonical_value == 11.0
 
 
 def test_feature_store_summary_counts_labeled_and_unlabeled_rows():
@@ -78,6 +122,30 @@ def test_feature_store_summary_counts_labeled_and_unlabeled_rows():
                 "market_band": "in_range",
                 "confidence_score": 0.90,
                 "comparison_status": "aligned",
+                "source_policy_ref": "source_policy_registry.v1",
+                "precision_policy_ref": "precision_policy.weather_metric.precipitation.v1",
+                "rounding_policy_ref": "rounding_policy.weather_metric.precipitation.v1",
+                "band_mapping_policy_ref": "band_mapping.precipitation_mm_threshold.v1",
+                "normalization_version": "measurement_normalization.v1",
+                "top_parameter_view": {
+                    "forecast": {
+                        "canonical_value": 12.0,
+                        "canonical_unit": "mm",
+                        "normalization_version": "measurement_normalization.v1",
+                    },
+                    "weather": {
+                        "canonical_value": 11.0,
+                        "canonical_unit": "mm",
+                        "normalization_version": "measurement_normalization.v1",
+                    },
+                    "normalization": {
+                        "source_policy_ref": "source_policy_registry.v1",
+                        "precision_policy_ref": "precision_policy.weather_metric.precipitation.v1",
+                        "rounding_policy_ref": "rounding_policy.weather_metric.precipitation.v1",
+                        "band_mapping_policy_ref": "band_mapping.precipitation_mm_threshold.v1",
+                        "normalization_version": "measurement_normalization.v1",
+                    },
+                },
             },
             {
                 "timestamp": "2026-04-18T01:00:00+00:00",
@@ -143,6 +211,10 @@ def test_feature_store_summary_counts_labeled_and_unlabeled_rows():
     assert summary["market_family_counts"]["global_temperature_index"] == 1
     assert summary["label_counts"]["YES"] == 1
     assert summary["label_counts"]["unlabeled"] == 1
+    assert summary["schema_version"] == "feature_store_summary.v2"
+    assert summary["canonical_rows"] >= 1
+    assert summary["canonical_ratio"] is not None
+    assert summary["source_policy_ref_counts"]["unknown"] >= 1
 
 
 def test_feature_store_uses_market_level_official_record_without_resolver_rule():
@@ -160,6 +232,25 @@ def test_feature_store_uses_market_level_official_record_without_resolver_rule()
                 "market_band": "28",
                 "confidence_score": 0.91,
                 "comparison_status": "aligned",
+                "top_parameter_view": {
+                    "forecast": {
+                        "canonical_value": 28.0,
+                        "canonical_unit": "celsius",
+                        "normalization_version": "measurement_normalization.v1",
+                    },
+                    "weather": {
+                        "canonical_value": 28.0,
+                        "canonical_unit": "celsius",
+                        "normalization_version": "measurement_normalization.v1",
+                    },
+                    "normalization": {
+                        "source_policy_ref": "source_policy_registry.v1",
+                        "precision_policy_ref": "precision_policy.temperature_daily_max.v1",
+                        "rounding_policy_ref": "rounding_policy.temperature_daily_max.v1",
+                        "band_mapping_policy_ref": "band_mapping.temperature_celsius_integer.v1",
+                        "normalization_version": "measurement_normalization.v1",
+                    },
+                },
             }
         ],
         resolver_report={"rules": []},

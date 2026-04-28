@@ -1,0 +1,12 @@
+{
+  "eval_id": 6,
+  "eval_name": "safety-validation-report",
+  "prompt": "请生成一份 Safety Validation Report 草案。对象是 emergency shutdown function，已知安全要求包括：检测到火气联锁条件后 3 秒内驱动装置进入 safe shutdown；HMI 必须明确显示 trip status 和 bypass status；manual reset 必须在危险状态消除后才能执行。已知目前已有 integration test 记录和一部分 SAT 记录，但 abnormal-condition scenarios 还没有完全补齐。请区分 verification、validation 和 ordinary testing，并明确写出限制条件。",
+  "assertions": [
+    "The output includes Validation Scope, Validation Basis, Configuration Baseline, and Validation Scenarios",
+    "The output includes safety function validation, response time validation, and HMI or bypass or reset validation",
+    "The output clearly distinguishes validation from verification and ordinary testing",
+    "The output includes deviations or anomalies and conditions or restrictions",
+    "The output explicitly identifies incomplete abnormal-condition scenario coverage as a gap or limitation"
+  ]
+}

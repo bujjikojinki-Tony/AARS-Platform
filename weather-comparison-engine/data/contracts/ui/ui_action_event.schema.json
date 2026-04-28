@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "ui_action_event.schema.json",
+  "title": "ui_action_event.v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "created_at",
+    "page",
+    "action",
+    "market_id",
+    "detail"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "ui_action_event.v1"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "page": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "market_id": {
+      "type": "string"
+    },
+    "detail": {
+      "type": "object"
+    },
+    "source_page": {
+      "type": "string"
+    },
+    "target_page": {
+      "type": "string"
+    },
+    "entry_context": {
+      "type": "object"
+    }
+  }
+}

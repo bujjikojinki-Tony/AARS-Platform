@@ -151,6 +151,8 @@ Core fields:
 
 This is the bridge artifact for Telegram/ops notification integration.
 
+Upstream monitoring indicator events such as `market_alert_event.v1` and `market_anomaly_event.v1` are separate contracts. They may feed dashboard / telegram / automation consumers, but they do not redefine `gate_stack_api.v1` semantics.
+
 Telegram bridge queue layer:
 
 - bridge command: `weather-telegram-ops-bridge sync-gate-alerts --max-batch 50`

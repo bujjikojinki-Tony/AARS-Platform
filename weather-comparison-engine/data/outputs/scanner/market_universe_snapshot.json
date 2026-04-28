@@ -1,0 +1,519 @@
+{
+  "schema_version": "market_universe_snapshot.v1",
+  "generated_at": "2026-04-23T12:58:01.891759+00:00",
+  "market_count": 18,
+  "markets": [
+    {
+      "schema_version": "market_universe_market.v1",
+      "market_id": "397991",
+      "question": "Highest temperature in Shanghai on April 22?",
+      "city": "-",
+      "country": "-",
+      "market_family": "station_temperature",
+      "target_date": "Apr 22",
+      "band_scheme": "temperature_4_bucket",
+      "active_status": "active",
+      "liquidity_score": 0.0,
+      "spread": 0.0,
+      "scan_priority": "critical",
+      "freshness_status": "fresh",
+      "freshness_reason": "latest dashboard row",
+      "seeded_from_opportunity_seed": false,
+      "upstream_refs": {
+        "source_name": "latest_dashboard_rows",
+        "market_id": "397991",
+        "comparison_ref": "-",
+        "alert_ref": "-",
+        "anomaly_ref": "-",
+        "gate_ref": "-",
+        "source_refs": [
+          "latest_dashboard_rows",
+          "market_realtime"
+        ]
+      }
+    },
+    {
+      "schema_version": "market_universe_market.v1",
+      "market_id": "Ankara.temperature_daily_max",
+      "question": "-",
+      "city": "Ankara",
+      "country": "TR",
+      "market_family": "temperature_daily_max",
+      "target_date": "-",
+      "band_scheme": "-",
+      "active_status": "active",
+      "liquidity_score": 0.0,
+      "spread": 0.0,
+      "scan_priority": "high",
+      "freshness_status": "fresh",
+      "freshness_reason": "opportunity board row",
+      "seeded_from_opportunity_seed": false,
+      "upstream_refs": {
+        "source_name": "opportunity_board",
+        "market_id": "ankara.temperature_daily_max",
+        "comparison_ref": "-",
+        "alert_ref": "-",
+        "anomaly_ref": "-",
+        "gate_ref": "-",
+        "source_refs": [
+          "opportunity_board"
+        ]
+      }
+    },
+    {
+      "schema_version": "market_universe_market.v1",
+      "market_id": "Buenos Aires.temperature_daily_max",
+      "question": "-",
+      "city": "Buenos Aires",
+      "country": "AR",
+      "market_family": "temperature_daily_max",
+      "target_date": "-",
+      "band_scheme": "-",
+      "active_status": "active",
+      "liquidity_score": 0.0,
+      "spread": 0.0,
+      "scan_priority": "high",
+      "freshness_status": "fresh",
+      "freshness_reason": "opportunity board row",
+      "seeded_from_opportunity_seed": false,
+      "upstream_refs": {
+        "source_name": "opportunity_board",
+        "market_id": "buenos_aires.temperature_daily_max",
+        "comparison_ref": "-",
+        "alert_ref": "-",
+        "anomaly_ref": "-",
+        "gate_ref": "-",
+        "source_refs": [
+          "opportunity_board"
+        ]
+      }
+    },
+    {
+      "schema_version": "market_universe_market.v1",
+      "market_id": "Chicago.temperature_daily_max",
+      "question": "-",
+      "city": "Chicago",
+      "country": "US",
+      "market_family": "temperature_daily_max",
+      "target_date": "-",
+      "band_scheme": "-",
+      "active_status": "active",
+      "liquidity_score": 0.0,
+      "spread": 0.0,
+      "scan_priority": "high",
+      "freshness_status": "fresh",
+      "freshness_reason": "opportunity board row",
+      "seeded_from_opportunity_seed": false,
+      "upstream_refs": {
+        "source_name": "opportunity_board",
+        "market_id": "chicago.temperature_daily_max",
+        "comparison_ref": "-",
+        "alert_ref": "-",
+        "anomaly_ref": "-",
+        "gate_ref": "-",
+        "source_refs": [
+          "opportunity_board"
+        ]
+      }
+    },
+    {
+      "schema_version": "market_universe_market.v1",
+      "market_id": "London.temperature_daily_max",
+      "question": "-",
+      "city": "London",
+      "country": "UK",
+      "market_family": "temperature_daily_max",
+      "target_date": "-",
+      "band_scheme": "-",
+      "active_status": "active",
+      "liquidity_score": 0.0,
+      "spread": 0.0,
+      "scan_priority": "high",
+      "freshness_status": "fresh",
+      "freshness_reason": "opportunity board row",
+      "seeded_from_opportunity_seed": false,
+      "upstream_refs": {
+        "source_name": "opportunity_board",
+        "market_id": "london.temperature_daily_max",
+        "comparison_ref": "-",
+        "alert_ref": "-",
+        "anomaly_ref": "-",
+        "gate_ref": "-",
+        "source_refs": [
+          "opportunity_board"
+        ]
+      }
+    },
+    {
+      "schema_version": "market_universe_market.v1",
+      "market_id": "Miami.temperature_daily_max",
+      "question": "-",
+      "city": "Miami",
+      "country": "US",
+      "market_family": "temperature_daily_max",
+      "target_date": "-",
+      "band_scheme": "-",
+      "active_status": "active",
+      "liquidity_score": 0.0,
+      "spread": 0.0,
+      "scan_priority": "high",
+      "freshness_status": "fresh",
+      "freshness_reason": "opportunity board row",
+      "seeded_from_opportunity_seed": false,
+      "upstream_refs": {
+        "source_name": "opportunity_board",
+        "market_id": "miami.temperature_daily_max",
+        "comparison_ref": "-",
+        "alert_ref": "-",
+        "anomaly_ref": "-",
+        "gate_ref": "-",
+        "source_refs": [
+          "opportunity_board"
+        ]
+      }
+    },
+    {
+      "schema_version": "market_universe_market.v1",
+      "market_id": "New York.temperature_daily_max",
+      "question": "-",
+      "city": "New York",
+      "country": "US",
+      "market_family": "temperature_daily_max",
+      "target_date": "-",
+      "band_scheme": "-",
+      "active_status": "active",
+      "liquidity_score": 0.0,
+      "spread": 0.0,
+      "scan_priority": "high",
+      "freshness_status": "fresh",
+      "freshness_reason": "opportunity board row",
+      "seeded_from_opportunity_seed": false,
+      "upstream_refs": {
+        "source_name": "opportunity_board",
+        "market_id": "new_york.temperature_daily_max",
+        "comparison_ref": "-",
+        "alert_ref": "-",
+        "anomaly_ref": "-",
+        "gate_ref": "-",
+        "source_refs": [
+          "opportunity_board"
+        ]
+      }
+    },
+    {
+      "schema_version": "market_universe_market.v1",
+      "market_id": "Seoul.temperature_daily_max",
+      "question": "-",
+      "city": "Seoul",
+      "country": "KR",
+      "market_family": "temperature_daily_max",
+      "target_date": "-",
+      "band_scheme": "-",
+      "active_status": "active",
+      "liquidity_score": 0.0,
+      "spread": 0.0,
+      "scan_priority": "high",
+      "freshness_status": "fresh",
+      "freshness_reason": "opportunity board row",
+      "seeded_from_opportunity_seed": false,
+      "upstream_refs": {
+        "source_name": "opportunity_board",
+        "market_id": "seoul.temperature_daily_max",
+        "comparison_ref": "-",
+        "alert_ref": "-",
+        "anomaly_ref": "-",
+        "gate_ref": "-",
+        "source_refs": [
+          "opportunity_board"
+        ]
+      }
+    },
+    {
+      "schema_version": "market_universe_market.v1",
+      "market_id": "Shanghai.station_temperature",
+      "question": "-",
+      "city": "Shanghai",
+      "country": "-",
+      "market_family": "station_temperature",
+      "target_date": "-",
+      "band_scheme": "-",
+      "active_status": "active",
+      "liquidity_score": 0.0,
+      "spread": 0.0,
+      "scan_priority": "high",
+      "freshness_status": "fresh",
+      "freshness_reason": "opportunity board row",
+      "seeded_from_opportunity_seed": false,
+      "upstream_refs": {
+        "source_name": "opportunity_board",
+        "market_id": "Shanghai.station_temperature",
+        "comparison_ref": "-",
+        "alert_ref": "-",
+        "anomaly_ref": "-",
+        "gate_ref": "-",
+        "source_refs": [
+          "opportunity_board"
+        ]
+      }
+    },
+    {
+      "schema_version": "market_universe_market.v1",
+      "market_id": "Shanghai.temperature_daily_max",
+      "question": "-",
+      "city": "Shanghai",
+      "country": "CN",
+      "market_family": "temperature_daily_max",
+      "target_date": "-",
+      "band_scheme": "-",
+      "active_status": "active",
+      "liquidity_score": 0.0,
+      "spread": 0.0,
+      "scan_priority": "high",
+      "freshness_status": "fresh",
+      "freshness_reason": "opportunity board row",
+      "seeded_from_opportunity_seed": false,
+      "upstream_refs": {
+        "source_name": "opportunity_board",
+        "market_id": "shanghai.temperature_daily_max",
+        "comparison_ref": "-",
+        "alert_ref": "-",
+        "anomaly_ref": "-",
+        "gate_ref": "-",
+        "source_refs": [
+          "opportunity_board"
+        ]
+      }
+    },
+    {
+      "schema_version": "market_universe_market.v1",
+      "market_id": "ankara.temperature_daily_max",
+      "question": "-",
+      "city": "Ankara",
+      "country": "TR",
+      "market_family": "temperature_daily_max",
+      "target_date": "-",
+      "band_scheme": "-",
+      "active_status": "active",
+      "liquidity_score": 0.0,
+      "spread": 0.0,
+      "scan_priority": "medium",
+      "freshness_status": "stale",
+      "freshness_reason": "manual seed prior",
+      "seeded_from_opportunity_seed": true,
+      "upstream_refs": {
+        "source_name": "seed",
+        "market_id": "ankara.temperature_daily_max",
+        "comparison_ref": "-",
+        "alert_ref": "-",
+        "anomaly_ref": "-",
+        "gate_ref": "-",
+        "source_refs": [
+          "seed"
+        ]
+      }
+    },
+    {
+      "schema_version": "market_universe_market.v1",
+      "market_id": "buenos_aires.temperature_daily_max",
+      "question": "-",
+      "city": "Buenos Aires",
+      "country": "AR",
+      "market_family": "temperature_daily_max",
+      "target_date": "-",
+      "band_scheme": "-",
+      "active_status": "active",
+      "liquidity_score": 0.0,
+      "spread": 0.0,
+      "scan_priority": "medium",
+      "freshness_status": "stale",
+      "freshness_reason": "manual seed prior",
+      "seeded_from_opportunity_seed": true,
+      "upstream_refs": {
+        "source_name": "seed",
+        "market_id": "buenos_aires.temperature_daily_max",
+        "comparison_ref": "-",
+        "alert_ref": "-",
+        "anomaly_ref": "-",
+        "gate_ref": "-",
+        "source_refs": [
+          "seed"
+        ]
+      }
+    },
+    {
+      "schema_version": "market_universe_market.v1",
+      "market_id": "chicago.temperature_daily_max",
+      "question": "-",
+      "city": "Chicago",
+      "country": "US",
+      "market_family": "temperature_daily_max",
+      "target_date": "-",
+      "band_scheme": "-",
+      "active_status": "active",
+      "liquidity_score": 0.0,
+      "spread": 0.0,
+      "scan_priority": "medium",
+      "freshness_status": "stale",
+      "freshness_reason": "manual seed prior",
+      "seeded_from_opportunity_seed": true,
+      "upstream_refs": {
+        "source_name": "seed",
+        "market_id": "chicago.temperature_daily_max",
+        "comparison_ref": "-",
+        "alert_ref": "-",
+        "anomaly_ref": "-",
+        "gate_ref": "-",
+        "source_refs": [
+          "seed"
+        ]
+      }
+    },
+    {
+      "schema_version": "market_universe_market.v1",
+      "market_id": "london.temperature_daily_max",
+      "question": "-",
+      "city": "London",
+      "country": "UK",
+      "market_family": "temperature_daily_max",
+      "target_date": "-",
+      "band_scheme": "-",
+      "active_status": "active",
+      "liquidity_score": 0.0,
+      "spread": 0.0,
+      "scan_priority": "medium",
+      "freshness_status": "stale",
+      "freshness_reason": "manual seed prior",
+      "seeded_from_opportunity_seed": true,
+      "upstream_refs": {
+        "source_name": "seed",
+        "market_id": "london.temperature_daily_max",
+        "comparison_ref": "-",
+        "alert_ref": "-",
+        "anomaly_ref": "-",
+        "gate_ref": "-",
+        "source_refs": [
+          "seed"
+        ]
+      }
+    },
+    {
+      "schema_version": "market_universe_market.v1",
+      "market_id": "miami.temperature_daily_max",
+      "question": "-",
+      "city": "Miami",
+      "country": "US",
+      "market_family": "temperature_daily_max",
+      "target_date": "-",
+      "band_scheme": "-",
+      "active_status": "active",
+      "liquidity_score": 0.0,
+      "spread": 0.0,
+      "scan_priority": "medium",
+      "freshness_status": "stale",
+      "freshness_reason": "manual seed prior",
+      "seeded_from_opportunity_seed": true,
+      "upstream_refs": {
+        "source_name": "seed",
+        "market_id": "miami.temperature_daily_max",
+        "comparison_ref": "-",
+        "alert_ref": "-",
+        "anomaly_ref": "-",
+        "gate_ref": "-",
+        "source_refs": [
+          "seed"
+        ]
+      }
+    },
+    {
+      "schema_version": "market_universe_market.v1",
+      "market_id": "new_york.temperature_daily_max",
+      "question": "-",
+      "city": "New York",
+      "country": "US",
+      "market_family": "temperature_daily_max",
+      "target_date": "-",
+      "band_scheme": "-",
+      "active_status": "active",
+      "liquidity_score": 0.0,
+      "spread": 0.0,
+      "scan_priority": "medium",
+      "freshness_status": "stale",
+      "freshness_reason": "manual seed prior",
+      "seeded_from_opportunity_seed": true,
+      "upstream_refs": {
+        "source_name": "seed",
+        "market_id": "new_york.temperature_daily_max",
+        "comparison_ref": "-",
+        "alert_ref": "-",
+        "anomaly_ref": "-",
+        "gate_ref": "-",
+        "source_refs": [
+          "seed"
+        ]
+      }
+    },
+    {
+      "schema_version": "market_universe_market.v1",
+      "market_id": "seoul.temperature_daily_max",
+      "question": "-",
+      "city": "Seoul",
+      "country": "KR",
+      "market_family": "temperature_daily_max",
+      "target_date": "-",
+      "band_scheme": "-",
+      "active_status": "active",
+      "liquidity_score": 0.0,
+      "spread": 0.0,
+      "scan_priority": "medium",
+      "freshness_status": "stale",
+      "freshness_reason": "manual seed prior",
+      "seeded_from_opportunity_seed": true,
+      "upstream_refs": {
+        "source_name": "seed",
+        "market_id": "seoul.temperature_daily_max",
+        "comparison_ref": "-",
+        "alert_ref": "-",
+        "anomaly_ref": "-",
+        "gate_ref": "-",
+        "source_refs": [
+          "seed"
+        ]
+      }
+    },
+    {
+      "schema_version": "market_universe_market.v1",
+      "market_id": "shanghai.temperature_daily_max",
+      "question": "-",
+      "city": "Shanghai",
+      "country": "CN",
+      "market_family": "temperature_daily_max",
+      "target_date": "-",
+      "band_scheme": "-",
+      "active_status": "active",
+      "liquidity_score": 0.0,
+      "spread": 0.0,
+      "scan_priority": "medium",
+      "freshness_status": "stale",
+      "freshness_reason": "manual seed prior",
+      "seeded_from_opportunity_seed": true,
+      "upstream_refs": {
+        "source_name": "seed",
+        "market_id": "shanghai.temperature_daily_max",
+        "comparison_ref": "-",
+        "alert_ref": "-",
+        "anomaly_ref": "-",
+        "gate_ref": "-",
+        "source_refs": [
+          "seed"
+        ]
+      }
+    }
+  ],
+  "source_refs": {
+    "opportunity_seed_path": "/Users/maolei/AARS-Platform/weather-comparison-engine/data/inputs/opportunity_seeds/opportunity_seed_list.json",
+    "opportunity_board_path": "/Users/maolei/AARS-Platform/weather-comparison-engine/data/outputs/opportunity_board/opportunity_board_view.json",
+    "latest_dashboard_rows_path": "/Users/maolei/AARS-Platform/weather-comparison-engine/data/outputs/latest_dashboard_rows.json",
+    "market_realtime_path": "../polymarket-weather-ingest/data/outputs/market_realtime_simple.json",
+    "watchlist_path": ""
+  }
+}

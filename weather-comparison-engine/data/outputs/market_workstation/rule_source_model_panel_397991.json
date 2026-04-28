@@ -1,0 +1,44 @@
+{
+  "market_rule": {
+    "market_family": "station_temperature",
+    "variable_name": "daily_max_temperature",
+    "location_name": "-",
+    "station_id": "-",
+    "target_date": "Apr 22",
+    "band_scheme": "temperature_4_bucket"
+  },
+  "source_contract": {
+    "required_sources": "-",
+    "settlement_source_type": "-",
+    "official_vs_proxy_source": "-",
+    "source_match_grade": "-",
+    "official_source_url": "-",
+    "resolver_confidence": "-"
+  },
+  "best_model": {
+    "best_model": "ECMWF",
+    "best_source_stack": [
+      "ecmwf",
+      "metar",
+      "official_obs"
+    ],
+    "best_model_reason": "station temperature markets favor ECMWF plus exact-station observations"
+  },
+  "measurement_policy": {
+    "canonical_unit": "source_defined",
+    "precision_policy_ref": "-",
+    "rounding_policy_ref": "-",
+    "band_mapping_policy_ref": "band_mapping.temperature_celsius_integer.v1"
+  },
+  "difficulty": {
+    "difficulty_score": 0.5585,
+    "difficulty_label": "medium",
+    "difficulty_components": {
+      "source_precision_difficulty": 0.65,
+      "resolver_stability_difficulty": 1.0,
+      "settlement_clarity_difficulty": 0.3,
+      "freshness_reliability_difficulty": 0.45,
+      "market_complexity_difficulty": 0.24
+    }
+  }
+}

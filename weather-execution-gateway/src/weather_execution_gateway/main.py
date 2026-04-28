@@ -6,7 +6,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import typer
-import yaml
 
 from weather_execution_gateway.advisory.manual_advisory import (
     ManualAdvisoryAuditStore,
@@ -123,9 +122,16 @@ GATEWAY_GATE_RUNTIME_SNAPSHOT_JSON = Path(
         str(OUTPUT_DIR / "gateway_gate_runtime_snapshot.json"),
     )
 )
+COMPARISON_ENGINE_OUTPUT_DIR = WORKSPACE_DIR / "weather-comparison-engine" / "data" / "outputs"
+MARKET_ALERT_EVENTS_DIR = COMPARISON_ENGINE_OUTPUT_DIR / "market_alert_events"
+FAMILY_SCAN_REPORTS_DIR = COMPARISON_ENGINE_OUTPUT_DIR / "family_scan_reports"
+MARKET_ANOMALY_EVENTS_DIR = COMPARISON_ENGINE_OUTPUT_DIR / "market_anomaly_events"
+SOURCE_POLICY_STATUS_PATH = COMPARISON_ENGINE_OUTPUT_DIR / "source_policy_status.json"
 
 
 def load_yaml(path: Path) -> dict:
+    import yaml
+
     return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
@@ -274,6 +280,10 @@ def _build_gateway_gate_runtime_snapshot(*, market_id: str | None = None) -> dic
     contracts = status_payload.get("contracts") if isinstance(status_payload.get("contracts"), dict) else {}
     gate_source = str(contracts.get("gate_source") or "local_fallback")
     promotion_state = _extract_promotion_state(status_payload)
+    current_market = status_payload.get("current_market") if isinstance(status_payload.get("current_market"), dict) else {}
+    probability = status_payload.get("probability") if isinstance(status_payload.get("probability"), dict) else {}
+    gate_stack = status_payload.get("gate_stack") if isinstance(status_payload.get("gate_stack"), dict) else {}
+    review_context = _build_review_context(market_id=market_id)
     return {
         "schema_version": "gateway_gate_runtime_snapshot.v1",
         "generated_at": str(status_payload.get("generated_at") or datetime.now(timezone.utc).isoformat()),
@@ -281,12 +291,41 @@ def _build_gateway_gate_runtime_snapshot(*, market_id: str | None = None) -> dic
         "gate_stack": status_payload.get("gate_stack") if isinstance(status_payload.get("gate_stack"), dict) else {},
         "block_reasons": [str(item) for item in status_payload.get("block_reasons") or []],
         "promotion_state": promotion_state,
+        "review_context": review_context,
+        "top_parameter_view": _build_top_parameter_view(
+            current_market=current_market,
+            probability=probability,
+            gate_stack=gate_stack,
+        ),
         "gate_source": gate_source,
         "source_schema_version": str(
             contracts.get("gate_stack_source_schema_version") or status_payload.get("schema_version") or "unknown"
         ),
         "schema_version_checked": str(contracts.get("schema_version_checked") or status_payload.get("schema_version") or "unknown"),
         "gate_stack_generated_at": str(status_payload.get("gate_stack_generated_at") or status_payload.get("generated_at") or ""),
+    }
+
+
+def _build_review_context(*, market_id: str | None = None) -> dict:
+    latest_alert = _load_latest_json(MARKET_ALERT_EVENTS_DIR, suffix=".json")
+    latest_anomaly = _load_latest_jsonl(MARKET_ANOMALY_EVENTS_DIR)
+    latest_family_scan = _load_latest_json(FAMILY_SCAN_REPORTS_DIR, suffix=".json")
+    source_policy = load_optional_json(SOURCE_POLICY_STATUS_PATH)
+    if not isinstance(source_policy, dict):
+        source_policy = {}
+    return {
+        "schema_version": "gateway_review_context.v1",
+        "market_id": market_id,
+        "latest_market_alert": latest_alert if isinstance(latest_alert, dict) else {},
+        "latest_family_scan_report": latest_family_scan if isinstance(latest_family_scan, dict) else {},
+        "latest_anomaly_event": latest_anomaly if isinstance(latest_anomaly, dict) else {},
+        "latest_source_policy_status": source_policy,
+        "monitoring_context": {
+            "alert_severity": latest_alert.get("severity") if isinstance(latest_alert, dict) else None,
+            "anomaly_score": latest_anomaly.get("anomaly_score") if isinstance(latest_anomaly, dict) else None,
+            "source_policy_status": source_policy.get("overall_status"),
+        },
+        "review_summary": _summarize_review_context(latest_alert, latest_anomaly, source_policy),
     }
 
 
@@ -312,6 +351,132 @@ def _extract_promotion_state(*payloads: dict | None, gate_stack: dict | None = N
         if isinstance(candidate, dict):
             return candidate
     return {}
+
+
+def _build_top_parameter_view(
+    *,
+    current_market: dict | None,
+    probability: dict | None,
+    gate_stack: dict | None,
+) -> dict:
+    current_market = current_market or {}
+    probability = probability or {}
+    gate_stack = gate_stack or {}
+    market_family = str(current_market.get("market_family") or "-")
+    return {
+        "schema_version": "top_parameter_view.v1",
+        "market_id": current_market.get("market_id"),
+        "market_family": market_family,
+        "market_question": current_market.get("market_question"),
+        "location_name": current_market.get("location_name"),
+        "target_date": current_market.get("target_date"),
+        "variable_name": current_market.get("variable_name"),
+        "polymarket": {
+            "yes_price": current_market.get("yes_price"),
+            "no_price": current_market.get("no_price"),
+            "market_implied_probability": current_market.get("market_probability")
+            or probability.get("market_probability"),
+            "favored_side": current_market.get("favored_side"),
+            "market_band": current_market.get("market_band"),
+        },
+        "weather": {
+            "observation_value": current_market.get("observation_value"),
+            "forecast_value": current_market.get("forecast_value") or current_market.get("value"),
+            "unit": current_market.get("unit") or _infer_unit(market_family),
+            "model_band": current_market.get("model_band"),
+            "official_band": current_market.get("official_band"),
+            "station_name": current_market.get("station_name"),
+            "station_id": current_market.get("station_id"),
+            "observed_at": current_market.get("observed_at"),
+            "forecast_timestamp": current_market.get("forecast_timestamp"),
+        },
+        "source_contract": {
+            "settlement_source_type": current_market.get("settlement_source_type"),
+            "official_vs_proxy_source": current_market.get("official_vs_proxy_source"),
+            "source_match_grade": current_market.get("source_match_grade"),
+            "required_sources": current_market.get("required_sources"),
+            "official_source_url": current_market.get("official_source_url"),
+            "freshness_status": gate_stack.get("validation_freshness_status")
+            or gate_stack.get("freshness_gate"),
+        },
+        "decision": {
+            "fair_value": probability.get("fair_value"),
+            "edge": probability.get("confidence_adjusted_edge") or probability.get("edge"),
+            "probability_mode": probability.get("probability_mode"),
+            "execution_constraint": probability.get("execution_constraint"),
+            "can_execute": str(gate_stack.get("execution_gate") or "").lower() == "pass",
+            "primary_block_reason": (
+                [str(item) for item in gate_stack.get("block_reasons") or [] if item][0]
+                if isinstance(gate_stack.get("block_reasons"), list) and gate_stack.get("block_reasons")
+                else "none"
+            ),
+            "recommended_operator_action": gate_stack.get("recommended_operator_action"),
+            "comparison_status": current_market.get("comparison_status"),
+        },
+    }
+
+
+def _infer_unit(market_family: str) -> str:
+    family = str(market_family or "").lower()
+    if "temperature" in family:
+        return "celsius"
+    if "precipitation" in family:
+        return "mm"
+    if "wind" in family:
+        return "m/s"
+    if "snow" in family:
+        return "cm"
+    if "sea_ice" in family:
+        return "km²"
+    return "-"
+
+
+def _load_latest_json(directory: Path, *, suffix: str) -> dict:
+    if not directory.exists():
+        return {}
+    candidates = sorted(directory.glob(f"*{suffix}"), key=_sort_key, reverse=True)
+    if not candidates:
+        return {}
+    try:
+        return json.loads(candidates[0].read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def _load_latest_jsonl(directory: Path) -> dict:
+    if not directory.exists():
+        return {}
+    candidates = sorted(directory.glob("*.jsonl"), key=_sort_key, reverse=True)
+    if not candidates:
+        return {}
+    try:
+        lines = [line.strip() for line in candidates[0].read_text(encoding="utf-8").splitlines() if line.strip()]
+    except Exception:
+        return {}
+    if not lines:
+        return {}
+    try:
+        return json.loads(lines[-1])
+    except Exception:
+        return {}
+
+
+def _summarize_review_context(
+    latest_alert: dict | None,
+    latest_anomaly: dict | None,
+    source_policy: dict | None,
+) -> str:
+    alert_reason = str((latest_alert or {}).get("primary_reason") or "-")
+    anomaly_reason = str((latest_anomaly or {}).get("primary_reason") or "-")
+    source_status = str((source_policy or {}).get("overall_status") or "-")
+    return f"alert={alert_reason}; anomaly={anomaly_reason}; source_policy={source_status}"
+
+
+def _sort_key(path: Path) -> datetime:
+    try:
+        return datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
+    except Exception:
+        return datetime.min.replace(tzinfo=timezone.utc)
 
 
 def _persist_execution_result(

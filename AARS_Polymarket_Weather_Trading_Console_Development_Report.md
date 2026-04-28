@@ -1,7 +1,7 @@
 # AARS Polymarket Weather Trading Console Development Report
 
-版本：v0.2  
-日期：2026-04-18  
+版本：v0.3  
+日期：2026-04-21  
 关联文档：
 
 - [AARS_Polymarket_Weather_Trading_Functional_Requirements.md](./AARS_Polymarket_Weather_Trading_Functional_Requirements.md)
@@ -9,6 +9,7 @@
 - [AARS_Polymarket_Weather_Trading_Detailed_Design.md](./AARS_Polymarket_Weather_Trading_Detailed_Design.md)
 - [AARS_Polymarket_Weather_Trading_Implementation_Plan_Status.md](./AARS_Polymarket_Weather_Trading_Implementation_Plan_Status.md)
 - [AARS_Polymarket_Weather_Trading_Test_Report.md](./AARS_Polymarket_Weather_Trading_Test_Report.md)
+- [AARS_Polymarket_Weather_Trading_Monitoring_Collection_And_Indicator_Governance.md](./AARS_Polymarket_Weather_Trading_Monitoring_Collection_And_Indicator_Governance.md)
 
 ---
 
@@ -18,13 +19,13 @@
 
 1. 说明系统已经落地的核心能力与代码归属。
 2. 说明当前阶段完成度、质量状态与可运行边界。
-3. 为 Phase 20 完成验收、测试回归和后续 Phase 21 排期提供统一上下文。
+3. 为 Phase 24 / 25 / 26 的持续收口、阶段验收和测试回归提供统一上下文。
 
 ---
 
 ## 2. 当前结论
 
-截至 2026-04-18，系统已经从早期“实时天气市场看板”演进为一个具备主链路闭环的 **Polymarket 天气/气候交易研究与执行控制台 MVP**。
+截至 2026-04-21，系统已经从早期“实时天气市场看板”演进为一个具备主链路闭环的 **Polymarket 天气/气候交易研究与执行控制台 MVP**。
 
 当前已经完成并打通的主链路为：
 
@@ -40,6 +41,48 @@ Polymarket market discovery
 -> execution gateway dry-run / manual advisory
 ```
 
+当前统一收口的首屏与 operator surface 还包括：
+
+- `TopParameterView` 作为 dashboard / Telegram / gateway / comparison-engine 的首屏参数面。
+- 顶层优先显示非空字段，空字段自动折叠，避免非温度 market 把整屏占位符铺开。
+- `market_realtime_simple*.json` 启动时优先保留有价格的市场，避免 metadata-only 空壳覆盖主快照。
+- `TopParameterView` 已延伸到 comparison history、history relationship、comparison table、market evidence chart 与 timeline panel。
+- 更上游的市场发现、市场录入、resolver、forecast 与 comparison 也必须共享唯一数据源，避免前后端在不同页面各自“长出不同事实”。
+
+Phase 27 监测采集 / 指标治理已经完成并进入正式基线：
+
+- source governance、measurement governance、normalization-aware schema、canonical-only alert/anomaly contracts 已经落盘。
+- `ForecastSnapshot.v2` / `ObservationSnapshot.v2` / `TopParameterView.v2` 已形成统一的 raw / canonical / display 语义链路。
+- `market_alert_event.v1` / `market_anomaly_event.v1` / `family_scan_report.v1` 已形成可运行、可审计、可回放的监测采集闭环。
+- dashboard / Telegram / gateway 继续只读消费监测结果，并与 gate / execution 语义分层。
+
+仓库速查表：
+
+| 仓库 | 负责链路 | 主要产物 |
+|---|---|---|
+| `polymarket-weather-ingest` | 市场发现 / 录入 / 价格优先主快照 | `market_realtime_simple*.json` |
+| `weather-rules-research` | resolver / station / forecast / observation | `resolved_market_rules/*.json`、`forecast_realtime_snapshot.json` |
+| `weather-comparison-engine` | comparison / probability / top parameter 聚合 | `latest_dashboard_rows.json`、`TopParameterView`、`unified_status.json` |
+| `weather-dashboard` | 首屏展示 / operator surface | `TopParameterView` ribbon、history / evidence panels |
+| `weather-telegram-console` | status / market / timeline 消费面 | Telegram cards、runtime snapshot |
+| `weather-execution-gateway` | dry-run / risk gate / exposure | `ExecutionIntent`、`production_readiness_report.json` |
+
+建议把后续验证统一按以下治理清单执行：
+
+1. 同一 `market_id` 的 market snapshot / market rule / forecast snapshot / comparison point 是否可回指。
+2. `TopParameterView` 是否只做聚合，不改写事实。
+3. 非适用 family 字段是否折叠或隐藏。
+4. `market_probability` 是否可由显式字段或 yes/no price 算出。
+5. dashboard、Telegram、gateway 是否消费同一条上游链路。
+
+建议把上游事实链拆成五段来推进：
+
+1. 市场研究 / 市场录入，确保价格市场是唯一主快照。
+2. resolver 解析，确保 market_rule 回指唯一 `market_id`。
+3. forecast / observation，确保站点映射与 target_date 对齐。
+4. comparison / probability，确保所有展示字段都是派生而非重写。
+5. 展示 / operator surface，确保 Dashboard、Telegram、Gateway 只消费统一合同。
+
 系统当前适合用于：
 
 - 市场研究与行情跟踪
@@ -47,6 +90,7 @@ Polymarket market discovery
 - heuristic probability / fair value 辅助判断
 - manual advisory / dry-run 操作台
 - validation / monitoring / readiness 状态观察
+- 首屏参数面与历史证据面的语义一致性审查
 
 系统当前不应被视为：
 
@@ -97,7 +141,7 @@ Polymarket market discovery
 | FR-13 | Feature Store | Done | training sample 层与历史沉淀已形成 |
 | FR-14 | Label Store | Done / Partial coverage | official label / settlement records 已有，但覆盖率仍不足 |
 | FR-15 | Training / Validation | Done | calibration/backtest/validation report 已实现 |
-| FR-16 | Model Registry | Partial / Contract-first | deployment_mode、approved_for_live 已纳入 contract，但 registry 仍轻量 |
+| FR-16 | Model Registry | Partial / Contract-first | deployment_mode、approved_for_live 已纳入 contract，其中 approved_for_live 仅作为 validation 候选输入；live 状态由 probability_mode=live_approved 表示，registry 仍轻量 |
 | FR-17 | Monitoring | Done | monitoring status、unified status、validation freshness 已接入 |
 
 ### 4.2 架构设计对齐摘要
@@ -301,7 +345,7 @@ Batch 2（本轮完成）：
 
 当前状态：
 
-- Phase 23 Batch 1 + Batch 2 已完成，已具备“可调度检查 + 可桥接告警”的运行时治理骨架。
+- Phase 23 Batch 1 + Batch 2 + Batch 3 + Batch 4 已完成，已具备“可调度检查 + 可桥接告警”的运行时治理骨架。
 
 Batch 3（本轮完成）：
 
@@ -539,48 +583,71 @@ Batch 5（本轮完成）：
 - labeled coverage 与 resolver match rate 仍偏低
 - market family 覆盖尚未完整
 - 生产模式与开发模式已有 Phase 20 契约，后续真实生产流程仍需治理和审批
+- 非温度 family 的首屏字段需要按 family profile 动态裁剪，避免空字段干扰操作员判断
+- 市场研究和录入层需要继续夯实数据治理，确保选中的市场、价格快照、站点映射和 forecast 快照来自同一条可追溯链路
 
 下一步建议按 Phase 24 / 25 / 26 顺序推进：
 
 - Phase 24 先把 gate stack 统一收口成唯一真源，避免 dashboard / telegram / gateway 再次分叉。
+- Phase 24.5 将 `TopParameterView` 提升为首屏常态参数带，让天气参数和 Polymarket 参数并列显示，并延伸到 comparison history / history relationship panel。
+- 同一份 `TopParameterView` 也已延伸到 comparison table、market evidence chart 与 timeline panel，让历史与比较输出共享一致的顶层合同。
+- Phase 24.5 之后，首屏默认采用空字段折叠与 family-specific 标签，避免不同 market family 的视觉密度不一致。
 - Phase 25 已完成五个 batch：automation ops 告警 contract、exit code matrix、队列状态流、queue consistency summary、queue status CLI 与 dashboard ops panel 已收口，下一步继续补更细的运维报表。
-- Phase 26 已开始收口 promotion / demotion policy：validation freshness、label coverage、resolver precision 进入统一 promotion state。
+- Phase 26 已进入第五批收口：validation freshness、label coverage、resolver precision 进入统一 promotion state，并已贯通到 Telegram status / market、gateway runtime snapshot 以及 dashboard compact gate / trade decision / execution gate / probability shadow / operator focus / unified status strip 摘要。
 
 ---
 
-## 8. 当前风险与限制
+## 10. 当前终态
 
-### 8.1 数据与模型风险
+当前控制台已经从“功能齐备的研究面板”收口为“统一事实源驱动的 operator surface”：
+
+1. 上游市场发现、市场录入、resolver、forecast、comparison 必须共享同一条事实链。
+2. `TopParameterView` 只负责把首屏参数面聚合出来，不负责改写事实。
+3. dashboard / Telegram / gateway / comparison-engine 现在都围绕同一份上游快照与统一 contract 工作。
+4. 非温度 market family 的空字段、非适用字段与内部实现名必须折叠或隐藏，不再以空占位干扰操作员。
+
+后续开发的重点，已经不是继续铺新面板，而是继续夯实：
+
+- 价格优先的市场主快照选取。
+- forecast / observation / resolver 的同链回指。
+- Phase 24 / 25 / 26 的 contract 终态化与回归稳定性。
+
+## 11. 当前风险与限制
+
+### 11.1 数据与模型风险
 
 - 当前概率层仍以 heuristic/shadow contract 为主。
 - validation freshness 与 label coverage 不足会主动触发降级。
 - 部分 family 仍只有 family-level contract，不能假装 exact resolver。
 
-### 8.2 运行与操作风险
+### 11.2 运行与操作风险
 
 - gateway 当前设计上仍以 dry-run / manual advisory 为主。
 - dev harness 与正式 operator mode 已通过 `operator_mode` / `mode_badge` / `dev_controls_enabled` 拆开；真实 live execution 仍受 readiness 与人工审批治理。
 - Telegram 控制台已形成基础 market drill-down 工作流；更复杂的交互式分页与主动推送可作为后续增强。
 
-### 8.3 代码与维护风险
+### 11.3 代码与维护风险
 
 - Streamlit 页面复杂度提升后，组件 key、expander 结构、tab 复用等 UI 约束更容易引发运行时错误。
 - 控制台层已经进入“需要持续做组件化收口”的阶段，不适合继续无约束堆面板。
 
 ---
 
-## 9. 下一阶段建议
+## 12. 下一阶段建议
 
 建议按照以下顺序继续推进：
 
 1. 进入 Phase 24，优先收口 gate stack 单一真源和跨端 fallback 语义。
 2. 继续推进 Phase 25 的后续 batch，把 automation ops contract、queue lifecycle、运维报表做成长期可运维闭环。
-3. 继续推进 Phase 26，把 promotion policy 和 resolver/source precision blocker 做成跨表面统一 contract。
-4. 持续扩展测试用例与需求回溯矩阵，确保新增 market family 与 operator 控制面保持稳定回归。
+3. 继续推进 Phase 26，把 promotion policy 和 resolver/source precision blocker 做成跨表面统一 contract，并继续收口 Telegram / gateway / dashboard 的只读 operator surface。
+4. Phase 27 已完成并成为正式基线，后续不再回头补基础治理；直接推进 Phase 28。Phase 28 的第一优先级是让 validation / backtest 吸收 source + measurement governance，然后再在此基础上增强 family anomaly 高阶特征与 monitoring / ops / alert 联动展示。Phase 28.1 的落点已经明确为 validation / backtest / calibration 吸收 canonical-only schema、source policy refs、measurement policy refs，并由 `weather-comparison-engine` 作为主实现仓库、`weather-rules-research` 作为稳定上游输入仓库、`weather-dashboard` / `weather-telegram-console` 作为只读验证消费面。Phase 28.1 Batch 1 已完成，`weather-comparison-engine` 已开始输出 `opportunity_board_view.v1`，并可生成 opportunity / difficulty / best model / source stack 的首版聚合行，同时已落盘 `opportunity_explanations.json` 与 `opportunity_feature_rows.json` 的文件输出约定；dashboard 与 Telegram 的 Opportunity Board 消费入口也已落地到实现骨架。Phase 28 Batch 2 已完成，dashboard 侧 Opportunity Board 已补齐更完整的过滤维度、row preview、score breakdown 与 model/difficulty explainability，Opportunity Board 现在可作为一级入口完成市场初筛与 drill-down。Phase 28 Batch 3 已完成，Telegram 侧 `/opportunities` 与 `/opportunity <city>` 已开始优先消费 city-level payload，并在机会卡片中补齐 `/market <id>` 下一步提示、城市 detail 和轻量机会 drill-down。Phase 28 Batch 4 已完成，dashboard 侧 preview 已补齐 `Open Workstation` 联动，会复用现有 pinned/focus 选择链路把目标 market 推入单市场工作台，同时补齐 best model / recommended action 解释和机会板相关回归。Phase 28 的 repo 级实现清单已细化到 `weather-comparison-engine` / `weather-rules-research` / `weather-dashboard` / `weather-telegram-console` / `weather-execution-gateway` 五个仓库，并明确了 opportunity_score、difficulty_score、best_model / best_source_stack 的 rule-based 起步口径。Phase 27.1 Batch 1 + 2 + 3 + 4 已完成，`source_policy` / `measurement_policy` registry-first 基础设施已在 `weather-rules-research` 与 `weather-comparison-engine` 落盘并通过 validate-registry，`weather-rules-research` 的 resolver 输出已开始携带 policy refs，而 `weather-comparison-engine` 的 monitoring freshness 与 top-parameter canonical hooks 也已接上 registry-first 读取，dashboard / Telegram 则补齐了 policy-aware 只读展示。Phase 27.2 Batch 1 + 2 + 3 + 4 也已完成，`weather-rules-research` 的 forecast / extractor / poller 链路已升级为 normalization-aware schema，`ForecastSnapshot.v2` / `ObservationSnapshot.v2` / `TopParameterView.v2` 已形成统一的 raw / canonical / display + policy refs 语义链路。Phase 27.3 Batch 1 + 2 + 3 + 4 已完成，Observation Alert Layer 已切到 canonical-only 输入检查，`market_alert_event.v1`、`market_anomaly_event.v1` 与 `family_scan_report.v1` 已补齐 canonical-only 审计语义，并将 dashboard / Telegram / gateway 的监测展示分层为 `alert / anomaly / gate`，其中 Gate / Runtime Block 继续只读展示 gate 语义，不与监测异常混用，gateway 也已补齐 review context 作为审查背景但不改变执行许可，family scanner MVP 也已完成可运行、可审计收口。Phase 28.1 Batch 2 + Batch 3 + Batch 4 已完成，`feature store / validation loader` 已开始吸收 canonical-only schema，validation report / backtest report / calibration report 也已开始纳入 source / normalization governance 摘要与 policy refs，dashboard / Telegram 的只读验证摘要展示也已接入。Phase 28.2 已开始收口 family anomaly 的高阶解释层，`family_scan_report.v1` 与 `market_anomaly_event.v1` 已补齐 `signal_summary`、`anomaly_bucket` 和 `feature_breakdown`，dashboard / Telegram 的 family anomaly 区块也已开始显示可解释汇总。Phase 28.3 已开始收口 monitoring / ops / alert 联动展示，dashboard / Telegram 已增加 operator summary，把 market alert、family anomaly 和 gate block 合成一条 operator-facing 结论，并补充 summary line / next step 作为首屏短句。Phase 29.1 Batch 1 已完成，继续扩大 family 覆盖与校准反馈视图的仓库级任务拆分已经进入实现态。Phase 29.1 Batch 2 + Batch 3 + Batch 4 已完成，dashboard / Telegram 的 validation 面板与统一状态条已补齐 family rollout 摘要首屏，validation / backtest 反馈闭环开始在只读消费面可见。Phase 29.2 建议直接转向 coverage trend / family expansion / calibration drift backfill，在 validation / backtest 的同一套 canonical-only 口径上继续补齐更多 family 的 resolver 覆盖和趋势回放视图。Phase 29.2 Batch 1 已完成，`weather-comparison-engine` 已开始输出 family_rollout_trend_summary.v1，覆盖趋势与 drift movement 进入 validation / backtest / calibration 报告。Phase 29.2 Batch 2 已完成，dashboard / Telegram 的只读消费面已接入 coverage trend / drift movement 摘要，趋势回放开始可见。Phase 29.2 Batch 3 已完成，dashboard 的 family rollout trend 与 Telegram 的 /status validation trend 摘要已经稳定可见，operator 可以更早看到 coverage / ready / drift movement。Phase 29.2 Batch 4 已完成，回归测试与文档同步已收尾，Phase 29.2 可作为完成态继续进入下一阶段。Phase 29.3 建议顺势转向 coverage stall / drift watchlist / expansion backlog，在 Phase 29.2 的 trend history 上继续把“趋势”收敛成“该优先补哪几个 family”。Batch 1 + Batch 2 + Batch 3 + Batch 4 已完成，`weather-comparison-engine` 已开始输出 `family_rollout_watchlist.v1`，并将 watchlist history 接入 dashboard / Telegram 的只读消费面，可识别 stalled family、drift spike family 与 expansion backlog family；Batch 3 / Batch 4 已完成 dashboard / Telegram watchlist view 与回归 / 文档收口。这样可以保证离线验证、回测、校准与在线 canonical-only 链路同口径，同时逐步提升多 family 适配能力。
+5. 持续扩展测试用例与需求回溯矩阵，确保新增 market family 与 operator 控制面保持稳定回归。
 
 ---
 
-## 10. 总结
+
+
+## 13. 总结
 
 当前 AARS Polymarket Weather Trading Console 已经不是单一页面原型，而是一个具备：
 
@@ -593,4 +660,8 @@ Batch 5（本轮完成）：
 
 系统最关键的进展，在于把 “market / resolver / probability / comparison / authorization / execution” 这些原本容易分散失真的环节，收敛成了统一状态语义和 operator 可解释界面。
 
-后续工作的重点，不再是补齐最基础链路或继续铺 UI，而是在 Phase 24 收口 gate 单一真源、Phase 25 收口 automation ops、Phase 26 收口 promotion policy 的基础上，继续巩固外部稳定 contract 与运营闭环能力。
+后续工作的重点，不再是补齐最基础链路或继续铺 UI，而是在 Phase 24 收口 gate 单一真源、Phase 25 收口 automation ops、Phase 26 收口 promotion policy 的基础上，继续巩固外部稳定 contract 与运营闭环能力，并让 Telegram / gateway / dashboard 的 operator 语义保持一致。
+
+Phase 30 已完成并收口为正式基线：validation assimilation 已接入 `validation_assimilation_summary.v1` 与 `validation_assimilation_report.json`，dashboard / Telegram 的验证与异常消费面已与 Opportunity Board、Single Market Workstation 对齐，后续若继续扩展，应以新 family 覆盖、异常解释增强和 operator workflow 细化为主。
+
+Phase 31 已完成并收口为正式基线：系统已补齐持续运行的 market discovery、evidence scan、alert routing 与 scanner ops 监测链路，`market_universe_snapshot.v1`、`evidence_scan_snapshot.v1`、`scanner_status.v1`、`scanner_ops_alert.v1`、`market_alert_event.v1`、`market_anomaly_event.v2` 与 `alert_queue_status.v1` 已纳入 dashboard、Opportunity Board、Single Market Workstation 与 Telegram 的只读消费面；后续若继续扩展，应以更细的 dedupe / cooldown / ack 政策与更广的 family 覆盖为主。

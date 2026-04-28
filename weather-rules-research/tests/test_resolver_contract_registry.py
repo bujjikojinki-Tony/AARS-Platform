@@ -33,6 +33,11 @@ def test_station_contract_is_exact_for_central_park_rule():
     assert contract.settlement_source_type == "station_observation"
     assert contract.official_source_url == "https://api.weather.gov/stations/KNYC"
     assert contract.station_id == "KNYC"
+    assert contract.source_policy_ref == "wunderground_station"
+    assert contract.unit_policy_ref == "temperature"
+    assert contract.precision_policy_ref == "precision_policy.temperature_daily_max.v1"
+    assert contract.rounding_policy_ref == "rounding_policy.temperature_daily_max.v1"
+    assert contract.band_mapping_policy_ref == "band_mapping.temperature_celsius_integer.v1"
 
 
 def test_station_contract_uses_shanghai_override():
@@ -65,6 +70,10 @@ def test_station_contract_uses_shanghai_override():
     assert contract.official_vs_proxy_source == "official"
     assert contract.station_id == "ZSPD"
     assert contract.official_source_url == "https://www.wunderground.com/history/weekly/cn/shanghai/ZSPD"
+    assert contract.source_policy_ref == "wunderground_station"
+    assert contract.unit_policy_ref == "temperature"
+    assert contract.precision_policy_ref == "precision_policy.temperature_daily_max.v1"
+    assert contract.band_mapping_policy_ref == "band_mapping.temperature_celsius_integer.v1"
 
 
 def test_global_temperature_contract_is_family_level_proxy():
@@ -82,3 +91,8 @@ def test_global_temperature_contract_is_family_level_proxy():
     assert contract.source_match_grade == "family_exact"
     assert contract.official_vs_proxy_source == "proxy"
     assert contract.settlement_source_type == "climate_index_rank"
+    assert contract.source_policy_ref == "climate_index_source"
+    assert contract.unit_policy_ref == "climate_index"
+    assert contract.precision_policy_ref == "precision_policy.global_temperature_index.v1"
+    assert contract.rounding_policy_ref == "rounding_policy.global_temperature_index.v1"
+    assert contract.band_mapping_policy_ref == "band_mapping.global_temperature_index_ordinal.v1"

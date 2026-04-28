@@ -1,8 +1,8 @@
 # AARS Polymarket Weather Trading Console UI Design 状态与路线图
 
-版本：v0.2  
-日期：2026-04-17  
-设计定位：轻量工业交易台、证据论证控制台、BOT 授权与执行干跑工作台
+版本：v0.3  
+日期：2026-04-24  
+设计定位：深色工业 HMI 监控台、实时扫描指挥台、证据与执行分层工作台
 
 关联文档：
 
@@ -10,133 +10,208 @@
 - [AARS_Polymarket_Weather_Trading_Functional_Requirements.md](./AARS_Polymarket_Weather_Trading_Functional_Requirements.md)
 - [AARS_Polymarket_Weather_Trading_Detailed_Design.md](./AARS_Polymarket_Weather_Trading_Detailed_Design.md)
 - [AARS_Polymarket_Weather_Trading_Implementation_Plan_Status.md](./AARS_Polymarket_Weather_Trading_Implementation_Plan_Status.md)
+- [AARS_Polymarket_Weather_Trading_UI_Legend_Spec.md](./AARS_Polymarket_Weather_Trading_UI_Legend_Spec.md)
 
 ---
 
 ## 1. UI 设计目标
 
-当前 UI 的目标不是普通 dashboard，而是一个面向 Polymarket 天气 / 气候市场的操作台。
+当前 UI 不是普通 dashboard，而是一个面向 Polymarket 天气 / 气候市场的安全关键 HMI 控制台。
 
-它必须同时服务三类认知任务：
+它必须同时服务四类认知任务：
 
 | 任务 | 操作员问题 | UI 应答 |
 |---|---|---|
-| 市场态势 | 我现在看的是哪个市场，盘口是什么 | Market Focus, Live Status, Watchlist |
-| 证据论证 | resolver / forecast 为什么支持或不支持该市场 | Resolver Status, Data Alignment Audit, Probability Shadow |
-| 授权执行 | 当前条件下 BOT 能不能动 | Execution Gate, Operator Closure, Gateway Dry-Run |
+| 系统态势 | 系统整体是否健康，是否需要先看监控面 | Operations Monitor、Scanner Status、Alert Queue |
+| 市场态势 | 当前最值得盯的是哪些市场 | Focus Markets、Opportunity Board、Market Monitor Grid |
+| 证据论证 | resolver / forecast / observation 为什么支持或不支持该市场 | Single Market Workstation、Resolver Status、Validation Compare |
+| 授权执行 | 当前条件下 BOT 能不能动 | Execution Gate、Operator Closure、Gateway Dry-Run |
 
 核心设计原则：
 
-1. 首屏回答关键状态，深层证据进入 tab 或 expander。
+1. 首屏回答关键状态，深层证据进入折叠区、drawer 或 secondary tab。
 2. 动态数据局部刷新，避免全页面闪烁。
 3. UI 选择必须驱动数据链路，而不只是改变前端展示。
 4. 所有 execution 相关按钮必须显示风控语义，不制造“可直接下单”的错觉。
 5. Probability Shadow 必须持续标注 heuristic / not calibrated。
 6. 状态灯优先于长表格，表格只用于审计和深层检查。
+7. 一屏优先，默认视图应尽量容纳监控、风险、下一步动作。
+8. 颜色只表达状态，不表达装饰。
 
 ---
 
 ## 2. 当前视觉方向
 
-当前 UI 采用“浅色工业交易台”风格。
+当前 UI 采用“安全关键深色工业 HMI”风格。
 
 | 维度 | 当前方向 | 状态 |
 |---|---|---|
-| 色彩 | 浅色底、暖白卡片、墨绿 / 琥珀 / 红色状态线 | Done |
-| 字体 | Condensed 标题 + 较紧凑正文梯度 | Partial |
-| 密度 | 比传统 Streamlit 更紧凑，使用 tabs 和 cards 控制页面高度 | Done |
-| 结构 | 顶部扁平总览 + tab 工作区 + 局部动态面板 | Done |
+| 色彩 | 深黑底、钢灰卡片、低饱和蓝 / 琥珀 / 红 / 黄 状态线 | Done |
+| 字体 | Condensed 标题 + 高对比正文 + 更大字号的监控值 | Done |
+| 密度 | 比传统 Streamlit 更紧凑，但首屏要求一屏可监控 | Done |
+| 结构 | 顶部态势条 + 中部监控面 + 右侧操作/警告栏 + 底部详情抽屉 | Done |
 | 交易台感 | watchlist 卡片、状态灯、gateway gate、dry-run result | Done |
-| 品牌签名 | `Created By Deerflow` 已由现有 command center 模块承载 | Done |
+| 运维感 | scanner / queue / alert / ops heartbeat | Done |
+| 品牌签名 | 页脚署名已移除，界面保持中性 | Done |
+| 实时性 | 页面带心跳和自动刷新提示 | Done |
 
 当前设计风格关键词：
 
 ```text
-light industrial
+dark industrial
+safety-critical HMI
 trading cockpit
+operations monitor
 evidence console
-operator control desk
-dry-run risk gate
+one-screen monitoring
 ```
+
+### 2.1 图例规范
+
+UI 的状态颜色与数据质量标记统一由下列规范驱动：
+
+- `LIVE`：实时更新中。
+- `STALE`：值已变旧，需要关注刷新。
+- `ALERT`：市场告警，需要立即注意。
+- `ANOM`：安全黄色异常，需要复核。
+- `BLOCKED`：被规则、验证或 gate 阻断。
+- `B`：字段级数据质量差，品红色标记。
+
+详细定义见：
+
+- [AARS_Polymarket_Weather_Trading_UI_Legend_Spec.md](./AARS_Polymarket_Weather_Trading_UI_Legend_Spec.md)
 
 ---
 
 ## 3. 页面信息架构
 
-当前页面结构：
+当前页面结构已经从“单页 tab 拼装”升级为“运营监控台 + 单市场工作台 + 机会发现层”的三层结构：
 
 ```mermaid
 flowchart TB
-  H["Top Situation Brief"]
-  R["Layer Ribbon"]
-  T["Tabs"]
+  O["Operations Monitor"]
+  M["Monitoring Signals"]
+  B["Opportunity Board"]
+  W["Single Market Workstation"]
+  C["Command / Pipeline / Markets / Charts / History / Evidence"]
 
-  T --> C["Command"]
-  T --> P["Pipeline"]
-  T --> M["Markets"]
-  T --> CH["Charts"]
-  T --> HI["History"]
-  T --> E["Evidence / Raw"]
-
-  C --> C1["BOT Controls / XAI Closure"]
-  C --> C2["Comparison Focus"]
-  C --> C3["Trade Decision"]
-  C --> C4["Execution Gate"]
-  C --> C5["Data Alignment Audit"]
-  C --> C6["Live Status"]
-
-  P --> P1["Pipeline Flow"]
-  P --> P2["Activate & Run Pipeline"]
-  P --> P3["Data Alignment Audit"]
-  P --> P4["Probability Shadow Report"]
-
-  M --> M1["Search"]
-  M --> M2["Recent Markets"]
-  M --> M3["Market Watchlist"]
-  M --> M4["Selected Market Pipeline Sync"]
-
-  H --> R --> T
+  O --> M
+  O --> B
+  B --> W
+  M --> O
+  M --> B
+  W --> C
 ```
+
+页面首屏优先展示：
+
+- 全局扫描态
+- 重点关注市场
+- 最新告警 / 异常 / gate block
+- 当前操作建议
+- 心跳 / 刷新 / 数据质量
 
 ---
 
-## 4. Tab 设计状态
+## 4. 页面与 Tab 设计状态
 
-### 4.1 Command Tab
+### 4.1 Operations Monitor
 
-定位：当前市场的操作员决策闭环。
+定位：Dashboard 首页与一级入口，用于实时扫描态势总控。
 
 | 区块 | 作用 | 状态 |
 |---|---|---|
-| BOT Controls / XAI Closure | 规程步骤、XAI 层、BOT 授权、动作日志 | Done, 默认折叠 |
-| Comparison Focus | 市场、盘口、forecast、comparison 三栏聚焦 | Done |
-| Trade Decision | heuristic 交易建议与反向概率 | Done |
-| Execution Gate | Data/Auth/Whitelist/Gateway 四闸门 | Done |
-| Data Alignment Audit | market input / forecast / resolver / probability / comparison 状态灯 | Done |
-| Live Status | Polymarket snapshot 与 forecast snapshot | Done |
-| Resolver Status | 当前 market 的 resolver rule + source contract + official URL | Done |
+| Global Operations Strip | markets scanned、fresh ratio、alert markets、gate blocked、ops alerts | Done |
+| Focus Markets Strip | 重点关注市场、pin / unpin、优先监控位 | Done |
+| Multi-Market Monitor Grid | 多市场卡片、状态、动作 | Done |
+| System Health / Ops Rail | scanner、queue、source、delivery、ops alert | Done |
+| Selected Market Quick Detail Drawer | 轻量详情、快速跳转 workstation | Done |
+
+当前体验评价：
+
+- 优点：打开即见扫描态，不需要进 tab 才能看系统健康。
+- 优点：重点市场自动抬升为 focus market。
+- 风险：市场卡片过多时仍需保持一屏优先，长列表应折叠。
+- 下一步：继续压缩首屏信息密度，避免向下滚动。
+
+### 4.2 Monitoring Signals
+
+定位：扫描结果、告警和异常的只读监测面。
+
+| 区块 | 作用 | 状态 |
+|---|---|---|
+| Scanner Status | 扫描池、fresh / stale、priority mix | Done |
+| Universe Snapshot | market universe 概览 | Done |
+| Evidence Scan | 标准化证据快照 | Done |
+| Alert Queue | market alert / family anomaly / ops alert | Done |
+
+当前体验评价：
+
+- 优点：适合快速看扫描是否健康。
+- 风险：不应替代 Operations Monitor 作为首页。
+- 下一步：只保留只读监控语义，不承载执行说明。
+
+### 4.3 Opportunity Board
+
+定位：先看哪个市场的机会发现层。
+
+| 区块 | 作用 | 状态 |
+|---|---|---|
+| Opportunity Summary | overall opportunity / difficulty / freshness | Done |
+| Market Rows | 市场优先级排序 | Done |
+| Row Preview | score breakdown、best model、action | Done |
+| City / Family Drill-down | 机会钻取 | Done |
+| Open Workstation | 跳转单市场工作台 | Done |
+
+当前体验评价：
+
+- 优点：进入单市场前先筛市场，减少无效切换。
+- 风险：分数只能作为优先级建议，不能变成 gate。
+
+### 4.4 Single Market Workstation
+
+定位：统一单市场工作台，一屏审查参数、证据、异常、gate、validation。
+
+| 区块 | 作用 | 状态 |
+|---|---|---|
+| Top Parameter Ribbon | 参数、盘口、天气、source contract、decision | Done |
+| Rule / Source / Model Panel | rule、source、best model、difficulty | Done |
+| Evidence Timeline | market / forecast / observation / event markers | Done |
+| Validation / Compare Panel | validation、coverage、promotion | Done |
+| Gate / Advisory / Dry-run Panel | gate summary、advisory、dry-run actions | Done |
+
+当前体验评价：
+
+- 优点：能在一个页面内完成完整审查。
+- 风险：信息量高，需严格控制首屏只显示最关键字段。
+
+### 4.5 Command / Pipeline / Markets / Charts / History / Evidence
+
+这些 tab 仍然保留，但定位已更明确：
+
+| Tab | 当前定位 | 状态 |
+|---|---|---|
+| Command | 操作员决策闭环、BOT 授权、State Machine Controls | Done / 仍需继续压缩 |
+| Pipeline | 诊断入口、链路同步、comparison / probability / resolver 解释 | Done |
+| Markets | 搜索、watchlist、pin / focus / remove | Done |
+| Charts | 传统图表与表格分析 | Done |
+| History | 历史 comparison / timeline 追踪 | Done |
+| Evidence / Raw | 审计、原始数据、低频检查 | Done |
+
+### 4.6 Command Tab
+
+定位：当前市场的操作员决策闭环，含 State Machine Controls、BOT 授权与执行干跑。
 
 当前体验评价：
 
 - 优点：能在一个 tab 内回答“能不能动”。
-- 优点：resolver panel 现在能直接显示 `official / proxy / fallback` 与 `source match grade`。
+- 优点：resolver panel 能直接显示 `official / proxy / fallback` 与 `source match grade`。
 - 风险：Command tab 内容仍偏多，需要进一步压缩面板高度。
 - 下一步：把 Execution Gate 和 Alignment Audit 合并为一个更紧凑的 Gate Stack。
 
----
+### 4.7 Pipeline Tab
 
-### 4.2 Pipeline Tab
-
-定位：解释系统为什么给出当前状态，展示数据链路是否贯通。
-
-| 区块 | 作用 | 状态 |
-|---|---|---|
-| Pipeline Flow | market -> resolver -> probability -> comparison -> execution | Done |
-| Activate & Run Pipeline | 激活当前 market 并刷新 resolver / forecast / probability / comparison | Done |
-| Data Alignment Audit | 显式检查每层 market_id 是否一致 | Done |
-| Probability Shadow | 单 market fair value / edge | Done |
-| Probability Shadow Report | watchlist 级别 active / blocked / top edges | Done |
-| Live Status | 当前 market 与 forecast raw snapshot | Done |
+定位：诊断入口、链路同步、comparison / probability / resolver 解释。
 
 当前体验评价：
 
@@ -145,20 +220,9 @@ flowchart TB
 - 风险：pipeline sync 与 markets tab sync 存在重复入口。
 - 下一步：保留 Pipeline tab 作为诊断入口，Markets tab 只保留轻量 sync。
 
----
-
-### 4.3 Markets Tab
+### 4.8 Markets Tab
 
 定位：市场搜索、watchlist 管理、market focus 控制。
-
-| 区块 | 作用 | 状态 |
-|---|---|---|
-| Gamma Search | 从 Polymarket Gamma API 搜索市场 | Partial |
-| Add to list | 搜索结果加入 watchlist 并持久化 | Done |
-| Recent Markets | 显示最近选择时间和命中来源 | Done |
-| Watchlist Cards | 按 family 分组展示 market | Done |
-| Focus / Pin / Unpin / Remove | 控制当前 market 和 watchlist 状态 | Done |
-| Hidden list | remove 后持久隐藏 | Done |
 
 当前体验评价：
 
@@ -166,19 +230,9 @@ flowchart TB
 - 风险：Gamma API 在本机 SSL 环境下可能失败，仍需 fallback 和证书修复说明。
 - 下一步：增加 family filter、resolver status filter、edge filter 的横向筛选条。
 
----
-
-### 4.4 Charts Tab
+### 4.9 Charts Tab
 
 定位：传统图表和表格分析区。
-
-| 区块 | 作用 | 状态 |
-|---|---|---|
-| Overview | 当前 filtered dashboard rows 概览 | Done |
-| Comparison Table | 行级 comparison 表格 | Done |
-| Signal Panel | signal payload 摘要 | Done |
-| Divergence Chart | 当前 divergence 图 | Done |
-| Timeseries Panel | model value / gap / market probability 时间序列 | Partial |
 
 当前体验评价：
 
@@ -186,36 +240,19 @@ flowchart TB
 - 风险：历史赔率 vs forecast / official value 关系还不够显性。
 - 下一步：升级成 Market Evidence Chart，以同一时间轴绘制 odds、forecast、official / resolver value。
 
----
-
-### 4.5 History Tab
+### 4.10 History Tab
 
 定位：历史 comparison 和 odds / forecast 关系追踪。
-
-| 区块 | 作用 | 状态 |
-|---|---|---|
-| Divergence Trend | confidence_adjusted_gap 趋势 | Done |
-| Timeline Panel | market drill-down timeline | Done |
-| History Relationship | 历史赔率与 forecast 关系图初版 | Partial |
 
 当前体验评价：
 
 - 优点：已有 comparison history 的基本可视化。
 - 风险：缺少标准 feature store 和 official outcome label，训练验证能力不足。
-- 下一步：接入 Phase 7 historical feature store 后重构该 tab。
+- 下一步：接入历史 feature store 后重构该 tab。
 
----
-
-### 4.6 Evidence / Raw Tab
+### 4.11 Evidence / Raw Tab
 
 定位：审计、原始数据、低频检查。
-
-| 区块 | 作用 | 状态 |
-|---|---|---|
-| Bias Summary | forecast bias 指标 | Done |
-| Rule / Station Info | rulebook / station detail | Done |
-| Raw JSON Panel | signal, bundle, rulebook, market snapshots | Done |
-| Market Bundles | market metadata | Done |
 
 当前体验评价：
 
@@ -229,16 +266,20 @@ flowchart TB
 
 | 组件 | 文件 | 状态 | 后续动作 |
 |---|---|---|---|
+| Operations Monitor | `ui/operations_monitor_page.py` | Done | 继续压缩首屏，保持一屏监控 |
+| Monitoring Signals | `ui/monitoring_signals_panel.py` | Done | 保持只读监控语义 |
+| Opportunity Board | `ui/opportunity_board_panel.py` | Done | 继续强化 drill-down 解释 |
+| Market Workstation | `ui/market_workstation_page.py` | Done | 保持工作台结构稳定 |
 | Architecture Console | `ui/architecture_console.py` | Done | 继续压缩高度 |
 | Market Watchlist | `ui/market_snapshots_panel.py` | Done | 增加筛选条 |
 | Recent Markets | `ui/recent_markets_panel.py` | Done | 支持 remove recent |
 | Data Alignment Audit | `ui/data_alignment_panel.py` | Done | 与 Execution Gate 合并摘要 |
 | Execution Gate | `ui/execution_gate_panel.py` | Done | 接 Telegram approval status |
-| Probability Shadow | `ui/probability_shadow_panel.py` | Done | 已接 probability contract；后续可增加 sparkline / edge badge |
+| Probability Shadow | `ui/probability_shadow_panel.py` | Done | 后续可增加 sparkline / edge badge |
 | Resolver Status | `ui/resolver_status_panel.py` | Done | 增加 coverage by family |
 | Live Status | `ui/live_status_panel.py` | Done | 进一步紧凑化 |
 | Trade Decision | `ui/trade_decision_panel.py` | Done | 分离 heuristic 和 calibrated model |
-| Command Center | `ui/command_center.py` | Done / Phase 20 | 已接 operator context、read-only exposure、pipeline sync alignment；后续进入 contract/gate 收口 |
+| Command Center | `ui/command_center.py` | Done / Phase 20 | 继续压缩 State Machine Controls |
 
 ---
 
@@ -256,6 +297,9 @@ flowchart TB
 | Execution 授权只是文案 | pending intent + gateway dry-run | Done |
 | Gateway blocked 原因不透明 | dry-run result 回显 approval/risk/execution | Done |
 | Probability Shadow 只看单 market | probability shadow report | Done |
+| 白底白字 / 默认 Streamlit 风格 | 深色 HMI theme + compact panel token | Done |
+| 图例状态不统一 | LIVE / STALE / ALERT / ANOM / BLOCKED / B | Done |
+| 数据质量不显性 | 品红 `B` 质量徽标 | Done |
 
 ---
 
@@ -271,6 +315,8 @@ flowchart TB
 | UI 状态与 worker 健康状态未统一 | 不容易判断后台 worker 是否在跑 | P1 |
 | Probability Shadow 缺少校准状态趋势 | 用户可能误读 heuristic | P0 |
 | mobile 适配不是重点但仍较弱 | 小屏查看不理想 | P2 |
+| Operations Monitor 首屏仍需继续压缩 | 大屏优先但一屏密度还可优化 | P1 |
+| State Machine Controls 仍需进一步深色化与减噪 | 部分 Streamlit 原生控件易冒白底 | P0 |
 
 ---
 
@@ -293,8 +339,6 @@ flowchart TB
 | 首屏高度 | Command tab 无需大幅滚动即可看到核心状态 |
 | 状态灯 | 5 个核心 gate 一眼可读 |
 | 执行语义 | `BLOCKED / READY / DRY-RUN` 清晰 |
-
----
 
 ### UI Phase B: Market Watchlist Trading Desk
 
@@ -327,15 +371,13 @@ Markets
 | 分组 | pinned / active edge / blocked 清晰 |
 | 筛选 | 可按 family 与 resolver status 快速定位 |
 
----
-
 ### UI Phase C: Model Validation Tab
 
 状态：Next after feature store
 
 目标：
 
-- 为 Phase 7 / Phase 8 的训练验证提供主 UI。
+- 为训练验证提供主 UI。
 - 显示 odds history、forecast history、official outcome、calibration。
 
 建议布局：
@@ -359,8 +401,6 @@ Model Validation
 | 历史关系 | odds / forecast / official value 同轴展示 |
 | 风险提示 | 明确标注 shadow / calibrated / live 状态 |
 
----
-
 ### UI Phase D: Worker Health and Monitoring
 
 状态：Pending
@@ -380,16 +420,6 @@ Model Validation
 | Probability Shadow | generated_at, active/blocked |
 | Comparison Worker | latest row age, history appended |
 | Execution Gateway | last dry-run result, risk status |
-
-验收标准：
-
-| 标准 | 目标 |
-|---|---|
-| freshness | 每个 worker 有更新时间 |
-| stale warning | 超时自动显示 amber / red |
-| debug | 能看到最近错误或 blocked reason |
-
----
 
 ### UI Phase E: Production Execution UX
 
@@ -450,13 +480,15 @@ stateDiagram-v2
 | 页面打开不空白 | Passed |
 | 顶部标题不遮挡 | Passed |
 | 全局自动刷新不打断使用 | Passed |
-| Markets tab 可搜索 / 添加 / focus / pin / remove | Passed |
+| Operations Monitor 作为首页 | Passed |
+| Market Watchlist 可搜索 / 添加 / focus / pin / remove | Passed |
 | Pipeline sync 会刷新 forecast | Passed |
 | Data Alignment 能发现 mismatch | Passed |
 | Probability Shadow Report 可见 | Passed |
 | Execution Gate 可写 pending intent | Passed |
 | Gateway Dry-Run Check 可回显结果 | Passed |
-| DEV ONLY harness 已明确标注 | Passed |
+| 图例状态统一 | Passed |
+| 数据质量标记 B 可见 | Passed |
 | 历史赔率 vs forecast 深度图 | Partial |
 | Model Validation tab | Pending |
 | Worker health monitor | Done |
@@ -464,35 +496,35 @@ stateDiagram-v2
 
 ---
 
-## 11. 下一次 UI 工作建议
+## 11. 当前 Dashboard 首页约定
 
-建议下一次 UI 优先做：
+当前 Dashboard 的首页应以 `Operations Monitor` 为默认入口，页面打开后优先看到：
 
-| 优先级 | 工作 | 原因 |
-|---|---|---|
-| P0 | Command tab Gate Stack 合并 | Done |
-| P0 | History / Model Validation 图升级 | 支撑训练验证阶段 |
-| P1 | Watchlist filters | Done |
-| P1 | Worker Health strip | Done |
-| P2 | Production / Dev mode 分离 | 防止 DEV ONLY 工具误用 |
+1. 系统整体健康摘要。
+2. 扫描 / 队列 / 告警 / gate 的横向态势条。
+3. Focus Markets。
+4. Multi-Market Monitor Grid。
+5. Selected Market Quick Detail Drawer。
 
-推荐下一步切入点：
+首页视觉要求：
 
-```text
-UI Phase A:
-Data Alignment Audit + Execution Gate
--> Compact Gate Stack
--> one-line blockers
--> expandable raw diagnostics
-```
+- 一屏优先，默认不依赖下滑。
+- 文字必须明显压住背景。
+- 状态色只服务语义，不做装饰。
+- 告警用红色，异常用安全黄色，数据质量差用品红 `B`。
 
-这样可以进一步减少 Command tab 的纵向滚动，并让 operator 一眼看到：市场是否对齐、模型是否可用、BOT 是否可动、gateway 为什么拦截。
+页面级实时更新要求：
+
+- `Operations Monitor`：应显示 heartbeat，刷新频率最高。
+- `Monitoring Signals`：用于扫描 / 告警只读面。
+- `Opportunity Board`：用于市场优先级排序。
+- `Single Market Workstation`：用于单市场证据审查与 gate 审查。
 
 ---
 
-## 12. Phase 23 UI/通知桥接补充
+## 12. Phase 23 UI / 通知桥接补充
 
-当前新增的运行时告警链路对 UI/控制台的影响：
+当前新增的运行时告警链路对 UI / 控制台的影响：
 
 1. 状态展示层  
    - compact gate stack 已展示 `gate_source`、`severity`、`recommended_operator_action`
@@ -501,105 +533,69 @@ Data Alignment Audit + Execution Gate
 3. 通知生命周期层  
    - `pending -> sent -> acked`
 
-建议 UI/Bot 下一步（对应 Phase 23 后续）：
+建议 UI / Bot 下一步：
 
-- 在 Telegram 命令层增加 ops 通知查询（最近 N 条 pending/sent）。
+- 在 Telegram 命令层增加 ops 通知查询（最近 N 条 pending / sent）。
 - 在 dashboard 增加 ops alert 最近事件小卡（只读）。
-- 增加同 market + reason 的告警冷却可视化（避免告警风暴）。
+- 增加同 market + reason 的告警冷却可视化，避免告警风暴。
 
 ---
 
-## 13. Dashboard 信息降噪重构
+## 13. UI Runtime Architecture Refactor v1
 
-当前 dashboard 的主要问题不是能力缺失，而是每个 tab 默认展示过多行级数据，导致关键敏感信号被明细淹没。最新 UI 调整采用“关键态势前置、诊断明细后置、原始 payload 归档”的原则。
+本节正式承接 [AARS_Polymarket_Weather_Trading_UI_Runtime_Architecture.md](./AARS_Polymarket_Weather_Trading_UI_Runtime_Architecture.md)，将 UI 从“页面功能堆叠”升级为“页面角色清晰、导航关系明确、状态图例统一、动态参数受治理、前端只渲染 view contract”的运行时架构。
 
-术语与字段统一基线见：
+### 13.1 页面角色总表
 
-- `AARS_Polymarket_Weather_Trading_UI_Field_Dictionary.md`
-- dashboard 代码侧 `weather_dashboard.ui.field_dictionary.FIELD_DICTIONARY_VERSION=dashboard_ui_field_dictionary.v1`
+| 页面 | 新定位 | 核心问题 | 不应承担 |
+|---|---|---|---|
+| Operations Monitor | 运行总控台 | 现在系统与市场是否异常？ | 不做机会排序主入口，不做证据深挖 |
+| Monitoring Signals | 信号与告警流 | 当前有哪些 alert / anomaly / ops signal？ | 不做多市场总控，不做执行 |
+| Opportunity Board | 机会排序与候选研究入口 | 接下来优先研究哪些市场？ | 不做实时监控，不做执行 |
+| Workstation | 单市场深度分析工作台 | 单个市场证据是否支持判断？ | 不做多市场管理，不做授权闭环 |
+| Command | 操作员动作闭环与授权控制 | 下一步动作是否允许、如何确认并留痕？ | 不做证据深挖，不做市场池管理 |
+| Pipeline | 数据管道与处理流程诊断 | 数据链路是否健康？ | 不做市场机会排序，不做操作员决策 |
+| Markets | 市场池与 watchlist 管理 | 系统正在管理哪些市场？ | 不做机会排序，不做实时告警 |
+| Charts | 趋势与可视化分析 | 历史趋势和关系如何？ | 不做实时处理，不做原始证据审计 |
+| History | 事件回放与审计 | 什么时候发生了什么？ | 不做实时决策 |
+| Evidence / Raw | 原始证据与数据血缘 | 数据从哪里来、如何转化？ | 不做 operator 主判断 |
 
-### 13.1 页面职责重新划分
+### 13.2 左侧导航分组
 
-| Tab | 默认展示重点 | 明细处理 |
+```text
+RUN
+- Operations Monitor
+- Monitoring Signals
+- Command
+
+RESEARCH
+- Opportunity Board
+- Workstation
+- Charts
+
+DATA
+- Pipeline
+- Markets
+- Evidence / Raw
+- History
+
+SETTINGS
+- Alerts & Rules
+- Data & Sources
+- System
+```
+
+### 13.3 Opportunity Board 与 Command 新定位
+
+`Opportunity Board` 不再承担多市场监控职责，而是机会排序与候选研究入口。它以排名表、分数解释、研究动作入口为主，不显示 scanner health、ops alert list、full gate stack 或 raw evidence。
+
+`Command` 不再承担监控或深度证据职责，而是操作员动作闭环与授权控制台。它只负责 selected market、compact gate stack、下一步动作、ack / mute / pending intent / dry-run 与 audit trail。
+
+### 13.4 后续 UI Roadmap Phase
+
+| Phase | 名称 | 目标 |
 |---|---|---|
-| Command | execution brief、compact gate stack、trade decision、account risk、live status、comparison focus | detailed gate / resolver / probability / weather evidence 改为诊断开关 |
-| Pipeline | pipeline contract health、pipeline flow、sync、data alignment、pipeline summary | execution gate、resolver、probability report 改为诊断开关 |
-| Markets | market selection desk、watchlist counters、search、watchlist cards | selected market pipeline sync 改为按需显示 |
-| Charts | signal charts、selected-market detail、timeseries | comparison rows 和 raw signal 改为按需显示 |
-| History | evidence timeline、evidence chart、divergence trend | timeline 默认只显示最近 5 行，可切换完整 rows |
-| Validation | validation / promotion 状态、model validation、calibration、coverage | raw validation reports 保持后置 |
-| Evidence / Raw | raw contracts、rulebook、bias、market bundle | 专门承接 raw JSON / source evidence |
-
-补充调整：
-
-- 全局页面顶部不再默认展示 Worker Health 和 Unified Status 的完整秒级明细。
-- Worker Health / Unified Status 移入 Evidence / Raw 的 `System Diagnostics` 开关。
-- 顶部 header 文案缩短为单行定位，避免抢占第一屏注意力。
-
-### 13.4 Command 指标卡重构
-
-Command 页默认不再同时展示完整 `Compact Gate Stack`、`Operator Market Context`、`Account Snapshot`、`Comparison Focus` 明细。默认层改为一组可横向对比的小卡片：
-
-| 卡片 | 回答的问题 | 显性关键参数 |
-|---|---|---|
-| Execution | 现在能不能执行 | gate_status、execution_gate、authorization_gate、primary blocker |
-| Probability | 模型/概率允许到哪一步 | probability_mode、execution_constraint、edge、market_probability |
-| Evidence | 证据是否支持当前判断 | comparison_status、confidence_adjusted_gap、resolver_gate、freshness_gate |
-| Account | 当前市场和账户暴露是否安全 | selected market exposure、market usage、total usage |
-| Telegram | 远程 operator 默认上下文是否一致 | market_id、selection_source、action、generated_at |
-
-完整明细仍保留，但下沉到 `Show command diagnostics`，避免默认操作面重复表达同一状态。
-
-### 13.5 Validation 指标卡重构
-
-Validation 页默认层不再铺开 calibration curve、family validation、backtest family breakdown、resolver counts、edge deciles 和 raw JSON。默认只保留五张 promotion 相关卡片：
-
-| 卡片 | 回答的问题 | 显性关键参数 |
-|---|---|---|
-| Promotion | 当前模型能否进入 live/promotion | approved_for_live、deployment_mode、calibration_status、primary blocker |
-| Coverage | 标签覆盖是否够 | labeled_sample_count、labeled_ratio、minimum_labeled_rows |
-| Freshness | 验证结果是否新鲜 | validation freshness status、freshness_seconds、sample_count |
-| Model Quality | 模型质量是否可接受 | brier_score、calibration_error、hit_rate、roi_backtest |
-| Resolver | resolver 质量是否拖累验证 | resolver_match_rate、unmatched_count、backtest trades、backtest ROI |
-
-所有深层数据保留在 `Show validation diagnostics`，用于审计而不是默认操作视图。
-
-### 13.6 Phase 24–26 下一步治理路线
-
-当前 UI 的下一步，不是继续加更多默认明细，而是配合后端 phase 收口，把“谁说了算、怎么稳定运行、什么时候真的可以信”进一步压实到页面语义中：
-
-| Phase | UI / Operator 侧体现 | 说明 |
-|---|---|---|
-| Phase 24 | gate source、schema version、fallback reason、contract consistency | Dashboard / Telegram / Gateway 统一消费 gate stack 唯一真源，UI 仅展示消费结果 |
-| Phase 25 | ops alert 状态流、cooldown、suppressed_count、queue lifecycle | 让 operator 直接看到自动化告警是否被抑制、是否已送达、是否已确认 |
-| Phase 26 | promotion state、demotion reason、validation freshness、label coverage、resolver precision | 让 promotion / execution constraint 的判断在页面上和后端 policy 完全一致 |
-
-建议原则：
-
-- 页面默认层只展示 policy / gate 的结果，不重新推导结论。
-- 诊断层可以展开 raw 细节，但不抢占第一屏。
-- 所有新的字段都必须先进入字段字典，再进入卡片和测试断言。
-
-### 13.2 新增统一 Page Focus Strip
-
-每个 tab 顶部新增统一的 `Page Focus` strip，从同一组 operator focus summary 读取关键字段：
-
-- market_id / market question
-- gate_status / severity / recommended_operator_action
-- probability_mode / execution_constraint
-- resolver_gate / freshness_gate / authorization_gate / execution_gate
-- comparison_status / edge / confidence_adjusted_gap
-- updated_at / gate_source / block_reasons
-
-这样 operator 在任何页面都能先看到“能不能动、为什么不能动、下一步做什么”，再决定是否展开下方明细。
-
-### 13.3 当前验收状态
-
-| 检查项 | 状态 |
-|---|---|
-| Command 默认视图不再展示详细 gate/raw probability | Done |
-| Pipeline 默认视图聚焦 contract health，不直接铺开 execution gate | Done |
-| Charts 默认视图不再展示 full comparison table/raw signal | Done |
-| History timeline 默认限制最近 5 行 | Done |
-| Evidence / Raw 成为 raw payload 归档页 | Done |
-| 单元测试覆盖 operator focus summary | Done |
+| Phase 32 | Operations Monitor v3.1 UI Refactor | 固化 primary_state、Focus 去重复、Quick Detail 横条化、右栏状态灯矩阵化、红色强度分级 |
+| Phase 33 | Navigation & Page Contract Alignment | 重构左侧导航分组，统一页面间按钮跳转逻辑，所有页面读取统一 view contract |
+| Phase 34 | Legend & Dynamic Parameter Governance | 统一图例、颜色、动态字段来源，防止前端自算状态 |
+| Phase 35 | Surface Consistency: Dashboard / Telegram / CLI | Dashboard 与 Telegram 读取同一 view contracts，命令行为与页面按钮一致，审计事件统一 |

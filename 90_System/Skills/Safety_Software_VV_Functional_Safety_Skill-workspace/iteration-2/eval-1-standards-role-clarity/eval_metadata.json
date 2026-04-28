@@ -1,0 +1,12 @@
+{
+  "eval_id": 1,
+  "eval_name": "standards-role-clarity",
+  "prompt": "请从 safety software V&V 和 functional safety 的角度，给我写一份研究报告。背景是我们在做化工装置 SIS 改造，团队内部对 IEEE 1012、IEC 61508、IEC 61511 的分工总是混淆。请说明这三个标准分别解决什么问题、在 SIS / SIF 生命周期里怎样配合、哪些地方最容易被误解，最后给一个面向工程落地的工作框架。不要直接下合规结论。",
+  "assertions": [
+    "The output includes an Executive Summary",
+    "The output distinguishes IEEE 1012 V&V logic from IEC 61508 / IEC 61511 functional safety lifecycle logic",
+    "The output explains that SIL applies to a safety function or SIF rather than simply to a single device",
+    "The output includes lifecycle workflow, evidence chain, and engineering recommendations",
+    "The output avoids claiming formal compliance or certification"
+  ]
+}

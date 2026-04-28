@@ -1,12 +1,13 @@
 # AARS Polymarket Weather Trading Test Report
 
-版本：v0.2  
-日期：2026-04-18  
+版本：v0.3  
+日期：2026-04-21  
 关联文档：
 
 - [AARS_Polymarket_Weather_Trading_Functional_Requirements.md](./AARS_Polymarket_Weather_Trading_Functional_Requirements.md)
 - [AARS_Polymarket_Weather_Trading_Architecture.md](./AARS_Polymarket_Weather_Trading_Architecture.md)
 - [AARS_Polymarket_Weather_Trading_Detailed_Design.md](./AARS_Polymarket_Weather_Trading_Detailed_Design.md)
+- [AARS_Polymarket_Weather_Trading_Monitoring_Collection_And_Indicator_Governance.md](./AARS_Polymarket_Weather_Trading_Monitoring_Collection_And_Indicator_Governance.md)
 - [AARS_Polymarket_Weather_Trading_Signal_Design.md](./AARS_Polymarket_Weather_Trading_Signal_Design.md)
 - [AARS_Polymarket_Weather_Trading_Console_Development_Report.md](./AARS_Polymarket_Weather_Trading_Console_Development_Report.md)
 
@@ -51,7 +52,7 @@
 
 ### 3.1 需求依据
 
-需求依据来自功能需求文档中的 FR-01 至 FR-17：
+需求依据来自功能需求文档中的 FR-01 至 FR-19：
 
 | 需求编号 | 主题 |
 |---|---|
@@ -72,6 +73,11 @@
 | FR-15 | Training / Validation |
 | FR-16 | Model Registry |
 | FR-17 | Monitoring |
+| FR-18 | Gate Stack External Contract / Automation Summary |
+| FR-19 | Ops Alert Bridge / Queue Lifecycle |
+| FR-20 | Top Parameter Surface |
+| FR-21 | 上游数据流水线治理 |
+| FR-22 | 监测采集层与异常发现 |
 | Phase 21 | Contract / Registry / Gate Systematization |
 | Phase 22 | Gate Stack External API / Automation Consumption |
 | Phase 23 | Automation Runtime Gate Check |
@@ -98,9 +104,15 @@
 - `AuthorizationState`
 - `ExecutionIntent`
 - `ExecutionResult`
+- `TopParameterView`
 - `monitoring_status.json`
 - `unified_status.json`
 - `gate_stack_api.json`
+- `gate_stack_automation_summary.json`
+- `gate_stack_ops_alerts.jsonl`
+- `market_alert_event.v1`
+- `market_anomaly_event.v1`
+- `indicator_registry`
 - `probability_mode / execution_constraint`
 - `resolver source contract`
 
@@ -320,6 +332,40 @@
 | TC-112 | promotion_reason / demotion_reason 在三端一致显示 | FR-12, FR-17, Phase 26 | policy 输出可读 | 查看 dashboard / telegram / gateway | 三端展示同一 reason 字段和语义 |
 | TC-113 | gate stack 自动消费 promotion 结果而不自行推断 | FR-10, FR-17, Phase 26 | policy 输出存在 | 调用 gate stack 评估 | gate 只消费 policy 输出，不额外推断晋级逻辑 |
 | TC-114 | 历史回放同输入同输出 | FR-17, Phase 26 | 历史输入记录可读 | 重放相同 validation/resolver inputs | 结果与原始 policy 输出一致 |
+| TC-115 | 比较历史与 history relationship panel 复用同一份 TopParameterView | FR-11, FR-17, Phase 24.5 | comparison history 含 `top_parameter_view` | 打开 history relationship panel 并检查 summary | 历史图顶部摘要显示与历史点一致的 `market_id`、`forecast_value`、`source_match_grade`、`can_execute` |
+| TC-116 | comparison table / evidence chart / timeline 复用同一份 TopParameterView | FR-11, FR-17, Phase 24.5 | 比较表、证据图和时间线可读取历史点或顶层视图 | 打开 comparison table、market evidence chart、timeline panel | 三个输出都展示一致的 `market_family`、`forecast_value`、`source_match_grade`、`can_execute` |
+| TC-117 | 同一 market_id 的 market / forecast / comparison 共享同一事实链 | FR-20, Phase 24.5 | market snapshot、forecast snapshot、comparison point 均存在 | 对比三份快照中的 source ref 与 market_id | 三者可回指同一条事实链，不能出现互相矛盾的当前事实 |
+| TC-118 | TopParameterView 只做聚合不改写事实 | FR-20, Phase 24.5 | 顶层视图与原始快照同时存在 | 对比 TopParameterView 与上游 market / rule / forecast / comparison 字段 | 顶层字段应能追溯到上游，且不会把空字段伪装成事实 |
+| TC-119 | 市场研究 / 录入输出唯一主快照 | FR-21, Phase 24.5 | Gamma / watchlist / 人工选择输入可用 | 检查 market snapshot 写出与市场选择结果 | 只存在一个可追溯主快照，且优先保留有价格市场 |
+| TC-120 | resolver 输出回指唯一 market_id | FR-21, Phase 24.5 | market snapshot 与规则库存在 | 运行 resolver 并对比结果 | resolver / source / band 均回指同一 `market_id` |
+| TC-121 | forecast / observation 与 target_date 和 station mapping 对齐 | FR-21, Phase 24.5 | market rule 与站点映射存在 | 生成 forecast / observation 快照 | 目标日期、站点、source_mode 可对齐且可追溯 |
+| TC-122 | comparison / probability 只做派生不改写事实 | FR-21, Phase 24.5 | 上游四类快照存在 | 生成 comparison / probability / TopParameterView | market_probability / fair_value / edge 可回指上游，不产生新事实 |
+| TC-123 | 展示层只消费统一事实链 | FR-21, Phase 24.5 | Dashboard / Telegram / Gateway 视图可构建 | 查看三端首屏 | 三端只消费同一条链路，空字段折叠，非适用字段隐藏 |
+| TC-124 | 上游流水线各阶段责任边界清晰 | FR-21, Phase 24.5 | market / resolver / forecast / comparison / display 均有产物 | 对照责任归属表与对应输出 | 每段只承担自己的输入输出，不跨层改写事实 |
+| TC-125 | 单市场 observation alert 可回放且 contract 可追溯 | FR-22 | ObservationSnapshot / MarketRule / ProbabilityState 可用 | 检查 `market_alert_event.v1` 输出 | observation shock / forecast divergence / reaction gap 可回指上游快照与阈值版本 |
+| TC-126 | family anomaly 可按 family / 日期 / 变量聚合 | FR-22 | 同 family 的 market snapshots 与 comparison points 可用 | 执行 family scan | 输出 price velocity / edge dislocation / evidence mismatch / microstructure stress / peer anomaly |
+| TC-127 | 监测采集结果不得改写 gate 语义 | FR-22, FR-18 | alert / anomaly 产物可用 | 对比 alert 输出与 gate_stack_api | 监测产物只能消费 gate 语义，不能替代 authorization / execution gate |
+| TC-128 | indicator registry 与 threshold policy 可版本化加载 | FR-22, Phase 27 | registry JSON 可读 | 加载 indicator registry 与 threshold policy | `indicator_name` / `formula` / `policy_version` 可解析且可校验 |
+| TC-129 | observation alert 在 source mismatch 时自动降级 | FR-22, Phase 27 | `source_match_grade != exact_station` | 构造非 exact station 输入 | 预警只能输出 review-only / advisory，不得升级为强告警 |
+| TC-130 | family scanner 可输出可回放的 anomaly report | FR-22, Phase 27 | 同 family 输入可用 | 执行 family scan | 输出 `market_anomaly_event.v1` 与 `family_scan_report.v1`，并可回指输入快照 |
+| TC-131 | monitoring 输出在 dashboard / telegram 仅消费不重算 | FR-22, Phase 27 | monitoring 事件可读 | 打开 dashboard / telegram monitoring 入口 | 页面只显示指标产物，不在展示层重算指标 |
+| TC-132 | monitoring 输出与 gate 语义边界清晰 | FR-22, FR-18, Phase 27 | alert / anomaly / gate_stack_api 都可读 | 对比 monitoring 事件与 gate contract | monitoring 只能描述异常，不得替代 gate 判定 |
+| TC-133 | observation alert 脚本可基于当前 outputs 生成事件 | FR-22, Phase 27 | 当前 observation / market / forecast outputs 可用 | 执行 `run_observation_alert_once.py` | 输出 `market_alert_event.v1`，并写入 `market_alert_events/` |
+| TC-134 | family scan 脚本可基于当前 outputs 生成报告 | FR-22, Phase 27 | current dashboard rows / comparison history / probability states 可用 | 执行 `run_family_anomaly_scan_once.py` | 输出 `family_scan_report.v1` 与 `market_anomaly_event.v1`，并写入对应 outputs |
+| TC-135 | threshold cross 支持显式 numeric threshold | FR-22, Phase 27 | observation / previous observation / threshold policy 可用 | 构造 threshold_cross_value 与前后观测值 | `threshold_cross_event`、`threshold_cross_direction` 与 `threshold_cross_value` 可回放 |
+| TC-136 | dashboard monitoring overview 可直接消费最新 alert / anomaly / family scan | FR-22, Phase 27 | monitoring outputs 可用 | 打开 dashboard Evidence 页面 | `Monitoring Signals` 面板显示最新告警、家族扫描与异常摘要 |
+| TC-137 | Telegram `/monitoring` 与导航按钮可消费 monitoring outputs | FR-22, Phase 27 | monitoring outputs 可用 | 发送 `/monitoring` 或点导航按钮 | Telegram 输出 monitoring summary 卡片，不重算监测指标 |
+| TC-138 | monitoring trend summary 可按最新 outputs 汇总 severity / anomaly 分布 | FR-22, Phase 27 | monitoring outputs 可用 | 打开 dashboard / Telegram monitoring 入口 | trend summary 输出最近窗口的 severity counts、recent alerts、recent anomalies |
+| TC-139 | source / measurement registry 可在 rules-research 侧加载并通过校验 | FR-21, Phase 27.1 | registry 文件已落盘 | 执行 `validate-registry` / registry loader 测试 | `source_policy` 与 `measurement_registry` 可读取，`validate-registry` 输出 `ok=true` |
+| TC-140 | source / measurement registry 可在 comparison-engine 侧加载并通过校验 | FR-21, Phase 27.1 | registry 文件已落盘 | 执行 `validate-registry` / registry loader 测试 | `source_policy` 与 `measurement_registry` 可读取，`validate-registry` 输出 `ok=true` |
+| TC-141 | resolver contract 输出 policy refs | FR-21, Phase 27.1 | rules-research registry 可读取 | 构造 station / climate contract | contract 返回 `source_policy_ref`、`unit_policy_ref`、`precision_policy_ref`、`rounding_policy_ref`、`band_mapping_policy_ref` |
+| TC-142 | ResolvedMarketRule 输出 policy refs | FR-21, Phase 27.1 | resolver report 可构造 | 生成 Shanghai / precipitation / wind / sea ice / global index resolved rule | resolved rule 输出与 family/variable 对应的 policy refs |
+| TC-143 | monitoring freshness 由 source policy registry 驱动 | FR-21, Phase 27.1 | source policy registry 可读取 | 构造 custom source policy registry 并运行 monitoring status CLI | `stale_after_seconds` 随 registry 变化，monitoring status 使用 registry 阈值而非硬编码常量 |
+| TC-144 | TopParameterView 可消费 canonical/display measurement hooks | FR-21, Phase 27.1 | measurement registry 与 top parameter builder 可用 | 构造 raw measurement 输入并调用 canonical hook | `get_canonical_value` / `get_display_value` 可返回规范化值，`TopParameterView` 保持可读输出 |
+| TC-145 | Dashboard monitoring signals 展示 source policy fallback 概要 | FR-21, Phase 27.1 | source policy status 含 sources / fallback_policy | 渲染 monitoring_signals_panel | `Fallback Policies` 可见，且按 source / priority / fallback_policy 摘要展示 |
+| TC-146 | Telegram top parameter / monitoring 卡片展示 policy-aware 只读字段 | FR-21, Phase 27.1 | top parameter view 含 canonical unit / source priority / fallback mode | 渲染 status / market / monitoring 卡片 | 卡片显示 `Canonical Unit`、`Source Priority`、`Fallback Mode` 和 `Fallback Policies`，且不做本地转换 |
+| TC-147 | rules-research forecast snapshot 输出 normalization metadata | FR-21, Phase 27.2 | forecast stub / poller 可用 | 生成 forecast snapshot / poller latest payload | 输出 `raw_value` / `canonical_value` / `display_value` / `policy refs` / `normalization_version` |
+| TC-148 | forecast extractor 与 poller 均通过 registry-first normalization | FR-21, Phase 27.2 | measurement registry 可读 | 运行 extractor 与 poller 回归 | `normalize_measurement`、`get_canonical_value`、`get_display_value` 与 `ForecastPoller.latest` 结果一致 |
 
 ---
 
@@ -420,6 +466,15 @@ cd weather-rules-research && pytest tests/test_registry_contracts.py tests/test_
 - Phase 25 进度结论：dashboard ops alert / queue summary panel 已通过
 - Phase 26 Batch 1 regression：comparison-engine promotion policy / unified status `11 passed`，dashboard top parameter / model validation `8 passed`
 - Phase 26 进度结论：promotion policy auto-closure 首批收口已通过，validation freshness / label coverage / resolver precision blocker 进入统一 contract
+- Phase 26 Batch 2 regression：telegram status / market `11 passed`，gateway runtime snapshot `1 passed`
+- Phase 26 进度结论：promotion state 已贯通 Telegram / gateway read-only 输出，三端 operator 语义继续收口
+- Phase 26 Batch 3 regression：dashboard compact gate / trade decision / model validation `7 passed`
+- Phase 26 进度结论：promotion state 已贯通 dashboard gate / trade / validation 摘要，三端 operator 语义对齐进一步收口
+- Phase 26 Batch 4 regression：dashboard execution gate / probability shadow / operator focus `13 passed`
+- Phase 26 进度结论：promotion state 已贯通 execution / probability / operator focus 摘要，dashboard operator surface 收口更完整
+- Phase 26 Batch 5 regression：dashboard unified status strip / compact gate / operator focus `6 passed`
+- Phase 26 进度结论：promotion state 已贯通 unified status strip 首屏摘要，三端 operator 语义进一步统一
+- Phase 24.5 进度结论：TopParameterView 首屏合同、空字段折叠、family-specific 标签与 comparison history reuse 已通过
 
 ### 7.3 当前已覆盖的代表性自动化测试
 
@@ -427,6 +482,7 @@ cd weather-rules-research && pytest tests/test_registry_contracts.py tests/test_
 |---|---|
 | `weather-rules-research/tests/test_resolver_contract_registry.py` | TC-07 ~ TC-10 |
 | `weather-comparison-engine/tests/test_probability_contract_policy.py` | TC-13 ~ TC-15, TC-40 |
+| `weather-dashboard/tests/test_top_parameter_ribbon.py` | TC-115 ~ TC-124 |
 | `weather-comparison-engine/tests/test_probability_contract_schema.py` | TC-53 |
 | `weather-comparison-engine/tests/test_unified_status_builder.py` | TC-41 ~ TC-43, TC-55 |
 | `weather-comparison-engine/tests/test_gate_stack_api_builder.py` | TC-73, TC-76, TC-77 |
@@ -500,6 +556,61 @@ PYTHONPATH=src python -m weather_comparison_engine.main build-unified-status
 - 成功生成 `label_coverage_report.json`
 - 成功生成 `unified_status.json`
 - 当前样例环境下可见 `heuristic_not_calibrated` 与 `manual_advisory_only`
+- Phase 27.1 Batch 1 registry-first 回归已通过：
+  - `weather-rules-research/tests/test_governance_registry.py` `2 passed`
+  - `weather-comparison-engine/tests/test_governance_registry.py` `2 passed`
+  - 两端 `validate-registry` CLI 均输出 `ok=true`
+- Phase 27.1 Batch 2 policy-ref resolver 回归已通过：
+  - `weather-rules-research/tests/test_resolver_contract_registry.py`
+  - `weather-rules-research/tests/test_resolver_report.py`
+  - `weather-rules-research/tests/test_live_market_resolver.py`
+  - `weather-rules-research/tests/test_market_resolution_registry.py`
+  - 合计 `23 passed`
+- Phase 27.1 Batch 3 registry-driven freshness / canonical hooks 回归已通过：
+  - `weather-comparison-engine/tests/test_governance_registry.py`
+  - `weather-comparison-engine/tests/test_monitoring_status_builder.py`
+  - `weather-comparison-engine/tests/test_top_parameter_view.py`
+  - 合计 `8 passed`
+- Phase 27.1 Batch 4 policy-aware read-only display 回归已通过：
+  - `weather-dashboard/tests/test_top_parameter_ribbon.py`
+  - `weather-dashboard/tests/test_monitoring_signals_panel.py`
+  - `weather-telegram-console/tests/test_status_card.py`
+  - `weather-telegram-console/tests/test_market_card.py`
+  - `weather-telegram-console/tests/test_monitoring_card.py`
+  - 合计 `8 passed`
+- Phase 27.2 normalization-aware forecast snapshot 回归已通过：
+  - `weather-rules-research/tests/test_governance_registry.py`
+  - `weather-rules-research/tests/test_normalization_schema.py`
+  - `weather-rules-research/tests/test_joiner.py`
+  - 合计 `7 passed`
+- Phase 27.2 normalization-aware forecast / comparison / read-only surface 回归已通过：
+  - `weather-comparison-engine/tests/test_top_parameter_view.py`
+  - `weather-comparison-engine/tests/test_monitoring_status_builder.py`
+  - `weather-comparison-engine/tests/test_governance_registry.py`
+  - `weather-dashboard/tests/test_top_parameter_ribbon.py`
+  - `weather-dashboard/tests/test_monitoring_signals_panel.py`
+  - `weather-telegram-console/tests/test_market_card.py`
+  - `weather-telegram-console/tests/test_status_card.py`
+  - `weather-telegram-console/tests/test_monitoring_card.py`
+  - `weather-telegram-console/tests/test_text_commands.py`
+  - 合计 `19 passed`
+- Phase 27.3 Batch 1 canonical-only observation alert 回归已通过：
+  - `weather-comparison-engine/tests/test_monitoring_layer.py`
+  - `weather-comparison-engine/tests/test_monitoring_runners.py`
+  - 合计 `5 passed`
+- Phase 27.3 Batch 2 canonical-only family scanner 回归已通过：
+  - `weather-comparison-engine/tests/test_monitoring_layer.py`
+  - `weather-comparison-engine/tests/test_monitoring_runners.py`
+  - 合计 `5 passed`
+- Phase 27.3 Batch 3 alert / anomaly / gate layered display 回归已通过：
+  - `weather-dashboard/tests/test_monitoring_signals_panel.py`
+  - `weather-telegram-console/tests/test_monitoring_api.py`
+  - `weather-telegram-console/tests/test_monitoring_card.py`
+  - `weather-telegram-console/tests/test_monitoring_handler.py`
+  - 合计 `5 passed`
+- Phase 27.3 Batch 4 gateway review context 回归已通过：
+  - `weather-execution-gateway/tests/test_position_exposure.py`
+  - 合计 `5 passed`
 
 ### 8.2 Dashboard Operator Surface
 
@@ -540,12 +651,70 @@ PYTHONPATH=src python -m weather_comparison_engine.main build-unified-status
 - dashboard 与 telegram 对关键 contract 的一致消费
 - Phase 20 operator control surface：evidence chart、operator context、pipeline sync alignment、read-only exposure、Telegram market/timeline
 
-### 9.2 当前仍需补强的验证点
+### 9.2 Phase 27 验收结论
+
+Phase 27 — Monitoring Collection / Indicator Governance 已完成并建议作为新基线收口。
+
+已验收的核心增量包括：
+
+- source governance：source cadence、freshness、priority、fallback 形成统一 registry-first 策略。
+- measurement governance：canonical unit、precision、rounding、band mapping、normalization-aware schema 形成统一标准。
+- monitoring collection：单市场 alert 与 family anomaly 已具备可运行、可审计、可回放的 MVP 闭环。
+- surface consumption：dashboard / Telegram / gateway 已按 alert / anomaly / gate 分层消费，不再混淆执行许可与监测异常。
+
+### 9.3 当前仍需补强的验证点
 
 以下用例已经设计，但仍建议在后续版本继续补强或扩展：
 
 - TC-12：跨市场 forecast mismatch 的更多真实样例
 - TC-37 ~ TC-45：随着 label coverage 与 family 覆盖增加，补充更多真实数据回归
+
+### 9.4 Phase 28 建议入口
+
+Phase 28 已完成并作为正式基线收口。Phase 29 建议优先从 family rollout / calibration feedback / coverage expansion 入手，在 Phase 28 的 validation / backtest / monitoring 基线上继续扩大 family 覆盖、校准反馈与多 family rollout 视图。Phase 29.1 进一步聚焦 family coverage、calibration drift 与 rollout summary 的仓库级落点：`weather-comparison-engine` 负责 drift 与 coverage 生成，`weather-rules-research` 负责新增 family resolver / normalization 对齐，`weather-dashboard` / `weather-telegram-console` 负责 rollout summary 只读展示，`weather-execution-gateway` 继续保持只读审查边界。Phase 29.1 Batch 1 已完成，validation / backtest / calibration reports 已开始输出 family coverage、calibration drift、drift bucket 与 rollout completion summary。Phase 29.1 Batch 2 已完成，dashboard / Telegram 的 validation 面板已补齐 family rollout 摘要，validation / backtest 反馈闭环开始在只读消费面可见。Phase 29.1 Batch 3 已完成，dashboard 的统一状态条与 Telegram 的 status card 也已补齐 family rollout 摘要首屏，validation / backtest 反馈闭环开始在更多 operator 入口可见。Phase 29.1 Batch 4 已完成，回归测试与文档同步已收尾，Phase 29.1 可作为完成态继续进入下一阶段。Phase 29.2 建议直接转向 coverage trend / family expansion / calibration drift backfill，在 Phase 28 的 canonical-only 口径上继续补齐更多 family 的 resolver 覆盖和趋势回放视图。Phase 29.2 Batch 1 已完成，`weather-comparison-engine` 已开始输出 family_rollout_trend_summary.v1，覆盖趋势与 drift movement 进入 validation / backtest / calibration 报告。Phase 29.2 Batch 2 已完成，dashboard / Telegram 的只读消费面已接入 coverage trend / drift movement 摘要，趋势回放开始可见。Phase 29.2 Batch 3 已完成，dashboard 的 family rollout trend 与 Telegram 的 /status validation trend 摘要已经稳定可见，operator 可以更早看到 coverage / ready / drift movement。Phase 29.2 Batch 4 已完成，回归测试与文档同步已收尾，Phase 29.2 可作为完成态继续进入下一阶段。Phase 29.3 建议顺势转向 coverage stall / drift watchlist / expansion backlog，在 Phase 29.2 的 trend history 上继续把“趋势”收敛成“该优先补哪几个 family”。Batch 1 + Batch 2 + Batch 3 + Batch 4 已完成，`weather-comparison-engine` 已开始输出 `family_rollout_watchlist.v1`，并将 watchlist history 接入 dashboard / Telegram 的只读消费面，可识别 stalled family、drift spike family 与 expansion backlog family；Batch 3 / Batch 4 已完成 dashboard / Telegram watchlist view 与回归 / 文档收口。这样可以保证离线验证、回测、校准与在线 canonical-only 链路同口径，同时逐步提升多 family 适配能力。
+
+### 9.5 Phase 28.1 Batch 1 / Batch 2 / Batch 3 / Batch 4 状态
+
+Phase 28.1 Batch 1 + Batch 2 + Batch 3 + Batch 4 已完成，`weather-comparison-engine` 的 feature store / validation loader 已开始吸收 canonical-only schema，validation report / backtest report / calibration report 也已开始纳入 source / normalization governance 摘要与 policy refs，dashboard / Telegram 的只读验证摘要展示也已接入，回归测试与文档同步已完成。Phase 28.1 Batch 1 还新增了 Opportunity Board 的实现骨架：`opportunity_board_view.v1` 已可由 `weather-comparison-engine` 生成，`opportunity_explanations.json` 与 `opportunity_feature_rows.json` 也已纳入文件输出约定，dashboard 已新增 Opportunity Board 一级 tab，Telegram 也已新增 `/opportunities` 与 `/opportunity <city>` 入口。Phase 28 Batch 2 已完成，dashboard 侧 Opportunity Board 已补齐更完整的过滤维度、row preview、score breakdown 与 model/difficulty explainability，Opportunity Board 现在可作为一级入口完成市场初筛与 drill-down。Phase 28 Batch 3 已完成，Telegram 侧 `/opportunities` 与 `/opportunity <city>` 已开始优先消费 city-level payload，并在机会卡片中补齐 `/market <id>` 下一步提示、城市 detail 和轻量机会 drill-down。Phase 28 Batch 4 已完成，dashboard 侧 preview 已补齐 `Open Workstation` 联动，会复用现有 pinned/focus 选择链路把目标 market 推入单市场工作台；同时 best model reason / recommended action reason 的解释断言、机会板 primary market 选择断言和相关回归也已通过。Phase 28 的 repo 级实现清单已经细化为 comparison-engine / rules-research / dashboard / telegram / gateway 五仓库分工，并明确了 opportunity_score、difficulty_score、best_model / best_source_stack 的 rule-based 起步口径与分数解释字段。
+Phase 30 已完成并正式收口：`validation_assimilation_summary.v1` 已落在 `model_validation_report` 中，`validation_assimilation_report.json` 已独立落盘，dashboard / Telegram 的验证面板已显示 assimilation status、feature store ready、label store ready 与 validation watchlist 的只读摘要。历史 feature store 中缺失 `model_probability` 的旧样本已可安全降级，不再阻塞 validation / backtest / calibration 产出。
+Phase 28 seed 输入回归已补齐：`opportunity_seed_list.v1` 可作为 cold-start prior 生成 seeded opportunity rows，seed row 会显式标记 `seeded_from_manual_research=true`、`recommended_action=watch_seed` 且不携带 market / gate / alert / anomaly refs；当同一 `city × family` 已有真实系统 row 时，seed 不会重复覆盖系统评分。
+Phase 28 opportunity policy registry 回归已补齐：`opportunity_score_builder.py`、`difficulty_score_builder.py`、`best_model_recommender.py`、`recommended_action_mapper.py` 已开始读取 `opportunity_policy_registry` 下 6 个 policy JSON，`opportunity_board_view.v1`、`opportunity_explanation.v1` 与 `opportunity_feature_rows.json` 均会输出 policy refs。相关 opportunity surface 回归 `12 passed`，`compileall` 通过，实际 `build-opportunity-board` 已重新生成带 policy refs 的机会板输出。
+本轮审核回归追加：`scoring_policy_ref` 已作为规范字段进入 row / explanation / feature rows；`source_precision_policy` 已按组合映射验证，`exact_station + proxy` 会稳定输出 `0.8`，不再被 resolver confidence 微调污染。相关 opportunity 回归 `10 passed`，`compileall` 通过，并已重新生成 `opportunity_board_view.json`。
+
+### 9.6 Phase 28.2 状态
+
+Phase 28.2 已开始收口 family anomaly 高阶解释层。`family_scan_report.v1` 与 `market_anomaly_event.v1` 已补齐 `signal_summary`、`anomaly_bucket` 和 `feature_breakdown`，dashboard / Telegram 的 family anomaly 区块也已开始显示高阶信号汇总，相关回归已通过。
+
+### 9.7 Phase 28.3 状态
+
+Phase 28.3 已开始收口 monitoring / ops / alert 联动展示。dashboard / Telegram 已新增 operator summary，把 market alert、family anomaly 和 gate block 合成为 operator-facing 结论，帮助 operator 更快判断当前该看什么、为什么不能动，相关回归已通过。
+
+### 9.8 Phase 29 测试入口
+
+Phase 29 建议进入 Single Market Workstation 测试矩阵。测试重点不再是新增事实计算，而是验证单市场页面是否能稳定聚合并分层展示已有合同：
+
+- `market_workstation_view.v1` contract test：结构完整、upstream refs 可回指、不成为新事实源。
+- Top Parameter Ribbon test：只消费 `TopParameterView.v2`，不做本地单位转换或 band 映射。
+- Evidence Timeline test：market / forecast / observation / alert / anomaly / gate markers 可同屏聚合。
+- Rule / Source / Model Panel test：source contract、best model、difficulty explainability 可读。
+- Gate / Advisory / Dry-run Panel test：advisory / dry-run 与 gate 语义清晰，不把 anomaly 误接成 execution allow。
+- Telegram `/market` consistency test：与 dashboard 对同一 selected market 的 alert / anomaly / gate / validation 摘要保持同口径。
+
+Phase 29 Batch 1 已新增并通过最小回归：`weather-comparison-engine/tests/test_market_workstation_view.py` 覆盖合同边界，`weather-dashboard/tests/test_market_workstation_page.py` 覆盖 Opportunity Board 上下文匹配、Workstation contract、Evidence Timeline 占位与 `gate_stack_api.v1_only` execution boundary。
+
+Phase 29 Batch 2 已新增并通过最小回归：`evidence_timeline.v1` 开始覆盖 market probability / forecast / observation / events 四轨摘要，dashboard 会按 selected market 读取 latest alert / anomaly 并作为 marker 进入工作台；测试覆盖 ready timeline、forecast / observation latest point、market history point count、alert / anomaly / gate marker，以及 monitoring event file 的 market_id 过滤读取。
+
+Phase 29 Batch 3 已新增并通过最小回归：`validation_compare_panel.v1` 覆盖 promotion state、primary blocker、validation freshness、label coverage 与 governance coverage；`opportunity_workstation_linkage.v1` 覆盖 Opportunity Board row、recommended action、best model/source stack 与 upstream refs，确保机会板进入工作台后上下文不丢失，且不转化为 execution permission。
+
+Phase 29 Batch 4 已新增并通过最小回归：Telegram `/market` 已增加 `telegram_market_workstation_context.v1`，覆盖 market alert、family anomaly、gate boundary、validation / coverage 与 opportunity entry 五块轻量工作台摘要；测试覆盖 `MarketAPI` 文件读取、market_id 过滤、formatter 输出，以及 `gate_stack_api.v1_only` execution boundary 不被机会/异常替代。
+
+Phase 29 文件化输出回归也已补齐：`write_market_workstation_artifacts` 覆盖 `market_workstation_<market_id>.json`、`evidence_timeline_<market_id>.json`、`validation_compare_<market_id>.json` 写出；`scripts/run_market_workstation_once.py 397991` 已在当前样例数据上成功生成三类 artifact。
+
+Phase 29 数据模型输出清单已对齐：`write_market_workstation_artifacts` 现在覆盖主文件、`rule_source_model_panel_<market_id>.json`、`evidence_timeline_<market_id>.json`、`validation_compare_<market_id>.json`、`gate_advisory_panel_<market_id>.json` 与 `market_workstation_summary_<market_id>.json`；contract test 覆盖 `entry_context.v1` 与 6 类 artifact 名称。
+
+### 9.9 Phase 30 验证收口
+
+Phase 30 已完成并作为正式基线收口。validation assimilation 已通过 `validation_assimilation_summary.v1` 与 `validation_assimilation_report.json` 接入 validation / backtest / calibration 链路，dashboard / Telegram 的验证面已展示 assimilation status、feature store ready、label store ready 与 family scan / advanced anomaly 摘要。Opportunity Board 与 Single Market Workstation 也已将 family anomaly summary 回灌到只读消费面；Telegram `/opportunities`、`/market` 与 `/status` 的轻量工作台语义已与 dashboard 对齐，同时仍保持 alert / anomaly / opportunity 不替代 gate 语义。
 
 ---
 
@@ -572,6 +741,8 @@ PYTHONPATH=src python -m weather_comparison_engine.main build-unified-status
 
 ---
 
+
+
 ## 12. 总结
 
 本次更新后的测试报告已经把系统测试从“模块通过若干 pytest”提升为“可回溯到需求、架构和详细设计的测试矩阵”。
@@ -581,5 +752,5 @@ PYTHONPATH=src python -m weather_comparison_engine.main build-unified-status
 - 系统已经达到研究控制台、manual advisory 控制台、dry-run 执行控制台的验证水平。
 - 系统尚未达到 production autonomous trading platform 的最终验收水平。
 - 后续测试重点应从 Phase 20 控制面硬化转向更多真实 market family、主动通知 workflow、validation 数据质量和更长期回归。
-| `weather-telegram-console/tests/test_intent_writer.py` | TC-60 |
-| `weather-telegram-console/tests/test_approval_handler.py` | TC-60 |
+- Phase 30 已完成并作为正式基线收口，validation assimilation 与 advanced anomaly 的只读消费面已经和 dashboard / Telegram / workstation 对齐。
+- Phase 31 已完成并作为正式基线收口，market discovery scanner、evidence scanner、scanner status、market alert router、family anomaly router 与 scanner ops alert 的只读消费面已经和 dashboard / Telegram / workstation 对齐。

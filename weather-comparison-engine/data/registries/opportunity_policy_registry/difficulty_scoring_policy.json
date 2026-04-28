@@ -1,0 +1,20 @@
+{
+  "policy_id": "difficulty_scoring_policy.v1",
+  "schema_version": "difficulty_scoring_policy.v1",
+  "applicable_scope": "opportunity_board.city_family_rows",
+  "formula_or_mapping": "weighted_linear_components",
+  "weights": {
+    "source_precision_difficulty": 0.30,
+    "resolver_stability_difficulty": 0.20,
+    "settlement_clarity_difficulty": 0.20,
+    "freshness_reliability_difficulty": 0.15,
+    "market_complexity_difficulty": 0.15
+  },
+  "label_thresholds": {
+    "easy_max": 0.33,
+    "medium_max": 0.66
+  },
+  "version": "v1",
+  "status": "active",
+  "notes": "Difficulty is operator context. It is not a gate block."
+}

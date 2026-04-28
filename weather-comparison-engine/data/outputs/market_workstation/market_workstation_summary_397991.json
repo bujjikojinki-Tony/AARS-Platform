@@ -1,0 +1,12 @@
+{
+  "schema_version": "market_workstation_summary.v1",
+  "generated_at": "2026-04-23T05:37:26.460909+00:00",
+  "market_id": "397991",
+  "market_question": "Highest temperature in Shanghai on April 22?",
+  "latest_alert_severity": "-",
+  "latest_anomaly_score": null,
+  "can_execute": "no",
+  "primary_block_reason": "monitoring_not_healthy",
+  "recommended_operator_action": "refresh_pipeline_inputs",
+  "execution_boundary": "gate_stack_api.v1_only"
+}

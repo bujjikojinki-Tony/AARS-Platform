@@ -1,0 +1,23 @@
+{
+  "gate_summary": {
+    "data_gate": "-",
+    "resolver_gate": "-",
+    "probability_gate": "-",
+    "freshness_gate": "-",
+    "authorization_gate": "-",
+    "execution_gate": "-",
+    "can_execute": "no",
+    "primary_block_reason": "monitoring_not_healthy"
+  },
+  "advisory_summary": {
+    "recommended_operator_action": "refresh_pipeline_inputs",
+    "advisory_reason": "monitoring_not_healthy",
+    "latest_alert_summary": "-",
+    "latest_anomaly_summary": "-"
+  },
+  "dry_run_area": {
+    "simulate_review": "available",
+    "create_dry_run_intent": "available_when_gate_context_ready",
+    "execution_boundary": "gate_stack_api.v1_only"
+  }
+}

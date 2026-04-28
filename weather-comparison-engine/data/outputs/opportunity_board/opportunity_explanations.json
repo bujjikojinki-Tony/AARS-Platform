@@ -1,0 +1,335 @@
+{
+  "Buenos Aires.temperature_daily_max": {
+    "row_id": "Buenos Aires.temperature_daily_max",
+    "opportunity_components": {
+      "edge_component": 1.0,
+      "market_lag_component": 0.45,
+      "source_precision_component": 1.0,
+      "freshness_component": 0.55,
+      "liquidity_component": 0.0,
+      "anomaly_penalty_component": 0.0
+    },
+    "difficulty_components": {
+      "source_precision_difficulty": 0.12,
+      "resolver_stability_difficulty": 0.22,
+      "settlement_clarity_difficulty": 0.16,
+      "freshness_reliability_difficulty": 0.28,
+      "market_complexity_difficulty": 0.36
+    },
+    "best_model_components": {
+      "family_fit": 1.0,
+      "source_availability": 0.8,
+      "source_precision_fit": 0.9,
+      "freshness_reliability": 0.85,
+      "validation_support": 0.6
+    },
+    "best_model_reason": "manual opportunity seed provides a cold-start best model prior; system scoring should supersede it when enough live evidence is available",
+    "recommended_action_reason": "Use the board to prioritize review before any downstream action.",
+    "policy_refs": {
+      "opportunity_policy_ref": "opportunity_scoring_policy.v1",
+      "scoring_policy_ref": "opportunity_scoring_policy.v1",
+      "difficulty_policy_ref": "difficulty_scoring_policy.v1",
+      "model_recommendation_policy_ref": "model_recommendation_policy.v1",
+      "action_mapping_policy_ref": "action_mapping_policy.v1",
+      "freshness_mapping_policy_ref": "freshness_mapping_policy.v1",
+      "source_precision_policy_ref": "source_precision_policy.v1"
+    },
+    "summary_line": "Buenos Aires / temperature_daily_max: opp=0.595; diff=easy; best_model=GFS"
+  },
+  "Miami.temperature_daily_max": {
+    "row_id": "Miami.temperature_daily_max",
+    "opportunity_components": {
+      "edge_component": 0.8,
+      "market_lag_component": 0.45,
+      "source_precision_component": 0.7,
+      "freshness_component": 0.55,
+      "liquidity_component": 0.0,
+      "anomaly_penalty_component": 0.0
+    },
+    "difficulty_components": {
+      "source_precision_difficulty": 0.34,
+      "resolver_stability_difficulty": 0.38,
+      "settlement_clarity_difficulty": 0.16,
+      "freshness_reliability_difficulty": 0.45,
+      "market_complexity_difficulty": 0.36
+    },
+    "best_model_components": {
+      "family_fit": 1.0,
+      "source_availability": 0.8,
+      "source_precision_fit": 0.9,
+      "freshness_reliability": 0.85,
+      "validation_support": 0.6
+    },
+    "best_model_reason": "manual opportunity seed provides a cold-start best model prior; system scoring should supersede it when enough live evidence is available",
+    "recommended_action_reason": "Use the board to prioritize review before any downstream action.",
+    "policy_refs": {
+      "opportunity_policy_ref": "opportunity_scoring_policy.v1",
+      "scoring_policy_ref": "opportunity_scoring_policy.v1",
+      "difficulty_policy_ref": "difficulty_scoring_policy.v1",
+      "model_recommendation_policy_ref": "model_recommendation_policy.v1",
+      "action_mapping_policy_ref": "action_mapping_policy.v1",
+      "freshness_mapping_policy_ref": "freshness_mapping_policy.v1",
+      "source_precision_policy_ref": "source_precision_policy.v1"
+    },
+    "summary_line": "Miami / temperature_daily_max: opp=0.49; diff=medium; best_model=NOAA"
+  },
+  "Seoul.temperature_daily_max": {
+    "row_id": "Seoul.temperature_daily_max",
+    "opportunity_components": {
+      "edge_component": 0.8,
+      "market_lag_component": 0.45,
+      "source_precision_component": 0.7,
+      "freshness_component": 0.55,
+      "liquidity_component": 0.0,
+      "anomaly_penalty_component": 0.0
+    },
+    "difficulty_components": {
+      "source_precision_difficulty": 0.34,
+      "resolver_stability_difficulty": 0.38,
+      "settlement_clarity_difficulty": 0.16,
+      "freshness_reliability_difficulty": 0.45,
+      "market_complexity_difficulty": 0.36
+    },
+    "best_model_components": {
+      "family_fit": 1.0,
+      "source_availability": 0.8,
+      "source_precision_fit": 0.9,
+      "freshness_reliability": 0.85,
+      "validation_support": 0.6
+    },
+    "best_model_reason": "manual opportunity seed provides a cold-start best model prior; system scoring should supersede it when enough live evidence is available",
+    "recommended_action_reason": "Use the board to prioritize review before any downstream action.",
+    "policy_refs": {
+      "opportunity_policy_ref": "opportunity_scoring_policy.v1",
+      "scoring_policy_ref": "opportunity_scoring_policy.v1",
+      "difficulty_policy_ref": "difficulty_scoring_policy.v1",
+      "model_recommendation_policy_ref": "model_recommendation_policy.v1",
+      "action_mapping_policy_ref": "action_mapping_policy.v1",
+      "freshness_mapping_policy_ref": "freshness_mapping_policy.v1",
+      "source_precision_policy_ref": "source_precision_policy.v1"
+    },
+    "summary_line": "Seoul / temperature_daily_max: opp=0.49; diff=medium; best_model=JMA"
+  },
+  "Shanghai.temperature_daily_max": {
+    "row_id": "Shanghai.temperature_daily_max",
+    "opportunity_components": {
+      "edge_component": 0.6,
+      "market_lag_component": 0.45,
+      "source_precision_component": 1.0,
+      "freshness_component": 0.55,
+      "liquidity_component": 0.0,
+      "anomaly_penalty_component": 0.0
+    },
+    "difficulty_components": {
+      "source_precision_difficulty": 0.12,
+      "resolver_stability_difficulty": 0.22,
+      "settlement_clarity_difficulty": 0.16,
+      "freshness_reliability_difficulty": 0.28,
+      "market_complexity_difficulty": 0.36
+    },
+    "best_model_components": {
+      "family_fit": 1.0,
+      "source_availability": 0.8,
+      "source_precision_fit": 0.9,
+      "freshness_reliability": 0.85,
+      "validation_support": 0.6
+    },
+    "best_model_reason": "manual opportunity seed provides a cold-start best model prior; system scoring should supersede it when enough live evidence is available",
+    "recommended_action_reason": "Use the board to prioritize review before any downstream action.",
+    "policy_refs": {
+      "opportunity_policy_ref": "opportunity_scoring_policy.v1",
+      "scoring_policy_ref": "opportunity_scoring_policy.v1",
+      "difficulty_policy_ref": "difficulty_scoring_policy.v1",
+      "model_recommendation_policy_ref": "model_recommendation_policy.v1",
+      "action_mapping_policy_ref": "action_mapping_policy.v1",
+      "freshness_mapping_policy_ref": "freshness_mapping_policy.v1",
+      "source_precision_policy_ref": "source_precision_policy.v1"
+    },
+    "summary_line": "Shanghai / temperature_daily_max: opp=0.475; diff=easy; best_model=ECMWF"
+  },
+  "Ankara.temperature_daily_max": {
+    "row_id": "Ankara.temperature_daily_max",
+    "opportunity_components": {
+      "edge_component": 0.6,
+      "market_lag_component": 0.45,
+      "source_precision_component": 0.7,
+      "freshness_component": 0.55,
+      "liquidity_component": 0.0,
+      "anomaly_penalty_component": 0.0
+    },
+    "difficulty_components": {
+      "source_precision_difficulty": 0.34,
+      "resolver_stability_difficulty": 0.38,
+      "settlement_clarity_difficulty": 0.16,
+      "freshness_reliability_difficulty": 0.45,
+      "market_complexity_difficulty": 0.36
+    },
+    "best_model_components": {
+      "family_fit": 1.0,
+      "source_availability": 0.8,
+      "source_precision_fit": 0.9,
+      "freshness_reliability": 0.85,
+      "validation_support": 0.6
+    },
+    "best_model_reason": "manual opportunity seed provides a cold-start best model prior; system scoring should supersede it when enough live evidence is available",
+    "recommended_action_reason": "Use the board to prioritize review before any downstream action.",
+    "policy_refs": {
+      "opportunity_policy_ref": "opportunity_scoring_policy.v1",
+      "scoring_policy_ref": "opportunity_scoring_policy.v1",
+      "difficulty_policy_ref": "difficulty_scoring_policy.v1",
+      "model_recommendation_policy_ref": "model_recommendation_policy.v1",
+      "action_mapping_policy_ref": "action_mapping_policy.v1",
+      "freshness_mapping_policy_ref": "freshness_mapping_policy.v1",
+      "source_precision_policy_ref": "source_precision_policy.v1"
+    },
+    "summary_line": "Ankara / temperature_daily_max: opp=0.43; diff=medium; best_model=ECMWF"
+  },
+  "New York.temperature_daily_max": {
+    "row_id": "New York.temperature_daily_max",
+    "opportunity_components": {
+      "edge_component": 0.4,
+      "market_lag_component": 0.45,
+      "source_precision_component": 0.7,
+      "freshness_component": 0.55,
+      "liquidity_component": 0.0,
+      "anomaly_penalty_component": 0.0
+    },
+    "difficulty_components": {
+      "source_precision_difficulty": 0.34,
+      "resolver_stability_difficulty": 0.38,
+      "settlement_clarity_difficulty": 0.16,
+      "freshness_reliability_difficulty": 0.45,
+      "market_complexity_difficulty": 0.36
+    },
+    "best_model_components": {
+      "family_fit": 1.0,
+      "source_availability": 0.8,
+      "source_precision_fit": 0.9,
+      "freshness_reliability": 0.85,
+      "validation_support": 0.6
+    },
+    "best_model_reason": "manual opportunity seed provides a cold-start best model prior; system scoring should supersede it when enough live evidence is available",
+    "recommended_action_reason": "Use the board to prioritize review before any downstream action.",
+    "policy_refs": {
+      "opportunity_policy_ref": "opportunity_scoring_policy.v1",
+      "scoring_policy_ref": "opportunity_scoring_policy.v1",
+      "difficulty_policy_ref": "difficulty_scoring_policy.v1",
+      "model_recommendation_policy_ref": "model_recommendation_policy.v1",
+      "action_mapping_policy_ref": "action_mapping_policy.v1",
+      "freshness_mapping_policy_ref": "freshness_mapping_policy.v1",
+      "source_precision_policy_ref": "source_precision_policy.v1"
+    },
+    "summary_line": "New York / temperature_daily_max: opp=0.37; diff=medium; best_model=NOAA"
+  },
+  "Chicago.temperature_daily_max": {
+    "row_id": "Chicago.temperature_daily_max",
+    "opportunity_components": {
+      "edge_component": 0.4,
+      "market_lag_component": 0.45,
+      "source_precision_component": 0.3,
+      "freshness_component": 0.55,
+      "liquidity_component": 0.0,
+      "anomaly_penalty_component": 0.0
+    },
+    "difficulty_components": {
+      "source_precision_difficulty": 0.58,
+      "resolver_stability_difficulty": 0.55,
+      "settlement_clarity_difficulty": 0.16,
+      "freshness_reliability_difficulty": 0.68,
+      "market_complexity_difficulty": 0.36
+    },
+    "best_model_components": {
+      "family_fit": 1.0,
+      "source_availability": 0.8,
+      "source_precision_fit": 0.9,
+      "freshness_reliability": 0.85,
+      "validation_support": 0.6
+    },
+    "best_model_reason": "manual opportunity seed provides a cold-start best model prior; system scoring should supersede it when enough live evidence is available",
+    "recommended_action_reason": "Use the board to prioritize review before any downstream action.",
+    "policy_refs": {
+      "opportunity_policy_ref": "opportunity_scoring_policy.v1",
+      "scoring_policy_ref": "opportunity_scoring_policy.v1",
+      "difficulty_policy_ref": "difficulty_scoring_policy.v1",
+      "model_recommendation_policy_ref": "model_recommendation_policy.v1",
+      "action_mapping_policy_ref": "action_mapping_policy.v1",
+      "freshness_mapping_policy_ref": "freshness_mapping_policy.v1",
+      "source_precision_policy_ref": "source_precision_policy.v1"
+    },
+    "summary_line": "Chicago / temperature_daily_max: opp=0.31; diff=medium; best_model=NOAA"
+  },
+  "London.temperature_daily_max": {
+    "row_id": "London.temperature_daily_max",
+    "opportunity_components": {
+      "edge_component": 0.4,
+      "market_lag_component": 0.45,
+      "source_precision_component": 0.3,
+      "freshness_component": 0.55,
+      "liquidity_component": 0.0,
+      "anomaly_penalty_component": 0.0
+    },
+    "difficulty_components": {
+      "source_precision_difficulty": 0.58,
+      "resolver_stability_difficulty": 0.55,
+      "settlement_clarity_difficulty": 0.16,
+      "freshness_reliability_difficulty": 0.68,
+      "market_complexity_difficulty": 0.36
+    },
+    "best_model_components": {
+      "family_fit": 1.0,
+      "source_availability": 0.8,
+      "source_precision_fit": 0.9,
+      "freshness_reliability": 0.85,
+      "validation_support": 0.6
+    },
+    "best_model_reason": "manual opportunity seed provides a cold-start best model prior; system scoring should supersede it when enough live evidence is available",
+    "recommended_action_reason": "Use the board to prioritize review before any downstream action.",
+    "policy_refs": {
+      "opportunity_policy_ref": "opportunity_scoring_policy.v1",
+      "scoring_policy_ref": "opportunity_scoring_policy.v1",
+      "difficulty_policy_ref": "difficulty_scoring_policy.v1",
+      "model_recommendation_policy_ref": "model_recommendation_policy.v1",
+      "action_mapping_policy_ref": "action_mapping_policy.v1",
+      "freshness_mapping_policy_ref": "freshness_mapping_policy.v1",
+      "source_precision_policy_ref": "source_precision_policy.v1"
+    },
+    "summary_line": "London / temperature_daily_max: opp=0.31; diff=medium; best_model=ECMWF"
+  },
+  "Shanghai.station_temperature": {
+    "row_id": "Shanghai.station_temperature",
+    "opportunity_components": {
+      "edge_component": 0.0,
+      "market_lag_component": 0.35,
+      "source_precision_component": 0.45,
+      "freshness_component": 0.4,
+      "liquidity_component": 0.0,
+      "anomaly_penalty_component": 0.0
+    },
+    "difficulty_components": {
+      "source_precision_difficulty": 0.65,
+      "resolver_stability_difficulty": 1.0,
+      "settlement_clarity_difficulty": 0.3,
+      "freshness_reliability_difficulty": 0.45,
+      "market_complexity_difficulty": 0.24
+    },
+    "best_model_components": {
+      "family_fit": 1.0,
+      "source_availability": 0.8,
+      "source_precision_fit": 0.9,
+      "freshness_reliability": 0.85,
+      "validation_support": 0.6
+    },
+    "best_model_reason": "station temperature markets favor ECMWF plus exact-station observations",
+    "recommended_action_reason": "Opportunity is healthy enough to open the single-market workstation.",
+    "policy_refs": {
+      "opportunity_policy_ref": "opportunity_scoring_policy.v1",
+      "scoring_policy_ref": "opportunity_scoring_policy.v1",
+      "difficulty_policy_ref": "difficulty_scoring_policy.v1",
+      "model_recommendation_policy_ref": "model_recommendation_policy.v1",
+      "action_mapping_policy_ref": "action_mapping_policy.v1",
+      "freshness_mapping_policy_ref": "freshness_mapping_policy.v1",
+      "source_precision_policy_ref": "source_precision_policy.v1"
+    },
+    "summary_line": "Shanghai / station_temperature: opp=0.1775; diff=medium; best_model=ECMWF"
+  }
+}

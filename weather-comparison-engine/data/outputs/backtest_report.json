@@ -18,5 +18,225 @@
       "total_pnl": 0.35
     }
   },
+  "governance_summary": {
+    "sample_count": 40,
+    "canonical_sample_count": 0,
+    "source_policy_sample_count": 0,
+    "normalization_version_counts": {
+      "unknown": 40
+    },
+    "source_policy_ref_counts": {
+      "unknown": 40
+    },
+    "precision_policy_ref_counts": {
+      "unknown": 40
+    },
+    "rounding_policy_ref_counts": {
+      "unknown": 40
+    },
+    "band_mapping_policy_ref_counts": {
+      "unknown": 40
+    },
+    "freshness_status_counts": {
+      "unknown": 40
+    },
+    "source_match_grade_counts": {
+      "unknown": 40
+    },
+    "canonical_ratio": 0.0,
+    "source_policy_coverage": 0.0,
+    "normalization_coverage": 0.0
+  },
+  "family_rollout_summary": {
+    "schema_version": "family_rollout_summary.v1",
+    "sample_count": 40,
+    "probability_field": "model_probability",
+    "family_count": 3,
+    "covered_family_count": 3,
+    "ready_family_count": 1,
+    "coverage_ratio": 1.0,
+    "ready_ratio": 0.333333,
+    "family_counts": {
+      "global_temperature_index": 12,
+      "sea_ice_extent": 15,
+      "unknown": 13
+    },
+    "labeled_family_counts": {
+      "global_temperature_index": 2,
+      "sea_ice_extent": 1,
+      "unknown": 1
+    },
+    "global_brier_score": 0.1628,
+    "global_calibration_error": 0.393333,
+    "family_summaries": [
+      {
+        "market_family": "global_temperature_index",
+        "sample_count": 12,
+        "labeled_sample_count": 2,
+        "coverage_status": "healthy",
+        "brier_score": 0.205,
+        "calibration_error": 0.45,
+        "drift_from_global": 0.056667,
+        "drift_bucket": "high"
+      },
+      {
+        "market_family": "sea_ice_extent",
+        "sample_count": 15,
+        "labeled_sample_count": 1,
+        "coverage_status": "warning",
+        "brier_score": 0.0784,
+        "calibration_error": 0.28,
+        "drift_from_global": 0.113333,
+        "drift_bucket": "high"
+      },
+      {
+        "market_family": "unknown",
+        "sample_count": 13,
+        "labeled_sample_count": 1,
+        "coverage_status": "warning",
+        "brier_score": null,
+        "calibration_error": null,
+        "drift_from_global": null,
+        "drift_bucket": "low"
+      }
+    ],
+    "top_family": "sea_ice_extent",
+    "top_family_sample_count": 15,
+    "top_drift_family": "sea_ice_extent",
+    "top_drift_value": 0.113333,
+    "drift_bucket_counts": {
+      "low": 0,
+      "medium": 0,
+      "high": 2
+    }
+  },
+  "family_rollout_trend_summary": {
+    "schema_version": "family_rollout_trend_summary.v1",
+    "sample_count": 40,
+    "bucket_count": 3,
+    "trend_windows": [
+      {
+        "window_index": 1,
+        "window_label": "window_1",
+        "start_timestamp": "2026-04-13T06:42:24.602412+00:00",
+        "end_timestamp": "2026-04-13T09:57:48.764476+00:00",
+        "sample_count": 14,
+        "family_count": 2,
+        "coverage_ratio": 0.5,
+        "ready_ratio": 0.0,
+        "top_family": "unknown",
+        "top_drift_family": null,
+        "top_drift_value": null,
+        "drift_bucket_counts": {
+          "low": 0,
+          "medium": 0,
+          "high": 0
+        }
+      },
+      {
+        "window_index": 2,
+        "window_label": "window_2",
+        "start_timestamp": "2026-04-13T12:21:44.309744+00:00",
+        "end_timestamp": "2026-04-13T14:28:31.067124+00:00",
+        "sample_count": 13,
+        "family_count": 3,
+        "coverage_ratio": 0.333333,
+        "ready_ratio": 0.0,
+        "top_family": "sea_ice_extent",
+        "top_drift_family": "global_temperature_index",
+        "top_drift_value": 0.0,
+        "drift_bucket_counts": {
+          "low": 1,
+          "medium": 0,
+          "high": 0
+        }
+      },
+      {
+        "window_index": 3,
+        "window_label": "window_3",
+        "start_timestamp": "2026-04-13T14:28:37.745325+00:00",
+        "end_timestamp": "2026-04-17T14:31:57.368545+00:00",
+        "sample_count": 13,
+        "family_count": 2,
+        "coverage_ratio": 1.0,
+        "ready_ratio": 0.0,
+        "top_family": "global_temperature_index",
+        "top_drift_family": "global_temperature_index",
+        "top_drift_value": 0.06,
+        "drift_bucket_counts": {
+          "low": 0,
+          "medium": 0,
+          "high": 2
+        }
+      }
+    ],
+    "coverage_movement": 0.5,
+    "ready_movement": 0.0,
+    "drift_movement": null
+  },
+  "family_rollout_watchlist": {
+    "schema_version": "family_rollout_watchlist.v1",
+    "sample_count": 40,
+    "probability_field": "model_probability",
+    "family_count": 3,
+    "watchlist_count": 3,
+    "stalled_family_count": 2,
+    "drift_spike_family_count": 2,
+    "expansion_backlog_count": 0,
+    "watchlist": [
+      {
+        "watchlist_rank": 1,
+        "market_family": "sea_ice_extent",
+        "sample_count": 15,
+        "labeled_sample_count": 1,
+        "coverage_status": "warning",
+        "calibration_error": 0.28,
+        "drift_from_global": 0.113333,
+        "drift_bucket": "high",
+        "attention_level": "high",
+        "watchlist_reason": "coverage_aging+drift_spike+drift=0.113333",
+        "suggested_action": "review_drift_spike",
+        "is_stalled": true,
+        "is_drift_spike": true,
+        "is_expansion_backlog": false
+      },
+      {
+        "watchlist_rank": 2,
+        "market_family": "global_temperature_index",
+        "sample_count": 12,
+        "labeled_sample_count": 2,
+        "coverage_status": "healthy",
+        "calibration_error": 0.45,
+        "drift_from_global": 0.056667,
+        "drift_bucket": "high",
+        "attention_level": "high",
+        "watchlist_reason": "drift_spike+drift=0.056667",
+        "suggested_action": "review_drift_spike",
+        "is_stalled": false,
+        "is_drift_spike": true,
+        "is_expansion_backlog": false
+      },
+      {
+        "watchlist_rank": 3,
+        "market_family": "unknown",
+        "sample_count": 13,
+        "labeled_sample_count": 1,
+        "coverage_status": "warning",
+        "calibration_error": null,
+        "drift_from_global": null,
+        "drift_bucket": "low",
+        "attention_level": "medium",
+        "watchlist_reason": "coverage_aging",
+        "suggested_action": "watch_and_backfill",
+        "is_stalled": true,
+        "is_drift_spike": false,
+        "is_expansion_backlog": false
+      }
+    ],
+    "top_watchlist_family": "sea_ice_extent",
+    "top_watchlist_reason": "coverage_aging+drift_spike+drift=0.113333",
+    "top_watchlist_attention_level": "high",
+    "top_watchlist_sample_count": 15
+  },
   "note": "Heuristic backtest uses model_probability vs market_probability edge with unit stake sizing. This is a validation scaffold, not a production execution model."
 }

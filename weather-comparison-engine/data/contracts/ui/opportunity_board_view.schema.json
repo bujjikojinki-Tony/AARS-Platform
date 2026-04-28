@@ -1,0 +1,206 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "opportunity_board_view.schema.json",
+  "title": "opportunity_board_view.v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "row_count",
+    "summary",
+    "rows",
+    "explanations",
+    "feature_rows"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "opportunity_board_view.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "row_count": {
+      "type": "integer"
+    },
+    "summary": {
+      "type": "object"
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/opportunity_row"
+      }
+    },
+    "explanations": {
+      "type": "object"
+    },
+    "seed_summary": {
+      "type": "object"
+    },
+    "feature_rows": {
+      "type": "array"
+    }
+  },
+  "definitions": {
+    "opportunity_row": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "row_id",
+        "city",
+        "market_family",
+        "active_market_count",
+        "opportunity_score",
+        "opportunity_rank",
+        "difficulty_score",
+        "difficulty_label",
+        "best_model",
+        "best_source_stack",
+        "source_precision_score",
+        "freshness_status",
+        "alert_count",
+        "anomaly_count",
+        "gate_risk_summary",
+        "recommended_action",
+        "opportunity_reason",
+        "difficulty_reason",
+        "best_model_reason",
+        "upstream_refs"
+      ],
+      "properties": {
+        "row_id": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "country": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "market_family": {
+          "type": "string"
+        },
+        "active_market_count": {
+          "type": "integer"
+        },
+        "opportunity_score": {
+          "type": "number"
+        },
+        "opportunity_rank": {
+          "type": "integer"
+        },
+        "difficulty_score": {
+          "type": "number"
+        },
+        "difficulty_label": {
+          "type": "string"
+        },
+        "best_model": {
+          "type": "string"
+        },
+        "best_source_stack": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "source_precision_score": {
+          "type": "number"
+        },
+        "freshness_status": {
+          "type": "string"
+        },
+        "alert_count": {
+          "type": "integer"
+        },
+        "latest_alert_severity": {
+          "type": "string"
+        },
+        "anomaly_count": {
+          "type": "integer"
+        },
+        "latest_anomaly_score": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "gate_risk_summary": {
+          "type": "string"
+        },
+        "recommended_action": {
+          "type": "string"
+        },
+        "opportunity_reason": {
+          "type": "string"
+        },
+        "difficulty_reason": {
+          "type": "string"
+        },
+        "best_model_reason": {
+          "type": "string"
+        },
+        "opportunity_components": {
+          "type": "object"
+        },
+        "difficulty_components": {
+          "type": "object"
+        },
+        "best_model_components": {
+          "type": "object"
+        },
+        "upstream_refs": {
+          "$ref": "#/definitions/upstream_refs"
+        }
+      }
+    },
+    "upstream_refs": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "market_ids",
+        "comparison_refs",
+        "alert_refs",
+        "anomaly_refs",
+        "gate_refs"
+      ],
+      "properties": {
+        "market_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "comparison_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "alert_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "anomaly_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "gate_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "expectations": [
+    {
+      "text": "The output includes Validation Scope, Validation Basis, Configuration Baseline, and Validation Scenarios",
+      "passed": true,
+      "evidence": "The output contains `## 2. Validation Scope`, `## 3. Validation Basis`, `## 4. Configuration Baseline`, and `## 5. Validation Scenarios`."
+    },
+    {
+      "text": "The output includes safety function validation, response time validation, and HMI or bypass or reset validation",
+      "passed": true,
+      "evidence": "The output contains `## 7. Safety Function Validation`, `## 8. Response Time Validation`, `## 9. HMI / Alarm Validation`, and `## 10. Bypass / Override / Reset Validation`."
+    },
+    {
+      "text": "The output clearly distinguishes validation from verification and ordinary testing",
+      "passed": true,
+      "evidence": "The output includes a dedicated section `Clarification: Verification vs Validation vs Ordinary Testing` with separate definitions."
+    },
+    {
+      "text": "The output includes deviations or anomalies and conditions or restrictions",
+      "passed": true,
+      "evidence": "The output contains `## 12. Deviations and Anomalies` and `## 14. Conditions / Restrictions`."
+    },
+    {
+      "text": "The output explicitly identifies incomplete abnormal-condition scenario coverage as a gap or limitation",
+      "passed": true,
+      "evidence": "The output states `Abnormal-condition scenario coverage is not yet complete`, repeats it in deviations and in evidence gaps, and ties it to validation limitations."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "tool_calls": {
+      "Read": 0,
+      "Write": 1,
+      "Bash": 0
+    },
+    "total_tool_calls": 1,
+    "total_steps": 1,
+    "errors_encountered": 0,
+    "output_chars": 5813,
+    "transcript_chars": 0
+  },
+  "timing": {
+    "executor_duration_seconds": 0.0,
+    "grader_duration_seconds": 0.0,
+    "total_duration_seconds": 0.0
+  },
+  "claims": [
+    {
+      "claim": "The skill can draft a bounded Safety Validation Report that separates validation from ordinary testing",
+      "type": "quality",
+      "verified": true,
+      "evidence": "The output distinguishes validation, verification, and ordinary testing and still preserves limitation language around incomplete scenarios."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  },
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "No suggestions, this eval provides a good structured check for validation-report drafting behavior."
+  }
+}

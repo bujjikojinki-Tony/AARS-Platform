@@ -1,0 +1,82 @@
+[
+  {
+    "query": "I need a safety-critical monitoring console for our operator workflow. It should show current system state, highest risk, alarm queue, recovery path, and gated actions so operators can act quickly without digging through tabs.",
+    "should_trigger": true
+  },
+  {
+    "query": "Can you design an HMI page for our mission-control dashboard? The page needs task status, latest stable view, alert severity, data freshness, and a place to explain why certain actions are blocked.",
+    "should_trigger": true
+  },
+  {
+    "query": "Please redesign this alert center so alarms are actionable, not just notifications. I want severity, evidence, recommended action, owner, closure condition, and a clear recovery workflow.",
+    "should_trigger": true
+  },
+  {
+    "query": "I need a review of this operational UI screenshot. The most important risks are buried in tabs, and the AI recommendation card doesn't show evidence or confidence. Give me HMI gate findings first.",
+    "should_trigger": true
+  },
+  {
+    "query": "Create a control surface for a multi-site monitoring tool. It has to support situation awareness, current task execution, degraded mode visibility, and safe confirmation before any destructive action.",
+    "should_trigger": true
+  },
+  {
+    "query": "Write a page spec for a current-step procedure screen in a high-reliability system. Include preconditions, blocked actions, verification, and recovery steps.",
+    "should_trigger": true
+  },
+  {
+    "query": "I need the Codex implementation prompt for a React console that displays system status, risk, AI recommendation evidence, and a reviewable HMI gate.",
+    "should_trigger": true
+  },
+  {
+    "query": "Can you help me design the component structure for a mission-critical dashboard where warnings, automation mode, and recovery path must stay visible at all times?",
+    "should_trigger": true
+  },
+  {
+    "query": "I'm building a nuclear-style current state page for an internal control room simulator. It needs alarm lifecycle, degraded mode banner, data trust indicators, and operator action gating.",
+    "should_trigger": true
+  },
+  {
+    "query": "We need an HMI review checklist for a safety-critical page that has alarms, AI recommendations, and high-risk actions. I want the review to decide accept, defer, block, or rework.",
+    "should_trigger": true
+  },
+  {
+    "query": "I need a dashboard for quarterly sales reporting. Just charts, filters, and export buttons for the leadership meeting.",
+    "should_trigger": false
+  },
+  {
+    "query": "Can you redesign our marketing analytics page so it looks more modern and less dense? This is for campaign performance and social media KPIs.",
+    "should_trigger": false
+  },
+  {
+    "query": "Help me build an admin panel for user management in our SaaS app: table, create/edit/delete forms, and a few convenience shortcuts.",
+    "should_trigger": false
+  },
+  {
+    "query": "I want a design system audit for our consumer mobile app. Please review spacing, typography, and button styles across the product.",
+    "should_trigger": false
+  },
+  {
+    "query": "Can you make a customer support dashboard with ticket counts, SLA charts, and a small alert widget for overdue tickets?",
+    "should_trigger": false
+  },
+  {
+    "query": "Need a product landing page for our AI startup. The page should explain benefits, pricing, and a signup flow.",
+    "should_trigger": false
+  },
+  {
+    "query": "Please write a code review checklist for our React app so the team can catch accessibility issues and performance regressions.",
+    "should_trigger": false
+  },
+  {
+    "query": "I need a finance dashboard for personal investing with portfolio charts, news, and watchlists. Nothing safety-critical, just a clean overview.",
+    "should_trigger": false
+  },
+  {
+    "query": "Can you help me turn this notes app wireframe into a prettier interface with better iconography and a lighter color palette?",
+    "should_trigger": false
+  },
+  {
+    "query": "I am making a fitness app screen that shows workout reminders and health alerts. It should feel calm and motivating, not like an industrial control panel.",
+    "should_trigger": false
+  }
+]

@@ -1,0 +1,28 @@
+{
+  "schema_version": "page_context.v1",
+  "generated_at": "2026-04-28T12:51:55.084501+00:00",
+  "source_page": "markets",
+  "target_page": "markets",
+  "selected_market_id": "Houston_US",
+  "selected_signal_id": null,
+  "selected_row_id": "Houston_US",
+  "entry_reason": "selection_change",
+  "entry_context": {
+    "selected_market": "Houston, US",
+    "selected_group": "FOCUS",
+    "selected_watchlist": "WATCHED",
+    "selected_focus": "AUTO",
+    "selected_scan_priority": "P1",
+    "selected_resolver": "OK",
+    "selected_source": "LIVE",
+    "current_filters": {
+      "group": "All",
+      "watchlist": "All",
+      "focus": "All",
+      "resolver": "All",
+      "priority": "All",
+      "search": ""
+    }
+  },
+  "upstream_refs": {}
+}

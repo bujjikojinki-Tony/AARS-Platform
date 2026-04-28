@@ -1,7 +1,7 @@
 {
   "schema_version": "probability_state.v1",
   "market_id": "693874",
-  "timestamp": "2026-04-19T14:32:04.506741+00:00",
+  "timestamp": "2026-04-23T13:22:30.505903+00:00",
   "mode": "shadow",
   "calibration_status": "not_calibrated",
   "probability_mode": "heuristic_not_calibrated",
@@ -39,7 +39,7 @@
   "expected_band": "in_range",
   "probability_reason": "model_band=below_range;target_band=in_range",
   "contract_checks": {
-    "freshness_seconds": 134303.259376,
+    "freshness_seconds": 26820.223866,
     "sample_count": 40,
     "labeled_sample_count": 4,
     "brier_score": 0.1628,

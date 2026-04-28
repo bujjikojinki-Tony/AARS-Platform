@@ -14,7 +14,7 @@ for path in (SRC, SCRIPTS):
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
-from run_weather_realtime import poll_once
+from run_weather_realtime import startup_self_check_and_sync
 from weather_rules_research.settings import REALTIME_MARKET_JSON, REALTIME_MARKET_SNAPSHOTS_GLOB
 
 
@@ -56,8 +56,10 @@ async def main() -> None:
         )
 
     results = []
+    await startup_self_check_and_sync(live_market=snapshots[0])
     for snapshot in snapshots:
-        result = await poll_once(live_market=snapshot)
+        result = await startup_self_check_and_sync(live_market=snapshot)
+        result = result.get("snapshot") or {}
         results.append(
             {
                 "market_id": result.get("market_id"),

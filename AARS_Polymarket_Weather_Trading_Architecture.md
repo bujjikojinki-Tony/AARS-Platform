@@ -1,7 +1,7 @@
 # AARS Polymarket Weather Trading Console 架构设计文档
 
-版本：v0.1  
-日期：2026-04-17  
+版本：v0.2  
+日期：2026-04-21  
 定位：Polymarket 天气市场实时分析、证据论证、BOT 授权与执行控制台
 
 ---
@@ -23,6 +23,10 @@
 - 实时决策闭环：market -> resolver -> probability -> comparison -> decision -> authorization -> execution。
 - 证据论证闭环：resolver trace -> probability trace -> comparison evidence -> XAI argument -> operator review。
 - 训练验证闭环：realtime events -> feature store -> label store -> backtest / validation -> model registry -> live / shadow model。
+- 监测采集闭环：observation / forecast / market / resolver / comparison -> alert / anomaly indicators -> dashboard / telegram / automation consumers。
+
+所有面向展示与比较的事实都必须来自同一套可追溯数据源，避免 market discovery、market ingest、resolver、forecast、comparison 和 UI 各自派生出不同版本的“当前事实”。
+监测采集层必须以统一指标契约输出告警与异常发现结果，不能在 gate 或 UI 层临时发明指标口径。
 
 ---
 
@@ -885,6 +889,12 @@ src/aars_weather_trading/
     edge_engine.py
     freshness_checker.py
 
+  monitoring_layer/
+    indicator_registry/
+    threshold_policy_registry/
+    observation_alert_layer/
+    family_scanner/
+
   decision_layer/
     trade_decision.py
     heuristic_decision_engine.py
@@ -965,10 +975,11 @@ weather-execution-gateway
 
 目标：让当前系统稳定、边界清楚。
 
-- 定义核心 schema：`MarketSnapshot`、`MarketRule`、`ForecastSnapshot`、`ProbabilityState`、`ProbabilityContract`、`ComparisonPoint`、`TradeDecision`、`EvidenceBundle`、`AuthorizationState`、`ExecutionIntent`。
+- 定义核心 schema：`MarketSnapshot`、`MarketRule`、`ForecastSnapshot`、`ProbabilityState`、`ProbabilityContract`、`ComparisonPoint`、`TradeDecision`、`EvidenceBundle`、`AuthorizationState`、`ExecutionIntent`、`TopParameterView`。
 - 将外部请求全部改为非阻塞：手动刷新、缓存、worker 异步写入。
 - 新增 `monitoring_status.json`。
-- Dashboard 顶部展示数据新鲜度和 worker health。
+- Dashboard 顶部展示数据新鲜度、worker health 与 `TopParameterView` 的首屏参数面。
+- `TopParameterView` 采用“同 schema、多适配器”实现思路：各仓库可按各自输入源构建，但必须保持字段口径、schema version 与展示语义一致。
 
 ### 阶段 2：Resolver 中心化
 
@@ -1004,7 +1015,7 @@ weather-execution-gateway
 
 - 完成 risk gate。
 - Execution gateway 默认 dry-run。
-- 只有 `approved_for_live=true` 的模型与策略可进入自动执行。
+- 只有 `approved_for_live=true` 且 `probability_mode=live_approved` 的模型与策略可进入自动执行。
 - 所有授权、风控、执行动作进入 audit log。
 
 ---
@@ -1155,3 +1166,81 @@ pending -> sent -> acked
 1. dashboard / telegram / gateway 对 gate 语义完全统一。
 2. 自动化调度不再依赖脆弱脚本解析，直接消费 contract 与退出码。
 3. 告警通知形成可审计链路（event -> queue -> delivery -> ack）。
+
+---
+
+## 17. UI Runtime Architecture Refactor v1
+
+本节补充 UI 运行时架构，目标是让 Dashboard、Telegram、CLI、报告全部读取同一组 view contracts，而不是各页面自行计算状态。
+
+### 17.1 旧架构问题
+
+旧模式：
+
+```text
+raw data
+-> dashboard page calculates status
+-> page renders
+```
+
+风险：
+
+- 不同页面状态解释不一致。
+- 颜色语义漂移。
+- 按钮显隐规则分散。
+- Telegram 与 Dashboard 结论不一致。
+- gate / alert / anomaly 被前端误用。
+
+### 17.2 新架构
+
+```mermaid
+flowchart TB
+  DS["Data Sources<br/>Polymarket / Weather / METAR / ECMWF / HRRR / Logs / Operator Actions"]
+  GOV["Governance Layer<br/>Resolver / Source / Measurement / Freshness / Precision / Validation"]
+  SIG["Signal & Scoring Layer<br/>Comparison / Probability / Alert / Anomaly / Opportunity / Quality / Gate"]
+  POL["Policy Registry<br/>Primary State / Action Mapping / UI Legend / Display Priority / Navigation"]
+  VB["View Builder Layer<br/>Operations / Signals / Board / Workstation / Command / Pipeline / Markets / Charts / History / Evidence"]
+  VC["View Contracts<br/>*.view.v1 JSON"]
+  SURF["Surfaces<br/>Dashboard / Telegram / CLI / Reports"]
+  DS --> GOV
+  GOV --> SIG
+  SIG --> POL
+  POL --> VB
+  SIG --> VB
+  GOV --> VB
+  VB --> VC
+  VC --> SURF
+```
+
+### 17.3 View Builder Layer
+
+建议新增：
+
+```text
+src/weather_comparison_engine/view_builders/
+  operations_monitor_view_builder.py
+  monitoring_signals_view_builder.py
+  opportunity_board_view_builder.py
+  market_workstation_view_builder.py
+  command_context_view_builder.py
+  pipeline_status_view_builder.py
+  markets_inventory_view_builder.py
+  charts_analysis_view_builder.py
+  history_event_view_builder.py
+  evidence_raw_view_builder.py
+```
+
+### 17.4 UI Policy Registry
+
+建议正式纳入：
+
+```text
+weather-comparison-engine/data/registries/ui_policy_registry/
+  primary_state_policy.json
+  display_priority_policy.json
+  next_operator_action_policy.json
+  action_visibility_policy.json
+  navigation_policy.json
+  ui_color_semantics_policy.json
+  ui_legend_policy.json
+```

@@ -166,7 +166,7 @@ async def main() -> None:
             target_date=extracted.target_date,
             variable_name=extracted.variable_name,
             value=extracted.value,
-            source=f"open-meteo:{extracted.source_mode}",
+            source=f"open-meteo:{extracted.source_path or extracted.source_mode}",
         )
     except Exception as exc:
         print("OPEN-METEO FORECAST FETCH FAILED, USING OFFLINE STUB")

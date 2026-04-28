@@ -1,0 +1,79 @@
+{
+  "expectations": [
+    {
+      "text": "The output includes an Executive Summary",
+      "passed": true,
+      "evidence": "The output contains a dedicated `## Executive Summary` section in the Analysis / Deliverable portion."
+    },
+    {
+      "text": "The output distinguishes IEEE 1012 V&V logic from IEC 61508 / IEC 61511 functional safety lifecycle logic",
+      "passed": true,
+      "evidence": "The output has separate sections for IEEE 1012, IEC 61508, and IEC 61511, then states: `IEEE 1012 governs the quality and completeness of V&V activities`, `IEC 61508 governs the generic functional safety lifecycle logic`, and `IEC 61511 adapts that lifecycle into concrete SIS/SIF process-industry practice`."
+    },
+    {
+      "text": "The output explains that SIL applies to a safety function or SIF rather than simply to a single device",
+      "passed": true,
+      "evidence": "The output states: `SIL applies to the safety function or SIF, not simply to one certified component.`"
+    },
+    {
+      "text": "The output includes lifecycle workflow, evidence chain, and engineering recommendations",
+      "passed": true,
+      "evidence": "The output contains the sections `## Lifecycle Method`, `## Evidence Chain`, and `## Recommendations`."
+    },
+    {
+      "text": "The output avoids claiming formal compliance or certification",
+      "passed": true,
+      "evidence": "The report frames itself as an engineering positioning report and explicitly states it is not a `formal certification decision`; it also says `No plant-specific evidence set was assessed.`"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "tool_calls": {
+      "Read": 0,
+      "Write": 1,
+      "Bash": 0
+    },
+    "total_tool_calls": 1,
+    "total_steps": 1,
+    "errors_encountered": 0,
+    "output_chars": 8343,
+    "transcript_chars": 0
+  },
+  "timing": {
+    "executor_duration_seconds": 0.0,
+    "grader_duration_seconds": 0.0,
+    "total_duration_seconds": 0.0
+  },
+  "claims": [
+    {
+      "claim": "IEEE 1012, IEC 61508, and IEC 61511 have distinct but complementary roles",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The output explicitly assigns separate roles to V&V process discipline, generic functional safety lifecycle logic, and process-industry SIS/SIF execution."
+    },
+    {
+      "claim": "A device certificate alone is insufficient to justify a SIF SIL claim",
+      "type": "quality",
+      "verified": true,
+      "evidence": "The report directly rejects device-only SIL reasoning and ties SIL to the safety function / SIF."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [
+      "This was produced through a Codex-native manual execution path rather than an isolated executor agent transcript."
+    ],
+    "needs_review": [],
+    "workarounds": [
+      "No automated with-skill versus without-skill comparison was available in this iteration."
+    ]
+  },
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "No suggestions, evals look solid for a qualitative first-pass research-output check."
+  }
+}

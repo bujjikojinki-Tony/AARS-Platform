@@ -1,19 +1,19 @@
 {
   "schema_version": "unified_status.v1",
-  "generated_at": "2026-04-19T14:32:04.513986+00:00",
+  "generated_at": "2026-04-23T13:22:30.507856+00:00",
   "overall_status": "degraded",
   "current_market": {
-    "market_id": "390826",
-    "market_question": "Highest temperature in Shanghai on April 20?",
-    "comparison_status": "unmatched_rule",
+    "market_id": "397991",
+    "market_question": "Highest temperature in Shanghai on April 22?",
+    "comparison_status": "unknown",
     "confidence_adjusted_gap": 0.0,
     "action_hint": "watch",
     "market_probability": null,
-    "rule_status": "matched_rule_no_station",
+    "rule_status": "matched",
     "resolver_confidence": null,
     "source_match_grade": null,
-    "market_snapshot_ref": "2026-04-19T13:54:56.788224Z",
-    "forecast_snapshot_ref": "2026-04-19T14:29:36.557571+00:00"
+    "market_snapshot_ref": "2026-04-21T10:29:20.433775Z",
+    "forecast_snapshot_ref": "2026-04-23T13:22:30.225156+00:00"
   },
   "monitoring": {
     "overall_status": "degraded",
@@ -30,69 +30,71 @@
         "label": "Market",
         "layer": "market_layer",
         "status": "stale",
-        "freshness_seconds": 2227.724714,
-        "last_success_at": "2026-04-19T13:54:56.788224+00:00"
+        "freshness_seconds": 183190.073317,
+        "last_success_at": "2026-04-21T10:29:20.433775+00:00"
       },
       {
         "label": "Forecast",
         "layer": "resolver_layer",
         "status": "healthy",
-        "freshness_seconds": 147.955367,
-        "last_success_at": "2026-04-19T14:29:36.557571+00:00"
+        "freshness_seconds": 0.281936,
+        "last_success_at": "2026-04-23T13:22:30.225156+00:00"
       },
       {
         "label": "Resolver",
         "layer": "resolver_layer",
         "status": "healthy",
-        "freshness_seconds": 148.178617,
-        "last_success_at": "2026-04-19T14:29:36.334321+00:00"
+        "freshness_seconds": 3.180303,
+        "last_success_at": "2026-04-23T13:22:27.326789+00:00"
       },
       {
         "label": "Probability",
         "layer": "probability_layer",
         "status": "healthy",
-        "freshness_seconds": 0.005445,
-        "last_success_at": "2026-04-19T14:32:04.507493+00:00"
+        "freshness_seconds": 0.001052,
+        "last_success_at": "2026-04-23T13:22:30.506040+00:00"
       },
       {
         "label": "Comparison",
         "layer": "comparison_layer",
         "status": "warning",
-        "freshness_seconds": 0.010528,
-        "last_success_at": "2026-04-19T14:32:04.502410+00:00"
+        "freshness_seconds": 0.002395,
+        "last_success_at": "2026-04-23T13:22:30.504697+00:00"
       },
       {
         "label": "Gateway",
         "layer": "authorization_execution_layer",
         "status": "blocked",
-        "freshness_seconds": 129142.238852,
+        "freshness_seconds": 470568.233006,
         "last_success_at": "2026-04-18T02:39:42.274086+00:00"
       },
       {
         "label": "Validation",
         "layer": "validation_layer",
         "status": "stale",
-        "freshness_seconds": 134303.26973,
-        "last_success_at": "2026-04-18T01:13:41.243208+00:00"
+        "freshness_seconds": 26820.226132,
+        "last_success_at": "2026-04-23T05:55:30.280960+00:00"
       },
       {
         "label": "Validation Freshness",
         "layer": "validation_layer",
         "status": "blocked",
-        "freshness_seconds": 0.003392,
-        "last_success_at": "2026-04-19T14:32:04.509546+00:00"
+        "freshness_seconds": 0.000238,
+        "last_success_at": "2026-04-23T13:22:30.506854+00:00"
       },
       {
         "label": "Label Coverage",
         "layer": "validation_layer",
         "status": "blocked",
-        "freshness_seconds": 0.003392,
-        "last_success_at": "2026-04-19T14:32:04.509546+00:00"
+        "freshness_seconds": 0.000238,
+        "last_success_at": "2026-04-23T13:22:30.506854+00:00"
       }
     ]
   },
   "probability": {
-    "market_id": "390826",
+    "market_id": "397991",
+    "base_probability_mode": "heuristic_not_calibrated",
+    "base_execution_constraint": "manual_advisory_only",
     "probability_mode": "heuristic_not_calibrated",
     "execution_constraint": "manual_advisory_only",
     "calibration_status": "not_calibrated",
@@ -109,11 +111,43 @@
     },
     "confidence_adjusted_edge": null,
     "confidence_score": null,
-    "resolver_status": "matched"
+    "resolver_status": "matched",
+    "promotion_state": {
+      "schema_version": "promotion_state.v1",
+      "promotion_policy_version": "promotion_policy.v1",
+      "generated_at": "2026-04-23T13:22:30.507870+00:00",
+      "base_probability_mode": "heuristic_not_calibrated",
+      "base_execution_constraint": "manual_advisory_only",
+      "probability_mode": "heuristic_not_calibrated",
+      "execution_constraint": "manual_advisory_only",
+      "calibration_status": "not_calibrated",
+      "approved_for_live": false,
+      "promotion_reason": "validation_freshness_blocked",
+      "demotion_reason": "validation_freshness_blocked",
+      "blockers": [
+        "validation_freshness:blocked"
+      ],
+      "freshness_status": "blocked",
+      "coverage_status": "blocked",
+      "resolver_match_rate": null,
+      "source_match_grade": "-",
+      "contract_version": "probability_contract.v1",
+      "probability_contract": {
+        "contract_version": "probability_contract.v1",
+        "probability_mode": "heuristic_not_calibrated",
+        "calibration_status": "not_calibrated",
+        "execution_constraint": "manual_advisory_only",
+        "approved_for_live": false,
+        "deployment_mode": "shadow",
+        "promotion_reason": "validation_report_stale",
+        "contract_source": "validation_policy_v1"
+      },
+      "validation_report_generated_at": null
+    }
   },
   "validation": {
     "freshness_status": "blocked",
-    "freshness_seconds": 134303.266338,
+    "freshness_seconds": 26820.225894,
     "freshness_reason": "validation_report_stale",
     "label_coverage_status": "blocked",
     "labeled_rows": 4,
@@ -124,7 +158,39 @@
       "family:global_temperature_index:labeled_rows_below_min",
       "family:sea_ice_extent:labeled_rows_below_min",
       "family:unknown:labeled_rows_below_min"
-    ]
+    ],
+    "promotion_state": {
+      "schema_version": "promotion_state.v1",
+      "promotion_policy_version": "promotion_policy.v1",
+      "generated_at": "2026-04-23T13:22:30.507870+00:00",
+      "base_probability_mode": "heuristic_not_calibrated",
+      "base_execution_constraint": "manual_advisory_only",
+      "probability_mode": "heuristic_not_calibrated",
+      "execution_constraint": "manual_advisory_only",
+      "calibration_status": "not_calibrated",
+      "approved_for_live": false,
+      "promotion_reason": "validation_freshness_blocked",
+      "demotion_reason": "validation_freshness_blocked",
+      "blockers": [
+        "validation_freshness:blocked"
+      ],
+      "freshness_status": "blocked",
+      "coverage_status": "blocked",
+      "resolver_match_rate": null,
+      "source_match_grade": "-",
+      "contract_version": "probability_contract.v1",
+      "probability_contract": {
+        "contract_version": "probability_contract.v1",
+        "probability_mode": "heuristic_not_calibrated",
+        "calibration_status": "not_calibrated",
+        "execution_constraint": "manual_advisory_only",
+        "approved_for_live": false,
+        "deployment_mode": "shadow",
+        "promotion_reason": "validation_report_stale",
+        "contract_source": "validation_policy_v1"
+      },
+      "validation_report_generated_at": null
+    }
   },
   "execution": {
     "status": "blocked",
@@ -153,7 +219,6 @@
     ],
     "resolver_gate": "blocked",
     "resolver_gate_reasons": [
-      "resolver_not_matched",
       "resolver_confidence_low",
       "resolver_source_not_exact"
     ],
@@ -168,11 +233,11 @@
       "monitoring_not_healthy",
       "stale_worker",
       "validation_freshness_unhealthy",
-      "label_coverage_unhealthy"
+      "label_coverage_unhealthy",
+      "source_policy_unhealthy"
     ],
     "authorization_gate": "blocked",
     "authorization_gate_reasons": [
-      "resolver_not_matched",
       "resolver_confidence_low",
       "resolver_source_not_exact",
       "probability_not_live_approved",
@@ -181,7 +246,8 @@
       "monitoring_not_healthy",
       "stale_worker",
       "validation_freshness_unhealthy",
-      "label_coverage_unhealthy"
+      "label_coverage_unhealthy",
+      "source_policy_unhealthy"
     ],
     "execution_gate": "blocked",
     "execution_gate_reasons": [
@@ -191,7 +257,6 @@
     "block_reasons": [
       "monitoring_not_healthy",
       "comparison_not_actionable",
-      "resolver_not_matched",
       "resolver_confidence_low",
       "resolver_source_not_exact",
       "probability_not_live_approved",
@@ -200,6 +265,7 @@
       "stale_worker",
       "validation_freshness_unhealthy",
       "label_coverage_unhealthy",
+      "source_policy_unhealthy",
       "execution_not_ready",
       "execution_not_live_ready"
     ]
@@ -212,8 +278,7 @@
     "worker:Validation:stale",
     "worker:Validation Freshness:blocked",
     "worker:Label Coverage:blocked",
-    "comparison:unmatched_rule",
-    "resolver:matched_rule_no_station",
+    "comparison:unknown",
     "probability_mode:heuristic_not_calibrated",
     "execution_constraint:manual_advisory_only",
     "validation_freshness:blocked",
@@ -223,6 +288,146 @@
     "coverage_blocker:family:global_temperature_index:labeled_rows_below_min",
     "coverage_blocker:family:sea_ice_extent:labeled_rows_below_min",
     "coverage_blocker:family:unknown:labeled_rows_below_min",
+    "source_policy:unknown",
     "execution:blocked"
-  ]
+  ],
+  "top_parameter_view": {
+    "schema_version": "top_parameter_view.v2",
+    "market_id": "397991",
+    "market_family": "station_temperature",
+    "market_question": "Highest temperature in Shanghai on April 22?",
+    "location_name": "-",
+    "target_date": "Apr 22",
+    "variable_name": "daily_max_temperature",
+    "canonical_unit": "source_defined",
+    "source_priority": "-",
+    "fallback_mode": "-",
+    "policy_refs": {
+      "source_policy_ref": "-",
+      "precision_policy_ref": "-",
+      "rounding_policy_ref": "-",
+      "band_mapping_policy_ref": "band_mapping.temperature_celsius_integer.v1"
+    },
+    "polymarket": {
+      "yes_price": "-",
+      "no_price": "-",
+      "market_implied_probability": "-",
+      "display_market_probability": "-",
+      "favored_side": "-",
+      "market_band": "-"
+    },
+    "forecast": {
+      "raw_value": "-",
+      "raw_unit": "celsius",
+      "canonical_value": null,
+      "canonical_unit": "source_defined",
+      "display_value": "-",
+      "display_unit": "source_defined",
+      "conversion_rule": null,
+      "conversion_applied": null,
+      "precision_policy_ref": "-",
+      "rounding_policy_ref": "-",
+      "band_mapping_policy_ref": "band_mapping.temperature_celsius_integer.v1",
+      "normalization_version": "measurement_normalization.v1",
+      "forecast_value": "-",
+      "forecast_raw_value": "-",
+      "forecast_raw_unit": "celsius",
+      "forecast_canonical_value": null,
+      "forecast_canonical_unit": "source_defined",
+      "forecast_display_value": "-",
+      "forecast_display_unit": "source_defined",
+      "forecast_timestamp": "-",
+      "source_mode": "-",
+      "required_data_source": "open_meteo_plus_station_mapping"
+    },
+    "weather": {
+      "raw_value": "-",
+      "raw_unit": "celsius",
+      "canonical_value": null,
+      "canonical_unit": "source_defined",
+      "display_value": "-",
+      "display_unit": "source_defined",
+      "conversion_rule": null,
+      "conversion_applied": null,
+      "precision_policy_ref": "-",
+      "rounding_policy_ref": "-",
+      "band_mapping_policy_ref": "band_mapping.temperature_celsius_integer.v1",
+      "normalization_version": "measurement_normalization.v1",
+      "observation_value": "-",
+      "observation_raw_value": "-",
+      "observation_raw_unit": "celsius",
+      "observation_canonical_value": null,
+      "observation_canonical_unit": "source_defined",
+      "observation_display_value": "-",
+      "observation_display_unit": "source_defined",
+      "observation_band": "-",
+      "forecast_value": "-",
+      "forecast_raw_value": "-",
+      "forecast_raw_unit": "celsius",
+      "forecast_canonical_value": null,
+      "forecast_canonical_unit": "source_defined",
+      "forecast_display_value": "-",
+      "forecast_display_unit": "source_defined",
+      "unit": "source_defined",
+      "model_band": "-",
+      "official_band": "-",
+      "station_name": "-",
+      "station_id": "-",
+      "observed_at": "-",
+      "forecast_timestamp": "-",
+      "source_mode": "-",
+      "required_data_source": "open_meteo_plus_station_mapping",
+      "settlement_ready": "-"
+    },
+    "source_contract": {
+      "settlement_source_type": "-",
+      "official_vs_proxy_source": "-",
+      "source_match_grade": "-",
+      "required_sources": "-",
+      "official_source_url": "-",
+      "freshness_status": "-",
+      "source_priority": "-",
+      "fallback_mode": "-",
+      "source_policy_ref": "-",
+      "precision_policy_ref": "-",
+      "rounding_policy_ref": "-",
+      "band_mapping_policy_ref": "band_mapping.temperature_celsius_integer.v1"
+    },
+    "normalization": {
+      "raw_unit": "celsius",
+      "canonical_unit": "source_defined",
+      "display_unit": "source_defined",
+      "raw_value": "-",
+      "canonical_value": null,
+      "display_value": "-",
+      "conversion_rule": null,
+      "conversion_applied": null,
+      "precision_policy_ref": "-",
+      "rounding_policy_ref": "-",
+      "band_mapping_policy_ref": "band_mapping.temperature_celsius_integer.v1",
+      "normalization_version": "measurement_normalization.v1"
+    },
+    "decision": {
+      "fair_value": "-",
+      "edge": "-",
+      "probability_mode": "heuristic_not_calibrated",
+      "execution_constraint": "manual_advisory_only",
+      "can_execute": "-",
+      "primary_block_reason": "none",
+      "recommended_operator_action": "hold_execution_and_review",
+      "comparison_status": "unknown"
+    }
+  },
+  "source_policy": {
+    "schema_version": "source_policy_status.v1",
+    "overall_status": "unknown",
+    "registry_schema_version": "-",
+    "fresh_count": 0,
+    "stale_count": 0,
+    "unavailable_count": 0,
+    "priority_counts": {},
+    "source_count": 0,
+    "problem_sources": [],
+    "sources": []
+  }
 }

@@ -1,0 +1,12 @@
+{
+  "eval_id": 5,
+  "eval_name": "sif-srs-generation",
+  "prompt": "请生成一份 SIF Safety Requirements Specification。场景：反应器高高压保护，目标是在 reactor pressure 超过 trip setpoint 时，使进料切断并打开泄放路径。已知目标 SIL 暂定为 SIL 2；传感器为 2oo3 pressure transmitters；logic solver 为 safety PLC；final elements 为 feed isolation valve 和 vent valve；safe state 是切断进料并建立泄放。请按 IEC 61511 为主生成 SIF SRS，并明确哪些内容仍需补充证据。",
+  "assertions": [
+    "The output includes SIF Summary, Hazard and Risk Basis, SIF Statement, and Target SIL Basis",
+    "The output includes sensors, logic solver, final elements, trip logic, and safe state",
+    "The output includes response time, reset requirement, bypass or override requirement, and proof test requirement",
+    "The output includes validation criteria and traceability or equivalent evidence linkage",
+    "The output does not claim the SIF achieves the target SIL without complete verification evidence"
+  ]
+}

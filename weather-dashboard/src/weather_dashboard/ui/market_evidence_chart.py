@@ -6,6 +6,12 @@ import pandas as pd
 import streamlit as st
 
 from weather_dashboard.ui.operator_messages import NO_HISTORICAL_EVIDENCE
+from weather_dashboard.ui.compact_panel import (
+    default_market_evidence_curve_legend_items,
+    default_state_legend_items,
+    render_chart_legend_card,
+    render_legend_card,
+)
 
 
 PRICE_SERIES_COLUMNS = [
@@ -124,6 +130,7 @@ def render_market_evidence_chart(
     training_samples_df: pd.DataFrame | None,
     selected_market_id: str | None,
     audit_events: list[dict] | None = None,
+    top_parameter_view: dict | None = None,
 ) -> None:
     st.subheader("Market Evidence Chart")
     st.caption(
@@ -140,12 +147,57 @@ def render_market_evidence_chart(
         st.info(NO_HISTORICAL_EVIDENCE)
         return
 
+    if isinstance(top_parameter_view, dict):
+        weather = top_parameter_view.get("weather") if isinstance(top_parameter_view.get("weather"), dict) else {}
+        source_contract = (
+            top_parameter_view.get("source_contract")
+            if isinstance(top_parameter_view.get("source_contract"), dict)
+            else {}
+        )
+        decision = top_parameter_view.get("decision") if isinstance(top_parameter_view.get("decision"), dict) else {}
+        with st.container(border=True):
+            st.caption("Top Parameter Surface")
+            cols_top = st.columns(4)
+            with cols_top[0]:
+                st.metric(
+                    "Market",
+                    str(top_parameter_view.get("market_family") or "-"),
+                    help=str(top_parameter_view.get("market_question") or "-"),
+                )
+                st.caption(str(top_parameter_view.get("market_id") or "-"))
+            with cols_top[1]:
+                st.metric(
+                    "Weather",
+                    _format_metric(weather.get("forecast_value") or weather.get("observation_value")),
+                )
+                st.caption(str(weather.get("station_id") or "-"))
+            with cols_top[2]:
+                st.metric("Source", str(source_contract.get("source_match_grade") or "-"))
+                st.caption(str(source_contract.get("freshness_status") or "-"))
+            with cols_top[3]:
+                st.metric("Decision", str(decision.get("can_execute") or "-"))
+                st.caption(str(decision.get("primary_block_reason") or "-"))
+
     metric_cols = st.columns(5)
     metric_cols[0].metric("Samples", context["sample_count"])
     metric_cols[1].metric("Labeled", context["labeled_rows"])
     metric_cols[2].metric("Market Prob", _format_metric(context["latest_market_probability"]))
     metric_cols[3].metric("Model Prob", _format_metric(context["latest_model_probability"]))
     metric_cols[4].metric("Official Value", _format_metric(context["latest_official_value"]))
+
+    legend_left, legend_right = st.columns(2, gap="small")
+    with legend_left:
+        render_legend_card(
+            "HMI Legend",
+            subtitle="Shared state meaning used across dashboard and workstation.",
+            items=default_state_legend_items(),
+        )
+    with legend_right:
+        render_chart_legend_card(
+            "Curve Legend",
+            subtitle="Line and marker meaning for this evidence chart.",
+            items=default_market_evidence_curve_legend_items(),
+        )
 
     chart_col1, chart_col2 = st.columns([1, 1])
     with chart_col1:

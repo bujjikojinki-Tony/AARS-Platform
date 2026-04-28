@@ -6,7 +6,169 @@ import streamlit as st
 
 
 def render_theme() -> None:
-    if os.getenv("WEATHER_DASHBOARD_THEME", "").lower() not in {"1", "true", "yes"}:
+    if os.getenv("WEATHER_DASHBOARD_LEGACY_THEME", "").lower() not in {"1", "true", "yes"}:
+        st.markdown(
+            """
+            <style>
+            :root {
+                --desk-bg: #020305;
+                --desk-bg-2: #070a0f;
+                --desk-panel: rgba(12, 15, 20, 0.98);
+                --desk-panel-strong: rgba(15, 18, 24, 0.99);
+                --desk-line: rgba(255, 255, 255, 0.12);
+                --desk-ink: #f7fbff;
+                --desk-muted: #a3adb7;
+                --desk-green: #69d39a;
+                --desk-amber: #d7ab57;
+                --desk-red: #d96d67;
+                --desk-blue: #4f8fe6;
+                --desk-alarm: #d96d67;
+                --desk-anomaly: #d7ab57;
+                --desk-quality-bad: #ff73e1;
+                --desk-surface-soft: rgba(12, 15, 20, 0.94);
+                --desk-surface-strong: rgba(15, 18, 24, 0.99);
+                --desk-text-primary: #f7fbff;
+                --desk-text-secondary: #a3adb7;
+                --desk-text-tertiary: #72808e;
+                --desk-border-soft: rgba(255, 255, 255, 0.08);
+                --desk-border-strong: rgba(91, 148, 225, 0.28);
+                --font-display: "Avenir Next Condensed", "DIN Condensed", "Trebuchet MS", sans-serif;
+                --font-body: "Avenir Next", "SF Pro Text", "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+                --font-serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+                --font-mono: "SF Mono", "Menlo", monospace;
+                --type-xs: 0.62rem;
+                --type-sm: 0.74rem;
+                --type-base: 0.84rem;
+                --type-md: 0.96rem;
+                --type-lg: 1.08rem;
+                --type-xl: 1.24rem;
+                --type-hero: clamp(1.06rem, 1.38vw, 1.30rem);
+                --leading-tight: 1.12;
+                --leading-normal: 1.32;
+                --tracking-label: 0.14em;
+            }
+
+            .stApp {
+                background:
+                    radial-gradient(circle at 8% 0%, rgba(79, 143, 230, 0.10), transparent 28%),
+                    radial-gradient(circle at 92% 12%, rgba(105, 211, 154, 0.08), transparent 30%),
+                    linear-gradient(180deg, #020305 0%, #070a0f 42%, #090c10 100%);
+                color: var(--desk-ink);
+                font-family: var(--font-body);
+            }
+
+            :root {
+                --ops-bg: var(--desk-bg);
+                --ops-bg-2: var(--desk-bg-2);
+                --ops-surface: var(--desk-panel);
+                --ops-surface-2: var(--desk-panel-strong);
+                --ops-surface-3: rgba(25, 31, 41, 0.98);
+                --ops-text: var(--desk-text-primary);
+                --ops-text-muted: var(--desk-text-secondary);
+                --ops-text-dim: var(--desk-text-tertiary);
+                --ops-border: var(--desk-border-soft);
+                --ops-border-strong: var(--desk-border-strong);
+                --ops-accent: var(--desk-blue);
+                --ops-accent-2: #3f6fa8;
+                --ops-good: var(--desk-green);
+                --ops-warn: var(--desk-amber);
+                --ops-bad: var(--desk-alarm);
+                --ops-quality-bad: var(--desk-quality-bad);
+                --ops-alarm: var(--desk-alarm);
+                --ops-anomaly: var(--desk-anomaly);
+                --ops-font-display: var(--font-display);
+                --ops-font-body: var(--font-body);
+                --ops-font-mono: var(--font-mono);
+            }
+
+            .stApp,
+            .stApp [data-testid="stAppViewContainer"],
+            .stApp [data-testid="stAppViewContainer"] * {
+                color: var(--desk-ink);
+            }
+
+            .stApp [data-testid="stHeader"],
+            .stApp [data-testid="stToolbar"],
+            .stApp [data-testid="stDecoration"],
+            .stApp [data-testid="stStatusWidget"] {
+                display: none !important;
+                visibility: hidden !important;
+            }
+
+            .block-container {
+                max-width: none;
+                width: 100%;
+                padding: 0.55rem 0.75rem 0.45rem;
+            }
+
+            section[data-testid="stSidebar"] {
+                background: rgba(10, 13, 18, 0.98);
+                border-right: 1px solid var(--desk-line);
+            }
+
+            .desk-shell,
+            .market-overview-banner,
+            .console-interaction-strip,
+            .operator-closure-panel,
+            .compact-info-card,
+            .console-card,
+            .monitor-card,
+            .soft-control-card,
+            .recent-market-card,
+            .history-summary-card {
+                border: 1px solid var(--desk-line);
+                border-radius: 10px;
+                background: var(--desk-panel);
+                box-shadow: none;
+            }
+
+            .desk-title,
+            .page-title,
+            h1, h2, h3, h4 {
+                color: var(--desk-ink);
+                font-family: var(--font-display);
+                letter-spacing: -0.01em;
+                line-height: var(--leading-tight);
+            }
+
+            .desk-kicker,
+            .eyebrow,
+            .mini-label,
+            .metric-label,
+            .console-strip-title,
+            .operator-closure-title,
+            .compact-metric span,
+            .compact-kv-row span,
+            .compact-panel-subtitle,
+            .section-label {
+                color: var(--desk-muted);
+                font-family: var(--font-mono);
+                font-size: var(--type-xs);
+                font-weight: 800;
+                letter-spacing: var(--tracking-label);
+                line-height: var(--leading-tight);
+                text-transform: uppercase;
+            }
+
+            .desk-kicker {
+                color: #e6c67c;
+            }
+
+            .desk-subtitle,
+            .page-subtitle,
+            .console-subtitle,
+            .compact-panel-subtitle,
+            .thin-evidence-line,
+            .closure-detail,
+            .compact-note {
+                color: var(--desk-muted);
+                font-size: var(--type-sm);
+                line-height: var(--leading-normal);
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
         return
 
     if os.getenv("WEATHER_DASHBOARD_LEGACY_THEME", "").lower() not in {"1", "true", "yes"}:
@@ -27,13 +189,13 @@ def render_theme() -> None:
                 --font-body: "Avenir Next", "Trebuchet MS", sans-serif;
                 --font-serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
                 --font-mono: "SF Mono", "Menlo", monospace;
-                --type-xs: 0.64rem;
-                --type-sm: 0.72rem;
-                --type-base: 0.82rem;
-                --type-md: 0.95rem;
-                --type-lg: 1.12rem;
-                --type-xl: 1.32rem;
-                --type-hero: clamp(1.02rem, 1.45vw, 1.38rem);
+                --type-xs: 0.62rem;
+                --type-sm: 0.70rem;
+                --type-base: 0.80rem;
+                --type-md: 0.92rem;
+                --type-lg: 1.06rem;
+                --type-xl: 1.24rem;
+                --type-hero: clamp(0.98rem, 1.34vw, 1.30rem);
                 --leading-tight: 1.12;
                 --leading-normal: 1.32;
                 --tracking-label: 0.11em;

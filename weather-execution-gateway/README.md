@@ -31,6 +31,7 @@ It does:
 - persist audit events
 - support dry-run mode
 - define a disabled-by-default CLOB adapter contract for future live execution
+- consume `ExecutionIntent`, `probability_contract.v1`, `unified_status.json`, and `gate_stack_api.v1` as the operator-facing execution contract
 
 It does not:
 - generate signals
@@ -74,6 +75,11 @@ data/outputs/production_readiness_report.json
 ```
 
 The default repository config is intentionally blocked for live execution. A blocked report means the gateway must remain disabled / dry-run even if an operator approval exists.
+
+The shared operator surface still matters downstream:
+
+- if `TopParameterView` or `gate_stack_api.v1` shows an upstream blocker, the gateway must keep the intent blocked
+- if `unified_status.json` is degraded or stale, the gateway should not silently promote the intent
 
 The checker also probes the Telegram approval database when available. An expired or missing active approval is reported as an operator-channel warning; individual orders still require a fresh approval before execution.
 

@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "charts_analysis_view.schema.json",
+  "title": "charts_analysis_view.v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "chart_groups",
+    "view_context"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "charts_analysis_view.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "chart_groups": {
+      "type": "array"
+    },
+    "selected_market_id": {
+      "type": "string"
+    },
+    "view_context": {
+      "type": "object"
+    }
+  }
+}

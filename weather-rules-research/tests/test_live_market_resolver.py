@@ -21,6 +21,9 @@ def test_resolve_rule_for_matching_temperature_market():
     assert taxonomy.supported_by_current_pipeline is True
     assert taxonomy.market_family == "station_temperature"
     assert taxonomy.band_scheme == "temperature_4_bucket"
+    assert rule.unit_policy_ref == "temperature"
+    assert rule.precision_policy_ref == "precision_policy.temperature_daily_max.v1"
+    assert rule.band_mapping_policy_ref == "band_mapping.temperature_celsius_integer.v1"
 
 
 def test_resolve_rule_for_unmatched_live_market():
@@ -61,3 +64,5 @@ def test_resolve_rule_for_shanghai_temperature_market():
     assert taxonomy.supported_by_current_pipeline is True
     assert taxonomy.market_family == "station_temperature"
     assert taxonomy.band_scheme == "temperature_4_bucket"
+    assert rule.unit_policy_ref == "temperature"
+    assert rule.precision_policy_ref == "precision_policy.temperature_daily_max.v1"

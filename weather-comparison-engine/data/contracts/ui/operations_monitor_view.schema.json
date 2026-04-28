@@ -1,0 +1,408 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "operations_monitor_view.schema.json",
+  "title": "operations_monitor_view.v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "global_summary",
+    "focus_markets",
+    "market_monitor_cards",
+    "system_health",
+    "view_context",
+    "upstream_refs"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "operations_monitor_view.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "global_summary": {
+      "$ref": "#/definitions/global_summary"
+    },
+    "focus_markets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/focus_market_item"
+      }
+    },
+    "market_monitor_cards": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/market_monitor_card"
+      }
+    },
+    "system_health": {
+      "$ref": "#/definitions/system_health"
+    },
+    "ops_alerts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ops_alert"
+      }
+    },
+    "selected_market_quick_detail": {
+      "$ref": "#/definitions/selected_market_quick_detail"
+    },
+    "view_context": {
+      "$ref": "#/definitions/view_context"
+    },
+    "upstream_refs": {
+      "type": "object"
+    }
+  },
+  "definitions": {
+    "global_summary": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "markets_scanned",
+        "focus_markets_count",
+        "active_weather_markets",
+        "families_monitored",
+        "high_alert_markets",
+        "high_anomaly_markets",
+        "gate_blocked_markets",
+        "ops_alert_count",
+        "scan_backlog",
+        "queue_pending",
+        "last_refresh_time",
+        "fresh_ratio"
+      ],
+      "properties": {
+        "markets_scanned": {
+          "type": "integer"
+        },
+        "focus_markets_count": {
+          "type": "integer"
+        },
+        "active_weather_markets": {
+          "type": "integer"
+        },
+        "families_monitored": {
+          "type": "integer"
+        },
+        "high_alert_markets": {
+          "type": "integer"
+        },
+        "high_anomaly_markets": {
+          "type": "integer"
+        },
+        "gate_blocked_markets": {
+          "type": "integer"
+        },
+        "ops_alert_count": {
+          "type": "integer"
+        },
+        "scan_backlog": {
+          "type": "integer"
+        },
+        "queue_pending": {
+          "type": "integer"
+        },
+        "last_refresh_time": {
+          "type": "string"
+        },
+        "fresh_ratio": {
+          "type": "number"
+        }
+      }
+    },
+    "focus_market_item": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "market_id",
+        "market_family",
+        "city",
+        "focus_reason",
+        "primary_state",
+        "display_priority"
+      ],
+      "properties": {
+        "market_id": {
+          "type": "string"
+        },
+        "market_family": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "market_question_short": {
+          "type": "string"
+        },
+        "focus_reason": {
+          "type": "string"
+        },
+        "latest_priority_score": {
+          "type": "number"
+        },
+        "next_action": {
+          "type": "string"
+        },
+        "primary_state": {
+          "type": "string"
+        },
+        "secondary_states": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "display_priority": {
+          "type": "number"
+        },
+        "is_selected_market": {
+          "type": "boolean"
+        },
+        "pinned_by_user": {
+          "type": "boolean"
+        }
+      }
+    },
+    "market_monitor_card": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "market_id",
+        "city",
+        "market_family",
+        "market_question_short",
+        "opportunity_score",
+        "difficulty_label",
+        "best_model",
+        "freshness_status",
+        "source_precision_score",
+        "primary_state",
+        "secondary_states",
+        "primary_state_reason",
+        "display_priority",
+        "can_execute",
+        "primary_block_reason",
+        "recommended_action",
+        "is_focus_market",
+        "scan_priority",
+        "upstream_refs"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "market_monitor_card.v1"
+        },
+        "market_id": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "market_family": {
+          "type": "string"
+        },
+        "market_question_short": {
+          "type": "string"
+        },
+        "opportunity_score": {
+          "type": "number"
+        },
+        "difficulty_label": {
+          "type": "string"
+        },
+        "best_model": {
+          "type": "string"
+        },
+        "freshness_status": {
+          "type": "string"
+        },
+        "source_precision_score": {
+          "type": "number"
+        },
+        "latest_alert_severity": {
+          "type": "string"
+        },
+        "latest_anomaly_score": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "primary_state": {
+          "type": "string"
+        },
+        "secondary_states": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "primary_state_reason": {
+          "type": "string"
+        },
+        "display_priority": {
+          "type": "number"
+        },
+        "can_execute": {
+          "type": "boolean"
+        },
+        "primary_block_reason": {
+          "type": "string"
+        },
+        "recommended_action": {
+          "type": "string"
+        },
+        "is_focus_market": {
+          "type": "boolean"
+        },
+        "scan_priority": {
+          "type": "string"
+        },
+        "upstream_refs": {
+          "type": "object"
+        }
+      }
+    },
+    "ops_alert": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "alert_id",
+        "alert_type",
+        "severity",
+        "component",
+        "primary_reason",
+        "generated_at"
+      ],
+      "properties": {
+        "alert_id": {
+          "type": "string"
+        },
+        "alert_type": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string"
+        },
+        "component": {
+          "type": "string"
+        },
+        "primary_reason": {
+          "type": "string"
+        },
+        "generated_at": {
+          "type": "string"
+        }
+      }
+    },
+    "selected_market_quick_detail": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "market_id",
+        "market_question",
+        "city",
+        "market_family",
+        "top_parameter_summary",
+        "rule_source_model_panel",
+        "validation_compare_panel",
+        "gate_advisory_panel",
+        "recommended_operator_action",
+        "next_action"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "selected_market_quick_detail.v1"
+        },
+        "market_id": {
+          "type": "string"
+        },
+        "market_question": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "market_family": {
+          "type": "string"
+        },
+        "top_parameter_summary": {
+          "type": "object"
+        },
+        "rule_source_model_panel": {
+          "type": "object"
+        },
+        "validation_compare_panel": {
+          "type": "object"
+        },
+        "gate_advisory_panel": {
+          "type": "object"
+        },
+        "recommended_operator_action": {
+          "type": "string"
+        },
+        "next_action": {
+          "type": "string"
+        }
+      }
+    },
+    "system_health": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "scanner_health",
+        "source_health",
+        "queue_health",
+        "family_scan_health",
+        "latest_ops_alerts"
+      ],
+      "properties": {
+        "scanner_health": {
+          "type": "object"
+        },
+        "source_health": {
+          "type": "object"
+        },
+        "queue_health": {
+          "type": "object"
+        },
+        "family_scan_health": {
+          "type": "object"
+        },
+        "latest_ops_alerts": {
+          "type": "array"
+        }
+      }
+    },
+    "view_context": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "selected_market_id",
+        "focus_market_count",
+        "market_count",
+        "family_count"
+      ],
+      "properties": {
+        "selected_market_id": {
+          "type": "string"
+        },
+        "focus_market_count": {
+          "type": "integer"
+        },
+        "market_count": {
+          "type": "integer"
+        },
+        "family_count": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}

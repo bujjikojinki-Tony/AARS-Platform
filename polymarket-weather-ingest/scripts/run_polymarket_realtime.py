@@ -70,6 +70,13 @@ def family_simple_path(market_family: str) -> Path:
     return OUTPUT_DIR / f"market_realtime_simple_{safe_family}.json"
 
 
+def has_price_payload(row: dict) -> bool:
+    return any(
+        row.get(field) is not None
+        for field in ("market_probability", "yes_price", "no_price")
+    )
+
+
 def select_preferred_market(
     rows: list[dict],
     pinned_market_id: str | None = None,
@@ -78,18 +85,21 @@ def select_preferred_market(
     if not rows:
         return None
 
+    priced_rows = [row for row in rows if has_price_payload(row)]
+    selected_pool = priced_rows or rows
+
     if pinned_market_id:
-        for row in rows:
-            if str(row.get("market_id")) == pinned_market_id:
-                return row
+        pinned_rows = [row for row in selected_pool if str(row.get("market_id")) == pinned_market_id]
+        if pinned_rows:
+            return sorted(pinned_rows, key=market_priority)[0]
 
     if pinned_family:
-        family_rows = [row for row in rows if row.get("market_family") == pinned_family]
+        family_rows = [row for row in selected_pool if row.get("market_family") == pinned_family]
         if family_rows:
             return sorted(family_rows, key=market_priority)[0]
 
-    weather_rows = [row for row in rows if is_likely_weather_market(row)]
-    selected_pool = weather_rows if weather_rows else rows
+    weather_rows = [row for row in selected_pool if is_likely_weather_market(row)]
+    selected_pool = weather_rows if weather_rows else selected_pool
     return sorted(selected_pool, key=market_priority)[0]
 
 
@@ -167,6 +177,33 @@ def build_initial_family_snapshots(bundles: list[dict]) -> dict[str, dict]:
         }
 
     return snapshots
+
+
+def load_existing_simple_snapshots(output_dir: Path) -> list[dict]:
+    snapshots: list[dict] = []
+    for path in sorted(output_dir.glob("market_realtime_simple*.json")):
+        payload = read_json(path)
+        if isinstance(payload, dict):
+            snapshots.append(payload)
+    return snapshots
+
+
+def select_startup_simple_snapshot(
+    initial_family_snapshots: dict[str, dict],
+    output_dir: Path,
+    pinned_market_id: str | None = None,
+    pinned_family: str | None = None,
+) -> dict | None:
+    startup_candidates = list(initial_family_snapshots.values())
+    startup_candidates.extend(load_existing_simple_snapshots(output_dir))
+    selected = select_preferred_market(
+        startup_candidates,
+        pinned_market_id=pinned_market_id,
+        pinned_family=pinned_family,
+    )
+    if selected is not None and has_price_payload(selected):
+        return selected
+    return None
 
 
 def select_preferred_bundle(bundles: list[dict]) -> dict:
@@ -250,7 +287,7 @@ def classify_market_family(question: str | None) -> str:
     return "unknown"
 
 
-def market_priority(row: dict) -> tuple[float, int]:
+def market_priority(row: dict) -> tuple[int, float, int]:
     updated_at = str(row.get("updated_at") or "")
     try:
         updated_at_ts = datetime.fromisoformat(updated_at.replace("Z", "+00:00")).timestamp() if updated_at else 0.0
@@ -264,7 +301,8 @@ def market_priority(row: dict) -> tuple[float, int]:
         "weather_metric": 3,
         "unknown": 9,
     }
-    return -updated_at_ts, family_priority.get(family, 9)
+    price_priority = 0 if has_price_payload(row) else 1
+    return price_priority, -updated_at_ts, family_priority.get(family, 9)
 
 
 def aggregate_market_simple(
@@ -481,10 +519,17 @@ async def main() -> None:
     initial_family_snapshots = build_initial_family_snapshots(bundles)
     if initial_family_snapshots:
         for family, snapshot in initial_family_snapshots.items():
-            write_json(family_simple_path(family), snapshot)
+            existing_family_snapshot = read_json(family_simple_path(family))
+            if isinstance(existing_family_snapshot, dict) and has_price_payload(existing_family_snapshot):
+                selected_family_snapshot = existing_family_snapshot
+            else:
+                selected_family_snapshot = snapshot
+            if selected_family_snapshot is not None:
+                write_json(family_simple_path(family), selected_family_snapshot)
 
-        initial_simple = select_preferred_market(
-            list(initial_family_snapshots.values()),
+        initial_simple = select_startup_simple_snapshot(
+            initial_family_snapshots=initial_family_snapshots,
+            output_dir=OUTPUT_DIR,
             pinned_market_id=PINNED_MARKET_ID,
             pinned_family=PINNED_MARKET_FAMILY,
         )

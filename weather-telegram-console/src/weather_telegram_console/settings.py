@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from urllib.parse import urlsplit, urlunsplit
 from pathlib import Path
 
 
@@ -22,6 +23,49 @@ def get_bot_token() -> str:
     if not token:
         raise RuntimeError("Missing TELEGRAM_BOT_TOKEN")
     return token
+
+
+def _first_env(*names: str) -> str | None:
+    for name in names:
+        raw = os.getenv(name)
+        if raw and raw.strip():
+            return raw.strip()
+    return None
+
+
+def _redact_url(raw_url: str | None) -> str:
+    if not raw_url:
+        return "-"
+    parts = urlsplit(raw_url)
+    if not parts.scheme or not parts.netloc:
+        return raw_url
+    netloc = parts.hostname or ""
+    if parts.port:
+        netloc = f"{netloc}:{parts.port}"
+    return urlunsplit((parts.scheme, netloc, parts.path, parts.query, parts.fragment))
+
+
+def get_telegram_api_base_url() -> str | None:
+    return _first_env("TELEGRAM_API_BASE_URL", "TELEGRAM_BOT_API_BASE_URL")
+
+
+def get_telegram_proxy() -> str | None:
+    return _first_env("TELEGRAM_PROXY", "HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy")
+
+
+def get_telegram_get_updates_proxy() -> str | None:
+    return _first_env("TELEGRAM_GET_UPDATES_PROXY") or get_telegram_proxy()
+
+
+def describe_telegram_network_settings() -> dict[str, str]:
+    base_url = get_telegram_api_base_url()
+    proxy = get_telegram_proxy()
+    updates_proxy = get_telegram_get_updates_proxy()
+    return {
+        "base_url": base_url or "default",
+        "proxy": _redact_url(proxy),
+        "get_updates_proxy": _redact_url(updates_proxy),
+    }
 
 
 def get_admin_allowlist() -> tuple[set[int], set[str]]:
@@ -167,6 +211,158 @@ def get_latest_dashboard_rows_path() -> Path:
     return Path(raw)
 
 
+def get_opportunity_board_view_path() -> Path:
+    raw = os.getenv(
+        "OPPORTUNITY_BOARD_VIEW_JSON_PATH",
+        str(WORKSPACE_DIR / "weather-comparison-engine" / "data" / "outputs" / "opportunity_board_view.json"),
+    )
+    return Path(raw)
+
+
+def get_operations_monitor_output_dir() -> Path:
+    raw = os.getenv(
+        "OPERATIONS_MONITOR_OUTPUT_DIR",
+        str(WORKSPACE_DIR / "weather-comparison-engine" / "data" / "outputs" / "operations_monitor"),
+    )
+    return Path(raw)
+
+
+def get_operations_monitor_view_path() -> Path:
+    raw = os.getenv(
+        "OPERATIONS_MONITOR_VIEW_JSON",
+        str(get_operations_monitor_output_dir() / "operations_monitor_view.json"),
+    )
+    return Path(raw)
+
+
+def get_operations_monitor_summary_path() -> Path:
+    raw = os.getenv(
+        "OPERATIONS_MONITOR_SUMMARY_JSON",
+        str(get_operations_monitor_output_dir() / "operations_monitor_summary.json"),
+    )
+    return Path(raw)
+
+
+def get_model_validation_report_path() -> Path:
+    raw = os.getenv(
+        "MODEL_VALIDATION_REPORT_JSON",
+        str(WORKSPACE_DIR / "weather-comparison-engine" / "data" / "outputs" / "model_validation_report.json"),
+    )
+    return Path(raw)
+
+
+def get_label_coverage_report_path() -> Path:
+    raw = os.getenv(
+        "LABEL_COVERAGE_REPORT_JSON",
+        str(WORKSPACE_DIR / "weather-comparison-engine" / "data" / "outputs" / "label_coverage_report.json"),
+    )
+    return Path(raw)
+
+
+def get_validation_freshness_status_path() -> Path:
+    raw = os.getenv(
+        "VALIDATION_FRESHNESS_STATUS_JSON",
+        str(WORKSPACE_DIR / "weather-comparison-engine" / "data" / "outputs" / "validation_freshness_status.json"),
+    )
+    return Path(raw)
+
+
+def get_opportunity_board_city_dir_path() -> Path:
+    raw = os.getenv(
+        "OPPORTUNITY_BOARD_CITY_DIR_PATH",
+        str(WORKSPACE_DIR / "weather-comparison-engine" / "data" / "outputs" / "opportunity_board_cities"),
+    )
+    return Path(raw)
+
+
+def get_validation_output_dir() -> Path:
+    raw = os.getenv(
+        "VALIDATION_OUTPUT_DIR",
+        str(WORKSPACE_DIR / "weather-comparison-engine" / "data" / "outputs" / "validation"),
+    )
+    return Path(raw)
+
+
+def get_advanced_anomaly_output_dir() -> Path:
+    raw = os.getenv(
+        "ADVANCED_ANOMALY_OUTPUT_DIR",
+        str(WORKSPACE_DIR / "weather-comparison-engine" / "data" / "outputs" / "anomaly"),
+    )
+    return Path(raw)
+
+
+def get_scanner_output_dir() -> Path:
+    raw = os.getenv(
+        "SCANNER_OUTPUT_DIR",
+        str(WORKSPACE_DIR / "weather-comparison-engine" / "data" / "outputs" / "scanner"),
+    )
+    return Path(raw)
+
+
+def get_alerts_output_dir() -> Path:
+    raw = os.getenv(
+        "ALERTS_OUTPUT_DIR",
+        str(WORKSPACE_DIR / "weather-comparison-engine" / "data" / "outputs" / "alerts"),
+    )
+    return Path(raw)
+
+
+def get_market_universe_snapshot_path() -> Path:
+    raw = os.getenv(
+        "MARKET_UNIVERSE_SNAPSHOT_JSON",
+        str(get_scanner_output_dir() / "market_universe_snapshot.json"),
+    )
+    return Path(raw)
+
+
+def get_evidence_scan_snapshot_path() -> Path:
+    raw = os.getenv(
+        "EVIDENCE_SCAN_SNAPSHOT_JSON",
+        str(get_scanner_output_dir() / "evidence_scan_snapshot.json"),
+    )
+    return Path(raw)
+
+
+def get_scanner_status_path() -> Path:
+    raw = os.getenv(
+        "SCANNER_STATUS_JSON",
+        str(get_scanner_output_dir() / "scanner_status.json"),
+    )
+    return Path(raw)
+
+
+def get_scan_queue_status_path() -> Path:
+    raw = os.getenv(
+        "SCAN_QUEUE_STATUS_JSON",
+        str(get_alerts_output_dir() / "alert_queue_status.json"),
+    )
+    return Path(raw)
+
+
+def get_market_alert_events_path() -> Path:
+    raw = os.getenv(
+        "MARKET_ALERT_EVENTS_JSON",
+        str(get_alerts_output_dir() / "market_alert_events.json"),
+    )
+    return Path(raw)
+
+
+def get_family_anomaly_summary_path() -> Path:
+    raw = os.getenv(
+        "FAMILY_ANOMALY_SUMMARY_JSON",
+        str(get_alerts_output_dir() / "family_anomaly_summary.json"),
+    )
+    return Path(raw)
+
+
+def get_scanner_ops_alerts_path() -> Path:
+    raw = os.getenv(
+        "SCANNER_OPS_ALERTS_JSON",
+        str(get_alerts_output_dir() / "scanner_ops_alerts.json"),
+    )
+    return Path(raw)
+
+
 def get_comparison_history_path() -> Path:
     raw = os.getenv(
         "COMPARISON_HISTORY_JSON_PATH",
@@ -184,6 +380,38 @@ def get_gate_stack_ops_alerts_path() -> Path:
     raw = os.getenv(
         "GATE_STACK_OPS_ALERTS_JSONL",
         str(WORKSPACE_DIR / "weather-comparison-engine" / "data" / "outputs" / "gate_stack_ops_alerts.jsonl"),
+    )
+    return Path(raw)
+
+
+def get_market_alert_events_dir() -> Path:
+    raw = os.getenv(
+        "MARKET_ALERT_EVENTS_DIR",
+        str(WORKSPACE_DIR / "weather-comparison-engine" / "data" / "outputs" / "market_alert_events"),
+    )
+    return Path(raw)
+
+
+def get_family_scan_reports_dir() -> Path:
+    raw = os.getenv(
+        "FAMILY_SCAN_REPORTS_DIR",
+        str(WORKSPACE_DIR / "weather-comparison-engine" / "data" / "outputs" / "family_scan_reports"),
+    )
+    return Path(raw)
+
+
+def get_market_anomaly_events_dir() -> Path:
+    raw = os.getenv(
+        "MARKET_ANOMALY_EVENTS_DIR",
+        str(WORKSPACE_DIR / "weather-comparison-engine" / "data" / "outputs" / "market_anomaly_events"),
+    )
+    return Path(raw)
+
+
+def get_source_policy_status_path() -> Path:
+    raw = os.getenv(
+        "SOURCE_POLICY_STATUS_JSON",
+        str(WORKSPACE_DIR / "weather-comparison-engine" / "data" / "outputs" / "source_policy_status.json"),
     )
     return Path(raw)
 

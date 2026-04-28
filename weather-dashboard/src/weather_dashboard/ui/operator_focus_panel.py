@@ -4,6 +4,8 @@ from html import escape
 
 import streamlit as st
 
+from weather_dashboard.ui.compact_panel import semantic_tone, semantic_value_html
+
 
 def _fmt(value: object, *, digits: int | None = None) -> str:
     if value is None or value == "":
@@ -34,16 +36,25 @@ def build_operator_focus_summary(
     position_snapshot: dict | None = None,
     production_readiness_report: dict | None = None,
 ) -> dict:
-    market = market_snapshot or {}
-    forecast = forecast_snapshot or {}
-    probability = probability_state or {}
-    comparison = comparison_row or {}
-    gate = compact_gate_summary or {}
-    unified = unified_status_report or {}
-    operator = unified.get("operator") or {}
-    execution = unified.get("execution") or {}
-    production = production_readiness_report or {}
-    position = position_snapshot or {}
+    market = _as_dict(market_snapshot)
+    forecast = _as_dict(forecast_snapshot)
+    probability = _as_dict(probability_state)
+    comparison = _as_dict(comparison_row)
+    gate = _as_dict(compact_gate_summary)
+    unified = _as_dict(unified_status_report)
+    operator = _as_dict(unified.get("operator"))
+    execution = _as_dict(unified.get("execution"))
+    production = _as_dict(production_readiness_report)
+    position = _as_dict(position_snapshot)
+    promotion_state = {}
+    for candidate in (
+        probability.get("promotion_state"),
+        gate.get("promotion_state"),
+        unified.get("promotion_state"),
+    ):
+        if isinstance(candidate, dict):
+            promotion_state = candidate
+            break
 
     block_reasons = [
         str(item)
@@ -70,6 +81,21 @@ def build_operator_focus_summary(
         ),
         "execution_constraint": _fmt(
             probability.get("execution_constraint") or gate.get("execution_constraint")
+        ),
+        "promotion_state": _fmt(
+            promotion_state.get("probability_mode")
+            or probability.get("probability_mode")
+            or gate.get("promotion_state")
+        ),
+        "promotion_reason": _fmt(
+            promotion_state.get("promotion_reason")
+            or probability.get("promotion_reason")
+            or gate.get("promotion_reason")
+        ),
+        "demotion_reason": _fmt(
+            promotion_state.get("demotion_reason")
+            or probability.get("demotion_reason")
+            or gate.get("demotion_reason")
         ),
         "comparison_status": _fmt(comparison.get("comparison_status")),
         "confidence_adjusted_gap": _fmt(comparison.get("confidence_adjusted_gap"), digits=3),
@@ -102,6 +128,10 @@ def build_operator_focus_summary(
     }
 
 
+def _as_dict(value: object) -> dict:
+    return value if isinstance(value, dict) else {}
+
+
 def render_operator_focus_banner(
     summary: dict,
     *,
@@ -122,11 +152,12 @@ def render_operator_focus_banner(
         f"""
         <div class="operator-focus__metric">
           <span>{escape(label)}</span>
-          <strong>{escape(_fmt(summary.get(key)))}</strong>
+          <strong>{semantic_value_html(label, summary.get(key))}</strong>
         </div>
         """
         for label, key in fields
     )
+    status_tone = semantic_tone("gate_status", status)
 
     st.markdown(
         f"""
@@ -137,7 +168,7 @@ def render_operator_focus_banner(
               <div class="operator-focus__title">{escape(title)}</div>
               <div class="operator-focus__subtitle">{escape(subtitle)}</div>
             </div>
-            <div class="operator-focus__status">{escape(status)}</div>
+            <div class="operator-focus__status operator-focus__status--{escape(status_tone)}">{escape(status)}</div>
           </div>
           <div class="operator-focus__market">
             <span>{escape(_fmt(summary.get("market_id")))}</span>
@@ -147,12 +178,24 @@ def render_operator_focus_banner(
             {metrics_html}
           </div>
           <div class="operator-focus__action">
+            <span>Promotion State</span>
+            <strong>{semantic_value_html("Promotion State", summary.get("promotion_state"))}</strong>
+          </div>
+          <div class="operator-focus__action">
+            <span>Promotion Reason</span>
+            <strong>{semantic_value_html("Promotion Reason", summary.get("promotion_reason"))}</strong>
+          </div>
+          <div class="operator-focus__action">
+            <span>Demotion Reason</span>
+            <strong>{semantic_value_html("Demotion Reason", summary.get("demotion_reason"))}</strong>
+          </div>
+          <div class="operator-focus__action">
             <span>Next Action</span>
-            <strong>{escape(_fmt(summary.get("recommended_action")))}</strong>
+            <strong>{semantic_value_html("Next Action", summary.get("recommended_action"))}</strong>
           </div>
           <div class="operator-focus__blockers">
             <span>Blockers</span>
-            <strong>{escape(blocker_text)}</strong>
+            <strong>{semantic_value_html("Blockers", blocker_text)}</strong>
           </div>
         </section>
         """,
@@ -167,19 +210,19 @@ def _render_focus_styles() -> None:
         .operator-focus {
             margin: 0 0 0.42rem;
             padding: 0.48rem 0.58rem;
-            border: 1px solid rgba(35, 72, 82, 0.16);
-            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 12px;
             background:
-                radial-gradient(circle at 4% 0%, rgba(196, 122, 21, 0.12), transparent 30%),
-                linear-gradient(135deg, rgba(255,255,255,0.94), rgba(246,248,243,0.88));
-            box-shadow: 0 12px 28px rgba(49, 77, 75, 0.07);
+                radial-gradient(circle at 4% 0%, rgba(79, 143, 230, 0.10), transparent 30%),
+                linear-gradient(135deg, rgba(16,20,26,0.98), rgba(12,15,20,0.98));
+            box-shadow: none;
         }
         .operator-focus--high,
         .operator-focus--critical {
-            border-color: rgba(196, 77, 70, 0.32);
+            border-color: rgba(217, 109, 103, 0.34);
             background:
-                radial-gradient(circle at 6% 0%, rgba(196, 77, 70, 0.13), transparent 34%),
-                linear-gradient(135deg, rgba(255,255,255,0.96), rgba(252,242,235,0.9));
+                radial-gradient(circle at 6% 0%, rgba(217, 109, 103, 0.14), transparent 34%),
+                linear-gradient(135deg, rgba(29,16,16,0.98), rgba(21,13,13,0.98));
         }
         .operator-focus__header {
             display: grid;
@@ -192,7 +235,7 @@ def _render_focus_styles() -> None:
         .operator-focus__action span,
         .operator-focus__blockers span,
         .operator-focus__market span {
-            color: #667782;
+            color: #9aa3ad;
             font-family: "SF Mono", "Menlo", monospace;
             font-size: 0.62rem;
             font-weight: 900;
@@ -200,39 +243,54 @@ def _render_focus_styles() -> None:
             text-transform: uppercase;
         }
         .operator-focus__title {
-            color: #11282f;
+            color: #f7fbff;
             font-family: "Avenir Next Condensed", "DIN Condensed", "Trebuchet MS", sans-serif;
             font-size: 1.12rem;
             font-weight: 950;
             line-height: 1.12;
         }
         .operator-focus__subtitle {
-            color: #667782;
+            color: #9aa3ad;
             font-size: 0.74rem;
             line-height: 1.3;
         }
         .operator-focus__status {
-            border: 1px solid rgba(35, 72, 82, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.10);
             border-radius: 999px;
-            background: rgba(255,255,255,0.76);
-            color: #17252b;
+            background: rgba(255,255,255,0.05);
+            color: #f7fbff;
             font-family: "SF Mono", "Menlo", monospace;
             font-size: 0.68rem;
             font-weight: 950;
             padding: 0.2rem 0.5rem;
             white-space: nowrap;
         }
+        .operator-focus__status--ok {
+            border-color: rgba(15, 159, 113, 0.28);
+            background: rgba(15, 159, 113, 0.10);
+            color: #8fe2b0;
+        }
+        .operator-focus__status--warning {
+            border-color: rgba(215, 171, 87, 0.30);
+            background: rgba(215, 171, 87, 0.10);
+            color: #e6c67c;
+        }
+        .operator-focus__status--critical {
+            border-color: rgba(217, 109, 103, 0.30);
+            background: rgba(217, 109, 103, 0.10);
+            color: #e5a09d;
+        }
         .operator-focus__market {
             margin-top: 0.36rem;
-            border: 1px solid rgba(35, 72, 82, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.10);
             border-radius: 12px;
-            background: rgba(255,255,255,0.62);
+            background: rgba(255,255,255,0.05);
             padding: 0.34rem 0.42rem;
         }
         .operator-focus__market strong {
             display: block;
             margin-top: 0.1rem;
-            color: #17252b;
+            color: #f7fbff;
             font-size: 0.82rem;
             line-height: 1.22;
         }
@@ -245,9 +303,9 @@ def _render_focus_styles() -> None:
         .operator-focus__metric,
         .operator-focus__action,
         .operator-focus__blockers {
-            border: 1px solid rgba(35, 72, 82, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.10);
             border-radius: 10px;
-            background: rgba(255,255,255,0.68);
+            background: rgba(255,255,255,0.05);
             padding: 0.28rem 0.34rem;
         }
         .operator-focus__metric strong,
@@ -255,10 +313,24 @@ def _render_focus_styles() -> None:
         .operator-focus__blockers strong {
             display: block;
             margin-top: 0.1rem;
-            color: #17252b;
             font-size: 0.72rem;
             line-height: 1.18;
             overflow-wrap: anywhere;
+        }
+        .operator-focus__metric strong .semantic-value--ok,
+        .operator-focus__action strong .semantic-value--ok,
+        .operator-focus__blockers strong .semantic-value--ok {
+            color: #8fe2b0;
+        }
+        .operator-focus__metric strong .semantic-value--warning,
+        .operator-focus__action strong .semantic-value--warning,
+        .operator-focus__blockers strong .semantic-value--warning {
+            color: #e6c67c;
+        }
+        .operator-focus__metric strong .semantic-value--critical,
+        .operator-focus__action strong .semantic-value--critical,
+        .operator-focus__blockers strong .semantic-value--critical {
+            color: #e5a09d;
         }
         .operator-focus__action,
         .operator-focus__blockers {

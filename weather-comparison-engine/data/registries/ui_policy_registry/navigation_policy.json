@@ -1,0 +1,38 @@
+{
+  "schema_version": "navigation_policy.v1",
+  "policy_id": "navigation_policy.default.v1",
+  "navigation_groups": [
+    {
+      "group_id": "run",
+      "label": "RUN",
+      "pages": ["operations_monitor", "monitoring_signals", "command"]
+    },
+    {
+      "group_id": "research",
+      "label": "RESEARCH",
+      "pages": ["opportunity_board", "workstation", "charts"]
+    },
+    {
+      "group_id": "data",
+      "label": "DATA",
+      "pages": ["pipeline", "markets", "evidence_raw", "history"]
+    },
+    {
+      "group_id": "settings",
+      "label": "SETTINGS",
+      "pages": ["alerts_rules", "data_sources", "system"]
+    }
+  ],
+  "default_page": "operations_monitor",
+  "routes": {
+    "operations_monitor": ["workstation", "command", "monitoring_signals"],
+    "monitoring_signals": ["workstation", "command", "history"],
+    "opportunity_board": ["workstation", "operations_monitor", "command"],
+    "workstation": ["command", "evidence_raw", "charts", "history"],
+    "command": ["workstation", "evidence_raw", "history"],
+    "pipeline": ["evidence_raw", "history", "operations_monitor"],
+    "markets": ["opportunity_board", "workstation", "operations_monitor"],
+    "charts": ["workstation", "history"],
+    "evidence_raw": ["workstation", "history"]
+  }
+}

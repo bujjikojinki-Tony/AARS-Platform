@@ -1,0 +1,24 @@
+{
+  "skill_name": "NPP_Cybersecurity_AI_Skills",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "请用 NPP Cybersecurity AI Skills Pack 为一个核电厂 DCS 工程师站、历史库、工业 DMZ 和企业侧数据平台之间的数据交换方案做网络安全架构审查。输出分区分域、通信矩阵、远程访问控制、日志监测、V&V 要求和禁止路径。",
+      "expected_output": "A structured OT cybersecurity architecture review with zone/conduit model, CDA treatment, communication matrix, boundary controls, remote access restrictions, monitoring/logging, V&V requirements, and explicit prohibited paths.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "设计一个核电 OT AI 异常检测系统，只允许被动采集网络流量、日志、配置基线和工单信息。请给出异常分类、检测引擎、告警对象字段、证据要求、人工复核、模型治理和上线 V&V 门禁。",
+      "expected_output": "A hybrid anomaly detection design that includes layered anomaly taxonomy, passive/read-only data sources, detection engine suite, alert object schema with evidence and uncertainty, human review, governance, deployment boundary, and V&V gates.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "我有一个 AI 告警：工程师站在非维护窗口向一个控制器发送了异常写入类协议操作，模型置信度 0.82，但缺少完整工单上下文。请生成面向网络安全、I&C、运行和审计的可解释性记录，注意不能说 AI 已确认事件。",
+      "expected_output": "An XAI alert explanation record with rule explanation, baseline explanation, feature contribution table, asset/function impact, evidence chain, role-based explanations, uncertainty statement, and human verification steps without claiming confirmed incident.",
+      "files": []
+    }
+  ]
+}
+

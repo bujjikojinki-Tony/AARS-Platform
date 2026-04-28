@@ -5,14 +5,24 @@ from pathlib import Path
 from typing import Any
 
 from weather_telegram_console.settings import (
+    get_advanced_anomaly_output_dir,
     get_comparison_history_path,
+    get_family_scan_reports_dir,
     get_gate_stack_api_path,
+    get_label_coverage_report_path,
     get_latest_dashboard_rows_path,
     get_manual_advisory_audit_path,
+    get_market_alert_events_dir,
+    get_market_anomaly_events_dir,
+    get_model_validation_report_path,
     get_operator_market_context_path,
+    get_opportunity_board_view_path,
     get_unified_status_path,
+    get_validation_freshness_status_path,
+    get_validation_output_dir,
 )
 from weather_telegram_console.integrations.gate_stack_consumer import consume_gate_stack_payload
+from weather_telegram_console.integrations.top_parameter_view import build_top_parameter_view
 from weather_telegram_console.operator_messages import (
     NO_COMPARISON_HISTORY,
     NO_COMPARISON_HISTORY_FOR_SELECTED_MARKET,
@@ -79,6 +89,23 @@ class MarketAPI:
             "manual_advisory_events_present": bool(advisory_events),
             "manual_advisory_audit_available": get_manual_advisory_audit_path().exists(),
         }
+        workstation_context = self._build_workstation_context(
+            market_id=market_id,
+            row=row,
+            compact_gate_stack=compact_gate_stack,
+        )
+        latest_family_scan_report = self._load_latest_family_scan_report()
+        phase30_artifacts = self._load_phase30_artifacts()
+        phase30_family_summary = phase30_artifacts.get("family_anomaly_summary") or {}
+        family_anomaly_summary = (
+            _family_scan_summary(phase30_family_summary)
+            if phase30_family_summary
+            else (_family_scan_summary(latest_family_scan_report) if latest_family_scan_report else {})
+        )
+        if latest_family_scan_report or phase30_artifacts.get("family_anomaly_summary"):
+            workstation_context["family_anomaly_summary"] = family_anomaly_summary
+        if phase30_artifacts.get("validation_summary_v1"):
+            workstation_context["validation_summary_v1"] = phase30_artifacts.get("validation_summary_v1") or {}
         return {
             **row,
             "compact_gate_stack": compact_gate_stack,
@@ -87,8 +114,54 @@ class MarketAPI:
                 unified_status,
                 row,
             ),
+            "top_parameter_view": build_top_parameter_view(
+                current_market=row,
+                probability=row,
+                gate_stack=compact_gate_stack,
+                resolver=row,
+                weather=row,
+            ),
             "advisory_summary": self._build_advisory_summary(advisory_events),
             "data_availability": data_availability,
+            "workstation_context": workstation_context,
+            "family_anomaly_summary": family_anomaly_summary,
+            "validation_summary_v1": phase30_artifacts.get("validation_summary_v1") or {},
+        }
+
+    def _build_workstation_context(
+        self,
+        *,
+        market_id: str,
+        row: dict,
+        compact_gate_stack: dict,
+    ) -> dict:
+        validation = self._build_validation_summary()
+        phase30 = self._load_phase30_artifacts()
+        opportunity = self._find_opportunity_row(market_id, row)
+        return {
+            "schema_version": "telegram_market_workstation_context.v1",
+            "market_alert": self._load_latest_market_alert(market_id),
+            "family_anomaly": self._load_latest_market_anomaly(market_id),
+            "gate_summary": {
+                "resolver_gate": compact_gate_stack.get("resolver_gate"),
+                "probability_gate": compact_gate_stack.get("probability_gate"),
+                "freshness_gate": compact_gate_stack.get("freshness_gate"),
+                "authorization_gate": compact_gate_stack.get("authorization_gate"),
+                "execution_gate": compact_gate_stack.get("execution_gate"),
+                "primary_block_reason": _first_item(compact_gate_stack.get("block_reasons"))
+                or _first_item(compact_gate_stack.get("resolver_gate_reasons")),
+                "recommended_operator_action": compact_gate_stack.get("recommended_operator_action"),
+                "source": compact_gate_stack.get("source"),
+                "execution_boundary": "gate_stack_api.v1_only",
+            },
+            "validation_summary": {
+                **validation,
+                "validation_summary_v1": phase30.get("validation_summary_v1") or {},
+                "coverage_summary_v1": phase30.get("coverage_summary_v1") or {},
+                "promotion_support_v1": phase30.get("promotion_support_v1") or {},
+                "model_validation_compare_v1": phase30.get("model_validation_compare_v1") or {},
+            },
+            "opportunity_entry": _summarize_opportunity_row(opportunity),
         }
 
     def _build_compact_gate_stack(
@@ -218,6 +291,114 @@ class MarketAPI:
             "latest_size": manual_trade_ticket.get("size"),
         }
 
+    def _build_validation_summary(self) -> dict:
+        validation = self._load_json(get_model_validation_report_path())
+        freshness = self._load_json(get_validation_freshness_status_path())
+        coverage = self._load_json(get_label_coverage_report_path())
+        phase30 = self._load_phase30_artifacts()
+        metrics = validation.get("validation_metrics") if isinstance(validation, dict) else {}
+        metrics = metrics if isinstance(metrics, dict) else {}
+        promotion = validation.get("promotion_state") if isinstance(validation, dict) else {}
+        promotion = promotion if isinstance(promotion, dict) else {}
+        return {
+            "schema_version": "telegram_validation_summary.v1",
+            "promotion_state": promotion.get("probability_mode")
+            or validation.get("probability_mode")
+            or "-",
+            "promotion_reason": promotion.get("promotion_reason")
+            or validation.get("promotion_reason")
+            or "-",
+            "demotion_reason": promotion.get("demotion_reason")
+            or validation.get("demotion_reason")
+            or "-",
+            "freshness_status": freshness.get("status") if isinstance(freshness, dict) else "-",
+            "freshness_reason": freshness.get("reason") if isinstance(freshness, dict) else "-",
+            "coverage_status": coverage.get("status") if isinstance(coverage, dict) else "-",
+            "labeled_ratio": coverage.get("labeled_ratio") if isinstance(coverage, dict) else "-",
+            "sample_count": validation.get("sample_count") if isinstance(validation, dict) else "-",
+            "labeled_sample_count": validation.get("labeled_sample_count") if isinstance(validation, dict) else "-",
+            "calibration_status": validation.get("calibration_status") if isinstance(validation, dict) else "-",
+            "brier_score": metrics.get("brier_score"),
+            "calibration_error": metrics.get("calibration_error"),
+            "validation_summary_v1": phase30.get("validation_summary_v1") or {},
+            "coverage_summary_v1": phase30.get("coverage_summary_v1") or {},
+            "promotion_support_v1": phase30.get("promotion_support_v1") or {},
+            "model_validation_compare_v1": phase30.get("model_validation_compare_v1") or {},
+        }
+
+    def _find_opportunity_row(self, market_id: str, row: dict) -> dict:
+        board = self._load_json(get_opportunity_board_view_path())
+        rows = board.get("rows") if isinstance(board, dict) else []
+        if not isinstance(rows, list):
+            return {}
+        market_id_text = str(market_id or "").strip()
+        for item in rows:
+            if not isinstance(item, dict):
+                continue
+            market_ids = (item.get("upstream_refs") or {}).get("market_ids") or []
+            if market_id_text and market_id_text in {str(value) for value in market_ids}:
+                return item
+        city = str(row.get("city") or row.get("location_name") or "").strip().lower()
+        family = str(row.get("market_family") or "").strip().lower()
+        if not city or not family:
+            return {}
+        for item in rows:
+            if not isinstance(item, dict):
+                continue
+            if (
+                str(item.get("city") or "").strip().lower() == city
+                and str(item.get("market_family") or "").strip().lower() == family
+            ):
+                return item
+        return {}
+
+    def _load_latest_market_alert(self, market_id: str) -> dict:
+        return _load_latest_json_for_market(get_market_alert_events_dir(), market_id)
+
+    def _load_latest_market_anomaly(self, market_id: str) -> dict:
+        return _load_latest_jsonl_for_market(get_market_anomaly_events_dir(), market_id)
+
+    def _load_latest_family_scan_report(self) -> dict:
+        directory = get_family_scan_reports_dir()
+        if not directory.exists():
+            return {}
+        candidates = sorted(directory.glob("*.json"), key=lambda item: item.stat().st_mtime, reverse=True)
+        if not candidates:
+            return {}
+        try:
+            payload = json.loads(candidates[0].read_text(encoding="utf-8"))
+        except Exception:
+            return {}
+        return payload if isinstance(payload, dict) else {}
+
+    def _load_phase30_artifacts(self) -> dict:
+        validation_dir = get_validation_output_dir()
+        anomaly_dir = get_advanced_anomaly_output_dir()
+        validation_summary = self._load_latest_json_matching(validation_dir, "validation_summary_*.json")
+        coverage_summary = self._load_latest_json_matching(validation_dir, "coverage_summary_*.json")
+        promotion_support = self._load_latest_json_matching(validation_dir, "promotion_support_*.json")
+        model_compare = self._load_latest_json_matching(validation_dir, "model_validation_compare_*.json")
+        family_anomaly_summary = self._load_latest_json_matching(anomaly_dir, "family_anomaly_summary_*.json")
+        return {
+            "validation_summary_v1": validation_summary,
+            "coverage_summary_v1": coverage_summary,
+            "promotion_support_v1": promotion_support,
+            "model_validation_compare_v1": model_compare,
+            "family_anomaly_summary": family_anomaly_summary or {},
+        }
+
+    def _load_latest_json_matching(self, directory: Path, pattern: str) -> dict:
+        if not directory.exists():
+            return {}
+        candidates = sorted(directory.glob(pattern), key=lambda item: item.stat().st_mtime, reverse=True)
+        if not candidates:
+            return {}
+        try:
+            payload = json.loads(candidates[0].read_text(encoding="utf-8"))
+        except Exception:
+            return {}
+        return payload if isinstance(payload, dict) else {}
+
     def _load_json(self, path: Path) -> Any:
         if not path.exists():
             return None
@@ -245,3 +426,116 @@ def _extract_promotion_state(*payloads: dict | None) -> dict:
             if isinstance(candidate, dict):
                 return candidate
     return {}
+
+
+def _summarize_opportunity_row(row: dict) -> dict:
+    row = row if isinstance(row, dict) else {}
+    refs = row.get("upstream_refs") if isinstance(row.get("upstream_refs"), dict) else {}
+    return {
+        "schema_version": "telegram_opportunity_entry.v1",
+        "row_id": row.get("row_id") or "-",
+        "opportunity_score": row.get("opportunity_score"),
+        "difficulty_score": row.get("difficulty_score"),
+        "difficulty_label": row.get("difficulty_label") or "-",
+        "recommended_action": row.get("recommended_action") or "-",
+        "best_model": row.get("best_model") or "-",
+        "best_source_stack": row.get("best_source_stack") or [],
+        "opportunity_reason": row.get("opportunity_reason") or "-",
+        "market_refs": refs.get("market_ids") or [],
+        "alert_refs": refs.get("alert_refs") or [],
+        "anomaly_refs": refs.get("anomaly_refs") or [],
+    }
+
+
+def _family_scan_summary(report: dict) -> dict:
+    if str(report.get("schema_version") or "").strip() == "family_anomaly_summary.v1":
+        return {
+            "schema_version": "family_anomaly_summary.v1",
+            "family_scan_status": str(report.get("schema_version") or "-"),
+            "top_family": str(report.get("market_family") or "-"),
+            "top_score": report.get("high_intervention_like_count") or "-",
+            "top_bucket": _bucket_for_score(report.get("high_intervention_like_count")),
+            "signal_summary": str(report.get("family_risk_summary") or report.get("primary_reason") or "-"),
+            "bucket_counts": report.get("anomaly_bucket_counts") or {},
+            "generated_at": report.get("generated_at") or "-",
+        }
+    family_summaries = [item for item in (report.get("family_summaries") or []) if isinstance(item, dict)]
+    ranked = sorted(
+        family_summaries,
+        key=lambda item: float(item.get("max_intervention_like_score") or 0.0),
+        reverse=True,
+    )
+    top_family = ranked[0] if ranked else {}
+    signal_summary = report.get("signal_summary") or {}
+    return {
+        "schema_version": "family_anomaly_summary.v1",
+        "family_scan_status": str(report.get("input_mode") or report.get("schema_version") or "-"),
+        "top_family": str(top_family.get("market_family") or "-"),
+        "top_score": top_family.get("max_intervention_like_score") or "-",
+        "top_bucket": _bucket_for_score(top_family.get("max_intervention_like_score")),
+        "signal_summary": (
+            f"pv={signal_summary.get('price_velocity_high_count', 0)} "
+            f"edge={signal_summary.get('edge_dislocation_high_count', 0)} "
+            f"mismatch={signal_summary.get('evidence_mismatch_count', 0)} "
+            f"stress={signal_summary.get('microstructure_stress_high_count', 0)} "
+            f"peer={signal_summary.get('peer_outlier_count', 0)} "
+            f"high={signal_summary.get('intervention_like_high_count', 0)}"
+        ),
+        "bucket_counts": report.get("anomaly_bucket_counts") or {},
+        "generated_at": report.get("generated_at") or "-",
+    }
+
+
+def _bucket_for_score(score: object) -> str:
+    try:
+        value = float(score or 0.0)
+    except (TypeError, ValueError):
+        value = 0.0
+    if value >= 0.8:
+        return "high"
+    if value >= 0.5:
+        return "medium"
+    return "low"
+
+
+def _load_latest_json_for_market(directory: Path, market_id: str) -> dict:
+    if not directory.exists():
+        return {}
+    market_id_text = str(market_id or "").strip()
+    for path in sorted(directory.glob("*.json"), key=lambda item: item.stat().st_mtime, reverse=True):
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if not isinstance(payload, dict):
+            continue
+        if not market_id_text or str(payload.get("market_id") or "") == market_id_text:
+            return payload
+    return {}
+
+
+def _load_latest_jsonl_for_market(directory: Path, market_id: str) -> dict:
+    if not directory.exists():
+        return {}
+    market_id_text = str(market_id or "").strip()
+    for path in sorted(directory.glob("*.jsonl"), key=lambda item: item.stat().st_mtime, reverse=True):
+        try:
+            lines = [line.strip() for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+        except Exception:
+            continue
+        for line in reversed(lines):
+            try:
+                payload = json.loads(line)
+            except Exception:
+                continue
+            if not isinstance(payload, dict):
+                continue
+            if not market_id_text or str(payload.get("market_id") or "") == market_id_text:
+                return payload
+    return {}
+
+
+def _first_item(value: object) -> object:
+    if isinstance(value, list) and value:
+        return value[0]
+    return None

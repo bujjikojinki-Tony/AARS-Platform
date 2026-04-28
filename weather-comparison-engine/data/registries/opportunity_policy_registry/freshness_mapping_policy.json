@@ -1,0 +1,21 @@
+{
+  "policy_id": "freshness_mapping_policy.v1",
+  "schema_version": "freshness_mapping_policy.v1",
+  "applicable_scope": "opportunity_board.freshness_score",
+  "formula_or_mapping": "status_to_score",
+  "mapping": {
+    "fresh": 1.0,
+    "healthy": 1.0,
+    "pass": 1.0,
+    "warm": 0.72,
+    "warning": 0.72,
+    "seed_prior": 0.55,
+    "stale": 0.45,
+    "blocked": 0.0,
+    "unavailable": 0.0,
+    "unknown": 0.4
+  },
+  "version": "v1",
+  "status": "active",
+  "notes": "Freshness score supports prioritization only; freshness_status remains visible as source state."
+}

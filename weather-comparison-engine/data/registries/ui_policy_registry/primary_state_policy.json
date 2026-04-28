@@ -1,0 +1,41 @@
+{
+  "schema_version": "primary_state_policy.v1",
+  "policy_id": "primary_state_policy.default.v1",
+  "description": "Defines canonical primary state generation for market cards, focus cards, quick detail and summary surfaces.",
+  "priority_order": ["BLOCKED", "ALERT", "ANOM", "STALE", "NORMAL"],
+  "rules": [
+    {
+      "primary_state": "BLOCKED",
+      "condition": "can_execute == false and primary_block_reason exists",
+      "reason_field": "primary_block_reason"
+    },
+    {
+      "primary_state": "ALERT",
+      "condition": "latest_alert_severity in ['red', 'amber']",
+      "reason_field": "latest_alert_reason"
+    },
+    {
+      "primary_state": "ANOM",
+      "condition": "latest_anomaly_score >= anomaly_threshold",
+      "reason_field": "latest_anomaly_reason"
+    },
+    {
+      "primary_state": "STALE",
+      "condition": "freshness_status in ['stale', 'unavailable']",
+      "reason_field": "freshness_reason"
+    },
+    {
+      "primary_state": "NORMAL",
+      "condition": "fallback",
+      "reason_field": "normal_reason"
+    }
+  ],
+  "secondary_state_sources": ["freshness_status", "data_quality", "focus_status", "watch_status", "ops_status"],
+  "display_rules": {
+    "max_primary_badges": 1,
+    "max_secondary_states": 2,
+    "strong_red_focus_limit": 1,
+    "grid_exclude_focus_default": true
+  },
+  "notes": "Primary state is for HMI display prioritization only and does not redefine gate semantics."
+}

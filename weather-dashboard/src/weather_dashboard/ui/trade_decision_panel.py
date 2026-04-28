@@ -51,6 +51,9 @@ def render_trade_decision_panel(
     market_band_scheme = (comparison_row or {}).get("market_band_scheme")
     probability_mode = (probability_state or {}).get("probability_mode", "-")
     execution_constraint = (probability_state or {}).get("execution_constraint", "-")
+    promotion_state = (probability_state or {}).get("promotion_state") or {}
+    promotion_reason = promotion_state.get("promotion_reason") or (probability_state or {}).get("promotion_reason", "-")
+    demotion_reason = promotion_state.get("demotion_reason") or (probability_state or {}).get("demotion_reason", "-")
 
     if market_probability is None:
         st.info("Selected market has no probability data yet.")
@@ -101,6 +104,15 @@ def render_trade_decision_panel(
                 ("Can Live", "yes" if execution_constraint == "live_execution_allowed" else "no"),
                 (field_label("probability_mode"), probability_mode),
                 ("Use", "advisory"),
+            ],
+        },
+        {
+            "title": "Promotion",
+            "value": promotion_state.get("probability_mode", probability_mode),
+            "rows": [
+                ("Reason", promotion_reason),
+                ("Demotion", demotion_reason),
+                ("Approved", "yes" if promotion_state.get("approved_for_live") else "no"),
             ],
         },
     ]

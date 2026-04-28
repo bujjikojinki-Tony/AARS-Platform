@@ -1,18 +1,16 @@
 {
   "schema_version": "gate_stack_api.v1",
-  "generated_at": "2026-04-19T14:29:19.348223+00:00",
+  "generated_at": "2026-04-21T08:17:53.407767+00:00",
   "source_schema_version": "unified_status.v1",
   "overall_status": "degraded",
-  "market_id": "390826",
+  "market_id": "693874",
   "gate_stack": {
     "data_gate": "blocked",
     "data_gate_reasons": [
-      "monitoring_not_healthy",
-      "comparison_not_actionable"
+      "monitoring_not_healthy"
     ],
     "resolver_gate": "blocked",
     "resolver_gate_reasons": [
-      "resolver_not_matched",
       "resolver_confidence_low",
       "resolver_source_not_exact"
     ],
@@ -27,11 +25,11 @@
       "monitoring_not_healthy",
       "stale_worker",
       "validation_freshness_unhealthy",
-      "label_coverage_unhealthy"
+      "label_coverage_unhealthy",
+      "source_policy_unhealthy"
     ],
     "authorization_gate": "blocked",
     "authorization_gate_reasons": [
-      "resolver_not_matched",
       "resolver_confidence_low",
       "resolver_source_not_exact",
       "probability_not_live_approved",
@@ -40,7 +38,8 @@
       "monitoring_not_healthy",
       "stale_worker",
       "validation_freshness_unhealthy",
-      "label_coverage_unhealthy"
+      "label_coverage_unhealthy",
+      "source_policy_unhealthy"
     ],
     "execution_gate": "blocked",
     "execution_gate_reasons": [
@@ -49,8 +48,6 @@
     ],
     "block_reasons": [
       "monitoring_not_healthy",
-      "comparison_not_actionable",
-      "resolver_not_matched",
       "resolver_confidence_low",
       "resolver_source_not_exact",
       "probability_not_live_approved",
@@ -59,14 +56,13 @@
       "stale_worker",
       "validation_freshness_unhealthy",
       "label_coverage_unhealthy",
+      "source_policy_unhealthy",
       "execution_not_ready",
       "execution_not_live_ready"
     ]
   },
   "block_reasons": [
     "monitoring_not_healthy",
-    "comparison_not_actionable",
-    "resolver_not_matched",
     "resolver_confidence_low",
     "resolver_source_not_exact",
     "probability_not_live_approved",
@@ -75,6 +71,7 @@
     "stale_worker",
     "validation_freshness_unhealthy",
     "label_coverage_unhealthy",
+    "source_policy_unhealthy",
     "execution_not_ready",
     "execution_not_live_ready"
   ],
@@ -85,17 +82,14 @@
   "market_count": 1,
   "market_gate_views": [
     {
-      "market_id": "390826",
-      "market_question": "Highest temperature in Shanghai on April 20?",
-      "comparison_status": "unmatched_rule",
+      "market_id": "693874",
+      "market_question": "Will the minimum Arctic sea ice extent this summer be between 4.8m & 5m square kilometers?",
+      "comparison_status": "mild_divergence",
       "action_hint": "watch",
-      "data_gate": "blocked",
-      "data_gate_reasons": [
-        "comparison_not_actionable"
-      ],
+      "data_gate": "pass",
+      "data_gate_reasons": [],
       "resolver_gate": "blocked",
       "resolver_gate_reasons": [
-        "resolver_not_matched",
         "resolver_confidence_low",
         "resolver_source_not_exact"
       ],
@@ -110,29 +104,11 @@
         "monitoring_not_healthy",
         "stale_worker",
         "validation_freshness_unhealthy",
-        "label_coverage_unhealthy"
+        "label_coverage_unhealthy",
+        "source_policy_unhealthy"
       ],
       "authorization_gate": "blocked",
       "authorization_gate_reasons": [
-        "resolver_not_matched",
-        "resolver_confidence_low",
-        "resolver_source_not_exact",
-        "probability_not_live_approved",
-        "execution_constraint_not_live_allowed",
-        "calibration_not_calibrated",
-        "monitoring_not_healthy",
-        "stale_worker",
-        "validation_freshness_unhealthy",
-        "label_coverage_unhealthy"
-      ],
-      "execution_gate": "blocked",
-      "execution_gate_reasons": [
-        "execution_not_ready",
-        "execution_not_live_ready"
-      ],
-      "block_reasons": [
-        "comparison_not_actionable",
-        "resolver_not_matched",
         "resolver_confidence_low",
         "resolver_source_not_exact",
         "probability_not_live_approved",
@@ -142,13 +118,88 @@
         "stale_worker",
         "validation_freshness_unhealthy",
         "label_coverage_unhealthy",
+        "source_policy_unhealthy"
+      ],
+      "execution_gate": "blocked",
+      "execution_gate_reasons": [
+        "execution_not_ready",
+        "execution_not_live_ready"
+      ],
+      "block_reasons": [
+        "resolver_confidence_low",
+        "resolver_source_not_exact",
+        "probability_not_live_approved",
+        "execution_constraint_not_live_allowed",
+        "calibration_not_calibrated",
+        "monitoring_not_healthy",
+        "stale_worker",
+        "validation_freshness_unhealthy",
+        "label_coverage_unhealthy",
+        "source_policy_unhealthy",
         "execution_not_ready",
         "execution_not_live_ready"
       ],
       "can_execute": false,
-      "primary_block_reason": "comparison_not_actionable",
+      "primary_block_reason": "resolver_confidence_low",
       "severity": "medium",
       "recommended_operator_action": "review_resolver_contract"
     }
-  ]
+  ],
+  "top_parameter_view": {
+    "schema_version": "top_parameter_view.v1",
+    "market_id": "693874",
+    "market_family": "sea_ice_extent",
+    "market_question": "Will the minimum Arctic sea ice extent this summer be between 4.8m & 5m square kilometers?",
+    "location_name": "UNKNOWN",
+    "target_date": null,
+    "variable_name": "minimum_sea_ice_extent",
+    "polymarket": {
+      "yes_price": 0.01,
+      "no_price": 0.004,
+      "market_implied_probability": 0.01,
+      "favored_side": "yes",
+      "market_band": "in_range"
+    },
+    "weather": {
+      "observation_value": null,
+      "forecast_value": null,
+      "unit": "km²",
+      "model_band": "below_range",
+      "official_band": null,
+      "station_name": null,
+      "station_id": null,
+      "observed_at": null,
+      "forecast_timestamp": null
+    },
+    "source_contract": {
+      "settlement_source_type": null,
+      "official_vs_proxy_source": null,
+      "source_match_grade": null,
+      "required_sources": null,
+      "official_source_url": null,
+      "freshness_status": null
+    },
+    "decision": {
+      "fair_value": null,
+      "edge": 0.3311,
+      "probability_mode": "heuristic_not_calibrated",
+      "execution_constraint": "manual_advisory_only",
+      "can_execute": false,
+      "primary_block_reason": "none",
+      "recommended_operator_action": null,
+      "comparison_status": "mild_divergence"
+    }
+  },
+  "source_policy": {
+    "schema_version": "source_policy_status.v1",
+    "overall_status": "unknown",
+    "registry_schema_version": "-",
+    "fresh_count": 0,
+    "stale_count": 0,
+    "unavailable_count": 0,
+    "priority_counts": {},
+    "source_count": 0,
+    "problem_sources": [],
+    "sources": []
+  }
 }

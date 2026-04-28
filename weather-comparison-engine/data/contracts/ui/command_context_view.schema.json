@@ -1,0 +1,181 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "command_context_view.schema.json",
+  "title": "command_context_view.v1",
+  "description": "Target contract for the governed operator command surface. This schema is stricter than the current dashboard implementation and should guide the future command view builder.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "selected_market_id",
+    "entry_source",
+    "primary_state",
+    "next_operator_action",
+    "gate_stack_summary",
+    "operator_decision_panel",
+    "authorization_gateway_panel",
+    "audit_trail",
+    "available_actions",
+    "disabled_actions"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "command_context_view.v1"
+    },
+    "selected_market_id": {
+      "type": "string"
+    },
+    "entry_source": {
+      "type": "string"
+    },
+    "primary_state": {
+      "type": "string"
+    },
+    "next_operator_action": {
+      "type": "string"
+    },
+    "gate_stack_summary": {
+      "$ref": "#/definitions/gate_stack_summary"
+    },
+    "operator_decision_panel": {
+      "$ref": "#/definitions/operator_decision_panel"
+    },
+    "authorization_gateway_panel": {
+      "$ref": "#/definitions/authorization_gateway_panel"
+    },
+    "audit_trail": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/audit_event"
+      }
+    },
+    "available_actions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/action_item"
+      }
+    },
+    "disabled_actions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/action_item"
+      }
+    }
+  },
+  "definitions": {
+    "gate_stack_summary": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "market_gate",
+        "evidence_gate",
+        "resolver_gate",
+        "probability_gate",
+        "execution_gate"
+      ],
+      "properties": {
+        "market_gate": {
+          "type": "object"
+        },
+        "evidence_gate": {
+          "type": "object"
+        },
+        "resolver_gate": {
+          "type": "object"
+        },
+        "probability_gate": {
+          "type": "object"
+        },
+        "execution_gate": {
+          "type": "object"
+        }
+      }
+    },
+    "operator_decision_panel": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "recommendation",
+        "available_actions"
+      ],
+      "properties": {
+        "recommendation": {
+          "type": "string"
+        },
+        "available_actions": {
+          "type": "array"
+        }
+      }
+    },
+    "authorization_gateway_panel": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "bot_authorization",
+        "approval_status",
+        "gateway_mode",
+        "kill_switch"
+      ],
+      "properties": {
+        "bot_authorization": {
+          "type": "string"
+        },
+        "approval_status": {
+          "type": "string"
+        },
+        "pending_intent": {
+          "type": "string"
+        },
+        "gateway_mode": {
+          "type": "string"
+        },
+        "kill_switch": {
+          "type": "string"
+        }
+      }
+    },
+    "audit_event": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "timestamp",
+        "event",
+        "detail"
+      ],
+      "properties": {
+        "timestamp": {
+          "type": "string"
+        },
+        "event": {
+          "type": "string"
+        },
+        "detail": {
+          "type": "string"
+        }
+      }
+    },
+    "action_item": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "action_id",
+        "action_label"
+      ],
+      "properties": {
+        "action_id": {
+          "type": "string"
+        },
+        "action_label": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "reason_if_disabled": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

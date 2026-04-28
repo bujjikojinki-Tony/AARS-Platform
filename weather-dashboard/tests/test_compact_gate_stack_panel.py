@@ -27,6 +27,9 @@ def test_compact_gate_stack_summary_reflects_alignment_and_probability_contract(
     assert summary["selected_market_id"] == "m1"
     assert summary["alignment_ok"] >= 5
     assert summary["probability_mode"] == "heuristic_not_calibrated"
+    assert summary["promotion_state"] == "heuristic_not_calibrated"
+    assert summary["promotion_reason"] == "-"
+    assert summary["demotion_reason"] == "-"
     assert summary["resolver_gate"] == "blocked"
     assert "resolver_confidence_low" in summary["resolver_gate_reasons"]
     assert summary["execution_constraint"] == "manual_advisory_only"
@@ -72,6 +75,7 @@ def test_compact_gate_stack_uses_unified_fallback_when_api_missing(tmp_path: Pat
     assert summary["execution_gate"] == "blocked"
     assert "probability_not_live_approved" in summary["blockers"]
     assert summary["gate_source"] == "unified_fallback"
+    assert summary["promotion_state"] == "live_approved"
 
 
 def test_compact_gate_stack_uses_gate_stack_api_market_view_when_unified_missing(tmp_path: Path):
@@ -119,6 +123,7 @@ def test_compact_gate_stack_uses_gate_stack_api_market_view_when_unified_missing
     assert summary["gate_source"] == "api"
     assert summary["severity"] == "high"
     assert summary["recommended_operator_action"] == "review_resolver_contract"
+    assert summary["promotion_state"] == "live_approved"
 
 
 def test_compact_gate_stack_prefers_api_over_unified_fallback(tmp_path: Path):
@@ -173,3 +178,4 @@ def test_compact_gate_stack_prefers_api_over_unified_fallback(tmp_path: Path):
     assert summary["gate_source"] == "api"
     assert summary["resolver_gate"] == "blocked"
     assert "resolver_source_not_exact" in summary["blockers"]
+    assert summary["promotion_state"] == "live_approved"

@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "page_context_schema.json",
+  "title": "page_context.v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "source_page",
+    "target_page",
+    "entry_reason",
+    "entry_context"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "page_context.v1"
+    },
+    "source_page": {
+      "type": "string"
+    },
+    "target_page": {
+      "type": "string"
+    },
+    "selected_market_id": {
+      "type": "string"
+    },
+    "selected_signal_id": {
+      "type": "string"
+    },
+    "selected_row_id": {
+      "type": "string"
+    },
+    "entry_reason": {
+      "type": "string"
+    },
+    "entry_context": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "upstream_refs": {
+      "type": "object"
+    }
+  }
+}

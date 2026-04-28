@@ -1,0 +1,8 @@
+{
+  "schema_version": "alert_queue_status.v1",
+  "generated_at": "2026-04-23T12:58:01.926173+00:00",
+  "accepted_count": 0,
+  "suppressed_count": 0,
+  "output_path": "/Users/maolei/AARS-Platform/weather-comparison-engine/data/outputs/alerts/market_alert_events.json",
+  "alerts_output_dir": "/Users/maolei/AARS-Platform/weather-comparison-engine/data/outputs/alerts"
+}

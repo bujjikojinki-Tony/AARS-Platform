@@ -1,0 +1,14 @@
+{
+  "policy_id": "action_mapping_policy.v1",
+  "schema_version": "action_mapping_policy.v1",
+  "applicable_scope": "opportunity_board.recommended_action",
+  "formula_or_mapping": "ordered_rules",
+  "actions": ["watch_seed", "review_gate_block", "refresh_pipeline_inputs", "prioritize_review", "review_hard_market", "open_workstation"],
+  "thresholds": {
+    "high_anomaly_score": 0.75,
+    "hard_difficulty_min": 0.66
+  },
+  "version": "v1",
+  "status": "active",
+  "notes": "Recommended action is not execution permission and must not be interpreted as can_execute."
+}

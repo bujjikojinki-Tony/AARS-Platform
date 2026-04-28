@@ -1,0 +1,32 @@
+{
+  "schema_version": "ui_static_registry.v1",
+  "pages": [
+    "operations_monitor",
+    "monitoring_signals",
+    "opportunity_board",
+    "workstation",
+    "command",
+    "pipeline",
+    "markets",
+    "charts",
+    "history",
+    "evidence_raw"
+  ],
+  "navigation_groups": [
+    "RUN",
+    "RESEARCH",
+    "DATA",
+    "SETTINGS"
+  ],
+  "standard_actions": [
+    "open_workstation",
+    "add_to_focus",
+    "send_to_command",
+    "review_evidence",
+    "view_history",
+    "acknowledge_signal",
+    "mute_signal",
+    "create_pending_intent",
+    "run_dry_run_check"
+  ]
+}

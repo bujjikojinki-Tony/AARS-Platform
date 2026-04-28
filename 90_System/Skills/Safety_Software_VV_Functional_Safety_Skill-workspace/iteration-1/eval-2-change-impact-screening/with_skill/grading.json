@@ -1,0 +1,79 @@
+{
+  "expectations": [
+    {
+      "text": "The output includes a change summary and affected items",
+      "passed": true,
+      "evidence": "The output contains `## 1. Change Summary` and `## 2. Affected Items` sections."
+    },
+    {
+      "text": "The output identifies impact on safety function, response time, logic, and HMI or bypass behavior",
+      "passed": true,
+      "evidence": "The output includes dedicated subsections for `Impact on safety function`, `Impact on response time`, `Impact on logic`, and `Impact on HMI / bypass behavior`."
+    },
+    {
+      "text": "The output includes verification, regression, and validation impact",
+      "passed": true,
+      "evidence": "The output contains `## 7. Verification and Regression Impact` and `## 8. Required Validation`."
+    },
+    {
+      "text": "The output explicitly lists missing evidence instead of inventing it",
+      "passed": true,
+      "evidence": "The output includes a dedicated `## 9. Evidence Gaps` section and states `Current evidence is insufficient for a formal safety compliance conclusion.`"
+    },
+    {
+      "text": "The output gives a bounded disposition rather than approving the change outright",
+      "passed": true,
+      "evidence": "The output sets `Recommended disposition: Hold` and states that the change `should not be approved for direct deployment on the currently described evidence set.`"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "tool_calls": {
+      "Read": 0,
+      "Write": 1,
+      "Bash": 0
+    },
+    "total_tool_calls": 1,
+    "total_steps": 1,
+    "errors_encountered": 0,
+    "output_chars": 7304,
+    "transcript_chars": 0
+  },
+  "timing": {
+    "executor_duration_seconds": 0.0,
+    "grader_duration_seconds": 0.0,
+    "total_duration_seconds": 0.0
+  },
+  "claims": [
+    {
+      "claim": "The timing change affects a safety-related protection function and cannot be treated as a cosmetic edit",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The analysis ties the change directly to trip response timing and safe-state behavior."
+    },
+    {
+      "claim": "Partial FAT records alone are insufficient approval evidence",
+      "type": "quality",
+      "verified": true,
+      "evidence": "The output says `FAT records alone are not enough if they do not demonstrate intended-use validation.`"
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [
+      "This grading is based on Codex-generated output review rather than a separate executor transcript."
+    ],
+    "needs_review": [],
+    "workarounds": [
+      "No automated baseline run exists yet for comparison against a no-skill response."
+    ]
+  },
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "No suggestions, evals look solid for a first-pass change-impact assessment check."
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": "next_operator_action_policy.default.v1",
+  "description": "Maps state and context to the next recommended operator action.",
+  "actions": {
+    "review_evidence": "Review evidence",
+    "check_gate_reason": "Check gate reason",
+    "open_workstation": "Open Workstation",
+    "add_to_focus": "Add to Focus",
+    "send_to_command": "Send to Command",
+    "acknowledge_signal": "Acknowledge Signal",
+    "watch_only": "Watch Only",
+    "avoid": "Avoid"
+  },
+  "rules": [
+    {"when": "primary_state == 'BLOCKED'", "action": "check_gate_reason"},
+    {"when": "primary_state == 'ALERT'", "action": "review_evidence"},
+    {"when": "primary_state == 'ANOM'", "action": "open_workstation"},
+    {"when": "opportunity_score >= 75 and quality_score >= 65", "action": "add_to_focus"},
+    {"when": "quality_score < 45", "action": "watch_only"}
+  ]
+}

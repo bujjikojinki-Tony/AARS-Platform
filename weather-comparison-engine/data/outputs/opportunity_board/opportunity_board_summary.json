@@ -1,0 +1,21 @@
+{
+  "schema_version": "opportunity_board_summary.v1",
+  "generated_at": "2026-04-23T02:35:32.691338+00:00",
+  "total_rows": 9,
+  "fresh_rows": 0,
+  "high_opportunity_rows": 0,
+  "easy_rows": 2,
+  "rows_with_alerts": 0,
+  "rows_with_anomalies": 0,
+  "city_count": 8,
+  "family_count": 2,
+  "top_city": "Buenos Aires",
+  "top_family": "temperature_daily_max",
+  "top_model": "GFS",
+  "seed_summary": {
+    "seeded_row_count": 8,
+    "seeded_city_count": 8,
+    "seed_source_type": "manual_seed_from_research_image",
+    "seed_usage": "cold_start_prior_only"
+  }
+}

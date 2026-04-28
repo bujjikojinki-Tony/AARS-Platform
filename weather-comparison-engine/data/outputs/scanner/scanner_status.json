@@ -1,0 +1,36 @@
+{
+  "schema_version": "scanner_status.v1",
+  "generated_at": "2026-04-23T12:58:01.926849+00:00",
+  "total_markets": 18,
+  "scanned_markets": 18,
+  "fresh_markets": 10,
+  "stale_markets": 8,
+  "unavailable_markets": 0,
+  "alert_markets": 0,
+  "backlog_count": 0,
+  "next_scan_eta": "5m",
+  "priority_counts": {
+    "critical": 1,
+    "high": 9,
+    "medium": 8
+  },
+  "freshness_counts": {
+    "fresh": 10,
+    "stale": 8
+  },
+  "summary": {
+    "universe_version": "market_universe_snapshot.v1",
+    "evidence_version": "evidence_scan_snapshot.v1",
+    "alert_count": 0,
+    "fresh_ratio": 0.5556,
+    "priority_mix": {
+      "critical": 1,
+      "high": 9,
+      "medium": 8
+    },
+    "freshness_mix": {
+      "fresh": 10,
+      "stale": 8
+    }
+  }
+}

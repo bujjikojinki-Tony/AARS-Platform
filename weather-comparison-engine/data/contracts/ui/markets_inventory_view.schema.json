@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "markets_inventory_view.schema.json",
+  "title": "markets_inventory_view.v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "summary",
+    "markets",
+    "view_context"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "markets_inventory_view.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "object"
+    },
+    "markets": {
+      "type": "array"
+    },
+    "groups": {
+      "type": "array"
+    },
+    "view_context": {
+      "type": "object"
+    }
+  }
+}

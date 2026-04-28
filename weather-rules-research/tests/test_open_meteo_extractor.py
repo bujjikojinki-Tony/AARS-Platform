@@ -18,7 +18,8 @@ def test_extract_daily_max_from_daily_payload() -> None:
     )
 
     assert result.value == 27.8
-    assert result.source_mode == "daily.temperature_2m_max"
+    assert result.source_mode == "Daily forecast matched"
+    assert result.source_path == "daily.temperature_2m_max"
 
 
 def test_extract_daily_max_from_hourly_fallback() -> None:
@@ -43,7 +44,8 @@ def test_extract_daily_max_from_hourly_fallback() -> None:
     )
 
     assert result.value == 28.2
-    assert result.source_mode == "hourly.temperature_2m:max"
+    assert result.source_mode == "Hourly fallback used"
+    assert result.source_path == "hourly.temperature_2m:max"
 
 
 def test_extract_daily_min_from_hourly_fallback() -> None:
@@ -68,7 +70,8 @@ def test_extract_daily_min_from_hourly_fallback() -> None:
     )
 
     assert result.value == 19.1
-    assert result.source_mode == "hourly.temperature_2m:min"
+    assert result.source_mode == "Hourly fallback used"
+    assert result.source_path == "hourly.temperature_2m:min"
 
 
 def test_extract_daily_precipitation_from_daily_payload() -> None:
@@ -88,7 +91,8 @@ def test_extract_daily_precipitation_from_daily_payload() -> None:
     )
 
     assert result.value == 8.7
-    assert result.source_mode == "daily.precipitation_sum"
+    assert result.source_mode == "Daily forecast matched"
+    assert result.source_path == "daily.precipitation_sum"
 
 
 def test_extract_daily_precipitation_from_hourly_fallback() -> None:
@@ -113,7 +117,8 @@ def test_extract_daily_precipitation_from_hourly_fallback() -> None:
     )
 
     assert result.value == 4.0
-    assert result.source_mode == "hourly.precipitation:sum"
+    assert result.source_mode == "Hourly fallback used"
+    assert result.source_path == "hourly.precipitation:sum"
 
 
 def test_extract_daily_snowfall_from_daily_payload() -> None:
@@ -133,7 +138,8 @@ def test_extract_daily_snowfall_from_daily_payload() -> None:
     )
 
     assert result.value == 6.2
-    assert result.source_mode == "daily.snowfall_sum"
+    assert result.source_mode == "Daily forecast matched"
+    assert result.source_path == "daily.snowfall_sum"
 
 
 def test_extract_daily_max_wind_speed_from_hourly_fallback() -> None:
@@ -158,4 +164,5 @@ def test_extract_daily_max_wind_speed_from_hourly_fallback() -> None:
     )
 
     assert result.value == 34.5
-    assert result.source_mode == "hourly.wind_speed_10m:max"
+    assert result.source_mode == "Hourly fallback used"
+    assert result.source_path == "hourly.wind_speed_10m:max"

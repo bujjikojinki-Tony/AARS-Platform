@@ -7,13 +7,18 @@ from pathlib import Path
 from typing import Any
 
 from weather_telegram_console.settings import (
+    get_advanced_anomaly_output_dir,
+    get_family_scan_reports_dir,
     get_gate_stack_api_path,
+    get_latest_dashboard_rows_path,
     get_monitoring_status_path,
     get_production_readiness_path,
     get_signal_json_path,
     get_unified_status_path,
+    get_validation_output_dir,
 )
 from weather_telegram_console.integrations.gate_stack_consumer import consume_gate_stack_payload
+from weather_telegram_console.integrations.top_parameter_view import build_top_parameter_view
 
 
 class StatusAPI:
@@ -30,10 +35,16 @@ class StatusAPI:
             market_id=selected_market_id,
         )
         if isinstance(unified, dict):
-            return _ensure_gate_stack(_apply_gate_stack_api(unified, consumer))
+            return _attach_family_scan_report(
+                _attach_phase30_artifacts(
+                    _ensure_gate_stack(_attach_top_parameter_view(_apply_gate_stack_api(unified, consumer)))
+                )
+            )
 
         if isinstance(gate_stack_api, dict):
-            return _build_status_from_gate_stack_api(consumer)
+            return _attach_phase30_artifacts(
+                _attach_family_scan_report(_attach_top_parameter_view(_build_status_from_gate_stack_api(consumer)))
+            )
 
         monitoring = self._load_json(get_monitoring_status_path())
         readiness = self._load_json(get_production_readiness_path())
@@ -49,7 +60,7 @@ class StatusAPI:
             readiness=readiness if isinstance(readiness, dict) else {},
             signal=signal if isinstance(signal, dict) else {},
         )
-        return _apply_gate_stack_api(payload, consumer)
+        return _attach_phase30_artifacts(_attach_family_scan_report(_attach_top_parameter_view(_apply_gate_stack_api(payload, consumer))))
 
     def _build_fallback_status(
         self,
@@ -360,6 +371,52 @@ def _apply_gate_stack_api(report: dict, consumer) -> dict:
     return merged
 
 
+def _attach_top_parameter_view(report: dict) -> dict:
+    if not isinstance(report, dict):
+        return report
+    current_market = report.get("current_market") if isinstance(report.get("current_market"), dict) else {}
+    probability = report.get("probability") if isinstance(report.get("probability"), dict) else {}
+    gate_stack = report.get("gate_stack") if isinstance(report.get("gate_stack"), dict) else {}
+    validation = report.get("validation") if isinstance(report.get("validation"), dict) else {}
+    current_market = _enrich_current_market(current_market)
+    report["top_parameter_view"] = build_top_parameter_view(
+        current_market=current_market,
+        probability=probability,
+        gate_stack=gate_stack,
+        resolver=current_market,
+        weather=current_market,
+        validation_freshness_status=validation if isinstance(validation, dict) else None,
+    )
+    if validation and isinstance(report.get("validation"), dict):
+        report["top_parameter_view"]["source_contract"]["freshness_status"] = str(
+            validation.get("freshness_status")
+            or report["top_parameter_view"]["source_contract"].get("freshness_status")
+            or "-"
+        )
+    return report
+
+
+def _enrich_current_market(current_market: dict) -> dict:
+    market_id = str(current_market.get("market_id") or "").strip()
+    if not market_id:
+        return current_market
+
+    rows = StatusAPI()._load_json(get_latest_dashboard_rows_path())
+    if not isinstance(rows, list):
+        return current_market
+
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        if str(row.get("market_id") or "").strip() != market_id:
+            continue
+        merged = dict(row)
+        merged.update({k: v for k, v in current_market.items() if v not in (None, "")})
+        return merged
+
+    return current_market
+
+
 def _build_status_from_gate_stack_api(consumer) -> dict:
     gate_stack_api = consumer.raw_payload if isinstance(getattr(consumer, "raw_payload", None), dict) else None
     if not _is_gate_stack_api(gate_stack_api):
@@ -450,6 +507,135 @@ def _build_status_from_gate_stack_api(consumer) -> dict:
         "promotion_state": _extract_promotion_state(gate_stack_api),
     }
     return _ensure_gate_stack(payload)
+
+
+def _load_latest_family_scan_report() -> dict:
+    directory = get_family_scan_reports_dir()
+    if not directory.exists():
+        return {}
+    candidates = sorted(directory.glob("*.json"), key=lambda path: path.stat().st_mtime, reverse=True)
+    if not candidates:
+        return {}
+    try:
+        payload = json.loads(candidates[0].read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def _attach_family_scan_report(report: dict) -> dict:
+    if not isinstance(report, dict):
+        return report
+    latest_family_scan_report = report.get("latest_family_scan_report")
+    if not isinstance(latest_family_scan_report, dict) or not latest_family_scan_report:
+        latest_family_scan_report = _load_latest_family_scan_report()
+    if not latest_family_scan_report:
+        return report
+
+    merged = dict(report)
+    merged["latest_family_scan_report"] = latest_family_scan_report
+    merged["family_anomaly_summary"] = _family_scan_summary(latest_family_scan_report)
+    validation = merged.get("validation")
+    if isinstance(validation, dict):
+        validation = dict(validation)
+        validation["latest_family_scan_report"] = latest_family_scan_report
+        validation["family_anomaly_summary"] = merged["family_anomaly_summary"]
+        merged["validation"] = validation
+    return merged
+
+
+def _attach_phase30_artifacts(report: dict) -> dict:
+    if not isinstance(report, dict):
+        return report
+    merged = dict(report)
+    validation_summary = _load_latest_json_file_matching(get_validation_output_dir(), "validation_summary_*.json")
+    coverage_summary = _load_latest_json_file_matching(get_validation_output_dir(), "coverage_summary_*.json")
+    promotion_support = _load_latest_json_file_matching(get_validation_output_dir(), "promotion_support_*.json")
+    model_validation_compare = _load_latest_json_file_matching(
+        get_validation_output_dir(),
+        "model_validation_compare_*.json",
+    )
+    family_anomaly_summary = _load_latest_json_file_matching(
+        get_advanced_anomaly_output_dir(),
+        "family_anomaly_summary_*.json",
+    )
+    validation = merged.get("validation")
+    if isinstance(validation, dict):
+        validation = dict(validation)
+    else:
+        validation = {}
+    if validation_summary:
+        validation["validation_summary_v1"] = validation_summary
+        validation["validation_assimilation_summary"] = validation_summary
+    if coverage_summary:
+        validation["coverage_summary_v1"] = coverage_summary
+    if promotion_support:
+        validation["promotion_support_v1"] = promotion_support
+    if model_validation_compare:
+        validation["model_validation_compare_v1"] = model_validation_compare
+    if family_anomaly_summary:
+        validation["latest_family_anomaly_summary"] = family_anomaly_summary
+        validation["family_anomaly_summary"] = _family_scan_summary(family_anomaly_summary)
+        merged["family_anomaly_summary"] = validation["family_anomaly_summary"]
+    if validation:
+        merged["validation"] = validation
+    if validation_summary:
+        merged["validation_assimilation_summary"] = validation_summary
+    return merged
+
+
+def _family_scan_summary(report: dict) -> dict:
+    family_summaries = [item for item in (report.get("family_summaries") or []) if isinstance(item, dict)]
+    ranked = sorted(
+        family_summaries,
+        key=lambda item: float(item.get("max_intervention_like_score") or 0.0),
+        reverse=True,
+    )
+    top_family = ranked[0] if ranked else {}
+    signal_summary = report.get("signal_summary") or {}
+    return {
+        "schema_version": "family_anomaly_summary.v1",
+        "family_scan_status": str(report.get("input_mode") or report.get("schema_version") or "-"),
+        "top_family": str(top_family.get("market_family") or "-"),
+        "top_score": top_family.get("max_intervention_like_score", "-"),
+        "top_bucket": _bucket_for_score(top_family.get("max_intervention_like_score")),
+        "signal_summary": (
+            f"pv={signal_summary.get('price_velocity_high_count', 0)} "
+            f"edge={signal_summary.get('edge_dislocation_high_count', 0)} "
+            f"mismatch={signal_summary.get('evidence_mismatch_count', 0)} "
+            f"stress={signal_summary.get('microstructure_stress_high_count', 0)} "
+            f"peer={signal_summary.get('peer_outlier_count', 0)} "
+            f"high={signal_summary.get('intervention_like_high_count', 0)}"
+        ),
+        "bucket_counts": report.get("anomaly_bucket_counts") or {},
+        "generated_at": report.get("generated_at") or "-",
+        "primary_reason": str(top_family.get("signal_summary") or report.get("signal_summary") or "-"),
+    }
+
+
+def _bucket_for_score(score: object) -> str:
+    try:
+        value = float(score or 0.0)
+    except (TypeError, ValueError):
+        value = 0.0
+    if value >= 0.8:
+        return "high"
+    if value >= 0.5:
+        return "medium"
+    return "low"
+
+
+def _load_latest_json_file_matching(directory, pattern: str) -> dict:
+    if not directory.exists():
+        return {}
+    candidates = sorted(directory.glob(pattern), key=lambda path: path.stat().st_mtime, reverse=True)
+    if not candidates:
+        return {}
+    try:
+        payload = json.loads(candidates[0].read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    return payload if isinstance(payload, dict) else {}
 
 
 def _recommended_severity(primary_block_reason: str, *, can_execute: bool) -> str:

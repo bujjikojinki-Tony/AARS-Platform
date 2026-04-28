@@ -1,0 +1,69 @@
+{
+  "expectations": [
+    {
+      "text": "The output includes a change summary and affected items",
+      "passed": true,
+      "evidence": "The output contains `## 1. Change Summary` and `## 2. Affected Items`."
+    },
+    {
+      "text": "The output identifies impact on safety function, response time, logic, and HMI or bypass behavior",
+      "passed": true,
+      "evidence": "The output has dedicated screening subsections for safety function, response time, logic, alarm / HMI, and bypass / override."
+    },
+    {
+      "text": "The output includes verification, regression, and validation impact",
+      "passed": true,
+      "evidence": "The output includes `## 7. Verification and Regression Impact` and `## 8. Required Validation`."
+    },
+    {
+      "text": "The output explicitly lists missing evidence instead of inventing it",
+      "passed": true,
+      "evidence": "The output includes `## 9. Evidence Gaps` and explicitly states the current evidence is insufficient."
+    },
+    {
+      "text": "The output gives a bounded disposition rather than approving the change outright",
+      "passed": true,
+      "evidence": "The output sets `## 10. Disposition` to `Hold` and says the evidence set does not support direct deployment."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "tool_calls": {
+      "Read": 0,
+      "Write": 1,
+      "Bash": 0
+    },
+    "total_tool_calls": 1,
+    "total_steps": 1,
+    "errors_encountered": 0,
+    "output_chars": 5855,
+    "transcript_chars": 0
+  },
+  "timing": {
+    "executor_duration_seconds": 0.0,
+    "grader_duration_seconds": 0.0,
+    "total_duration_seconds": 0.0
+  },
+  "claims": [
+    {
+      "claim": "The output now follows the packaged change-impact template more closely",
+      "type": "quality",
+      "verified": true,
+      "evidence": "The output follows the numbered sections from Change Summary through Closure Conditions with less narrative drift than iteration 1."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  },
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "No suggestions, the template-oriented structure improved and still satisfies the eval."
+  }
+}

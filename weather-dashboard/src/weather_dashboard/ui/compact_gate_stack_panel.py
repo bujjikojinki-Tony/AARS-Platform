@@ -7,6 +7,7 @@ import streamlit as st
 
 from weather_dashboard.ui.data_alignment_panel import build_data_alignment_audit
 from weather_dashboard.ui.execution_gate_panel import build_execution_gate_state
+from weather_dashboard.ui.compact_panel import semantic_tone, semantic_value_html
 
 
 def build_compact_gate_stack_summary(
@@ -46,6 +47,11 @@ def build_compact_gate_stack_summary(
     alignment_ok = sum(1 for check in alignment["checks"] if check["level"] == "ok")
     alignment_total = len(alignment["checks"])
     resolver_gate = _build_resolver_gate_summary(resolver_rule)
+    promotion_state = _extract_promotion_state(
+        probability_state,
+        unified_status_report,
+        gate_stack_api_report,
+    )
     external_gate_stack, gate_source = _resolve_external_gate_stack(
         unified_status_report=unified_status_report,
         gate_stack_api_report=gate_stack_api_report,
@@ -102,6 +108,21 @@ def build_compact_gate_stack_summary(
         "execution_gate": execution_gate_status,
         "probability_mode": gate["probability_mode"],
         "execution_constraint": gate["execution_constraint"],
+        "promotion_state": str(
+            promotion_state.get("probability_mode")
+            or gate.get("probability_mode")
+            or "-"
+        ),
+        "promotion_reason": str(
+            promotion_state.get("promotion_reason")
+            or gate.get("promotion_reason")
+            or "-"
+        ),
+        "demotion_reason": str(
+            promotion_state.get("demotion_reason")
+            or gate.get("demotion_reason")
+            or "-"
+        ),
         "validation_freshness_status": gate["validation_freshness_status"],
         "label_coverage_status": gate["label_coverage_status"],
         "autonomous_execution_eligible": gate["autonomous_execution_eligible"],
@@ -132,6 +153,7 @@ def render_compact_gate_stack_panel(summary: dict) -> None:
     )
     primary_blocker = summary["blockers"][0] if summary["blockers"] else "none"
     can_execute = "yes" if summary.get("gate_status") == "READY" else "no"
+    gate_tone = semantic_tone("gate_status", summary.get("gate_status"))
     st.markdown(
         f"""
         <section class="compact-gate-stack">
@@ -140,17 +162,20 @@ def render_compact_gate_stack_panel(summary: dict) -> None:
               <div class="compact-gate-stack__eyebrow">Compact Gate Stack</div>
             <div class="compact-gate-stack__title">{escape(str(summary['selected_market_id'] or '-'))}</div>
             </div>
-            <div class="compact-gate-stack__status compact-gate-stack__status--{escape(summary['gate_status'].lower())}">
+            <div class="compact-gate-stack__status compact-gate-stack__status--{escape(summary['gate_status'].lower())} compact-gate-stack__status--{escape(gate_tone)}">
               {escape(summary['gate_status'])}
             </div>
           </div>
           <div class="compact-gate-stack__metrics">
-            <div><span>Can Execute</span><strong>{escape(can_execute)}</strong></div>
-            <div><span>Primary Blocker</span><strong>{escape(str(primary_blocker))}</strong></div>
-            <div><span>Constraint</span><strong>{escape(summary['execution_constraint'])}</strong></div>
-            <div><span>Action</span><strong>{escape(summary.get('recommended_operator_action', 'hold_execution_and_review'))}</strong></div>
+            <div><span>Can Execute</span><strong>{semantic_value_html("Can Execute", can_execute)}</strong></div>
+            <div><span>Primary Blocker</span><strong>{semantic_value_html("Primary Blocker", str(primary_blocker))}</strong></div>
+            <div><span>Constraint</span><strong>{semantic_value_html("Execution Constraint", summary['execution_constraint'])}</strong></div>
+            <div><span>Action</span><strong>{semantic_value_html("Next Action", summary.get('recommended_operator_action', 'hold_execution_and_review'))}</strong></div>
           </div>
-          <div class="compact-gate-stack__blockers"><span>Blockers</span><strong>{escape(str(blockers))}</strong></div>
+          <div class="compact-gate-stack__blockers"><span>Promotion State</span><strong>{semantic_value_html("Promotion State", summary.get('promotion_state', '-'))}</strong></div>
+          <div class="compact-gate-stack__blockers"><span>Promotion Reason</span><strong>{semantic_value_html("Promotion Reason", summary.get('promotion_reason', '-'))}</strong></div>
+          <div class="compact-gate-stack__blockers"><span>Demotion Reason</span><strong>{semantic_value_html("Demotion Reason", summary.get('demotion_reason', '-'))}</strong></div>
+          <div class="compact-gate-stack__blockers"><span>Blockers</span><strong>{semantic_value_html("Blockers", blockers)}</strong></div>
         </section>
         """,
         unsafe_allow_html=True,
@@ -161,18 +186,21 @@ def render_compact_gate_stack_panel(summary: dict) -> None:
             f"""
             <section class="compact-gate-stack">
               <div class="compact-gate-stack__metrics">
-                <div><span>Alignment</span><strong>{summary['alignment_ok']} / {summary['alignment_total']}</strong></div>
-                <div><span>Ready For BOT</span><strong>{summary['ready_for_bot']}</strong></div>
-                <div><span>Probability</span><strong>{escape(summary['probability_mode'])}</strong></div>
-                <div><span>Probability Gate</span><strong>{escape(summary.get('probability_gate', '-'))}</strong></div>
-                <div><span>Resolver Gate</span><strong>{escape(summary.get('resolver_gate', 'pass'))}</strong></div>
-                <div><span>Freshness Gate</span><strong>{escape(summary.get('freshness_gate', '-'))}</strong></div>
-                <div><span>Authorization Gate</span><strong>{escape(summary.get('authorization_gate', '-'))}</strong></div>
-                <div><span>Validation</span><strong>{escape(summary['validation_freshness_status'])}</strong></div>
-                <div><span>Coverage</span><strong>{escape(summary['label_coverage_status'])}</strong></div>
-                <div><span>Execution Gate</span><strong>{escape(summary.get('execution_gate', '-'))}</strong></div>
-                <div><span>Autonomous Eligible</span><strong>{summary['autonomous_execution_eligible']}</strong></div>
-                <div><span>Gate Source</span><strong>{escape(summary.get('gate_source', 'local_fallback'))}</strong></div>
+                <div><span>Alignment</span><strong>{semantic_value_html("Alignment", f"{summary['alignment_ok']} / {summary['alignment_total']}")}</strong></div>
+                <div><span>Ready For BOT</span><strong>{semantic_value_html("Ready For BOT", summary['ready_for_bot'])}</strong></div>
+                <div><span>Probability</span><strong>{semantic_value_html("Probability Mode", summary['probability_mode'])}</strong></div>
+                <div><span>Promotion State</span><strong>{semantic_value_html("Promotion State", summary.get('promotion_state', '-'))}</strong></div>
+                <div><span>Promotion Reason</span><strong>{semantic_value_html("Promotion Reason", summary.get('promotion_reason', '-'))}</strong></div>
+                <div><span>Demotion Reason</span><strong>{semantic_value_html("Demotion Reason", summary.get('demotion_reason', '-'))}</strong></div>
+                <div><span>Probability Gate</span><strong>{semantic_value_html("Probability Gate", summary.get('probability_gate', '-'))}</strong></div>
+                <div><span>Resolver Gate</span><strong>{semantic_value_html("Resolver Gate", summary.get('resolver_gate', 'pass'))}</strong></div>
+                <div><span>Freshness Gate</span><strong>{semantic_value_html("Freshness Gate", summary.get('freshness_gate', '-'))}</strong></div>
+                <div><span>Authorization Gate</span><strong>{semantic_value_html("Authorization Gate", summary.get('authorization_gate', '-'))}</strong></div>
+                <div><span>Validation</span><strong>{semantic_value_html("Validation Freshness", summary['validation_freshness_status'])}</strong></div>
+                <div><span>Coverage</span><strong>{semantic_value_html("Coverage", summary['label_coverage_status'])}</strong></div>
+                <div><span>Execution Gate</span><strong>{semantic_value_html("Execution Gate", summary.get('execution_gate', '-'))}</strong></div>
+                <div><span>Autonomous Eligible</span><strong>{semantic_value_html("Autonomous Eligible", summary['autonomous_execution_eligible'])}</strong></div>
+                <div><span>Gate Source</span><strong>{semantic_value_html("Gate Source", summary.get('gate_source', 'local_fallback'))}</strong></div>
               </div>
               <div class="compact-gate-stack__chips">{checks_html}</div>
             </section>
@@ -186,12 +214,12 @@ def _render_gate_stack_styles() -> None:
         """
         <style>
         .compact-gate-stack {
-            border: 1px solid rgba(35, 72, 82, 0.15);
-            border-radius: 14px;
-            background: rgba(255,255,255,0.78);
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 12px;
+            background: rgba(12, 15, 20, 0.98);
             padding: 0.42rem 0.48rem;
             margin: 0.28rem 0;
-            box-shadow: 0 10px 22px rgba(49, 77, 75, 0.06);
+            box-shadow: none;
         }
         .compact-gate-stack__top {
             display: grid;
@@ -202,7 +230,7 @@ def _render_gate_stack_styles() -> None:
         .compact-gate-stack__eyebrow,
         .compact-gate-stack__metrics span,
         .compact-gate-stack__blockers span {
-            color: #667782;
+            color: #9aa3ad;
             font-family: "SF Mono", "Menlo", monospace;
             font-size: 0.60rem;
             font-weight: 900;
@@ -210,17 +238,17 @@ def _render_gate_stack_styles() -> None:
             text-transform: uppercase;
         }
         .compact-gate-stack__title {
-            color: #11282f;
+            color: #f7fbff;
             font-family: "Avenir Next Condensed", "DIN Condensed", "Trebuchet MS", sans-serif;
             font-size: 1.05rem;
             font-weight: 950;
             line-height: 1.08;
         }
         .compact-gate-stack__status {
-            border: 1px solid rgba(35, 72, 82, 0.15);
+            border: 1px solid rgba(255,255,255,0.10);
             border-radius: 999px;
-            background: rgba(255,255,255,0.74);
-            color: #17252b;
+            background: rgba(255,255,255,0.05);
+            color: #f7fbff;
             font-family: "SF Mono", "Menlo", monospace;
             font-size: 0.62rem;
             font-weight: 950;
@@ -229,11 +257,13 @@ def _render_gate_stack_styles() -> None:
         .compact-gate-stack__status--ready,
         .compact-gate-stack__status--dry_run_intent_ready {
             border-color: rgba(15, 159, 113, 0.28);
-            background: rgba(15, 159, 113, 0.09);
+            background: rgba(15, 159, 113, 0.10);
+            color: #8fe2b0;
         }
         .compact-gate-stack__status--blocked {
-            border-color: rgba(196, 77, 70, 0.30);
-            background: rgba(196, 77, 70, 0.09);
+            border-color: rgba(217, 109, 103, 0.30);
+            background: rgba(217, 109, 103, 0.10);
+            color: #e5a09d;
         }
         .compact-gate-stack__metrics {
             display: grid;
@@ -243,16 +273,16 @@ def _render_gate_stack_styles() -> None:
         }
         .compact-gate-stack__metrics div,
         .compact-gate-stack__blockers {
-            border: 1px solid rgba(35, 72, 82, 0.10);
+            border: 1px solid rgba(255,255,255,0.10);
             border-radius: 10px;
-            background: rgba(255,255,255,0.64);
+            background: rgba(255,255,255,0.05);
             padding: 0.26rem 0.32rem;
         }
         .compact-gate-stack__metrics strong,
         .compact-gate-stack__blockers strong {
             display: block;
             margin-top: 0.08rem;
-            color: #17252b;
+            color: #f7fbff;
             font-size: 0.70rem;
             line-height: 1.14;
             overflow-wrap: anywhere;
@@ -268,25 +298,28 @@ def _render_gate_stack_styles() -> None:
         }
         .compact-gate-chip {
             display: inline-flex;
-            border: 1px solid rgba(35, 72, 82, 0.12);
+            border: 1px solid rgba(255,255,255,0.10);
             border-radius: 999px;
-            background: rgba(255,255,255,0.74);
+            background: rgba(255,255,255,0.05);
             padding: 0.12rem 0.34rem;
-            color: #17252b;
+            color: #f7fbff;
             font-family: "SF Mono", "Menlo", monospace;
             font-size: 0.60rem;
         }
         .compact-gate-chip--ok {
             border-color: rgba(15, 159, 113, 0.28);
-            background: rgba(15, 159, 113, 0.09);
+            background: rgba(15, 159, 113, 0.10);
+            color: #8fe2b0;
         }
         .compact-gate-chip--warn {
-            border-color: rgba(196, 122, 21, 0.28);
-            background: rgba(196, 122, 21, 0.10);
+            border-color: rgba(215, 171, 87, 0.28);
+            background: rgba(215, 171, 87, 0.10);
+            color: #e6c67c;
         }
         .compact-gate-chip--block {
-            border-color: rgba(196, 77, 70, 0.28);
-            background: rgba(196, 77, 70, 0.09);
+            border-color: rgba(217, 109, 103, 0.28);
+            background: rgba(217, 109, 103, 0.10);
+            color: #e5a09d;
         }
         @media (max-width: 1100px) {
             .compact-gate-stack__metrics {
@@ -358,6 +391,26 @@ def _resolve_gate_stack_api_market_view(*, gate_stack_api_report: dict, selected
         if str(view.get("market_id") or "") == selected_market_id:
             return view
     return None
+
+
+def _extract_promotion_state(*payloads: dict | None) -> dict:
+    for payload in payloads:
+        if not isinstance(payload, dict):
+            continue
+        candidate = payload.get("promotion_state")
+        if isinstance(candidate, dict):
+            return candidate
+        probability = payload.get("probability")
+        if isinstance(probability, dict):
+            candidate = probability.get("promotion_state")
+            if isinstance(candidate, dict):
+                return candidate
+        validation = payload.get("validation")
+        if isinstance(validation, dict):
+            candidate = validation.get("promotion_state")
+            if isinstance(candidate, dict):
+                return candidate
+    return {}
 
 
 def _derive_severity_from_blockers(blockers: list[str]) -> str:

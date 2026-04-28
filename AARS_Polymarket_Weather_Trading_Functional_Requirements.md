@@ -1,8 +1,8 @@
 # AARS Polymarket Weather Trading Console 功能需求报告
 
-版本：v0.1  
-日期：2026-04-17  
-关联文档：[AARS_Polymarket_Weather_Trading_Architecture.md](./AARS_Polymarket_Weather_Trading_Architecture.md)
+版本：v0.2  
+日期：2026-04-21  
+关联文档：[AARS_Polymarket_Weather_Trading_Architecture.md](./AARS_Polymarket_Weather_Trading_Architecture.md) / [AARS_Polymarket_Weather_Trading_Monitoring_Collection_And_Indicator_Governance.md](./AARS_Polymarket_Weather_Trading_Monitoring_Collection_And_Indicator_Governance.md)
 
 ---
 
@@ -10,7 +10,7 @@
 
 本文档定义 AARS Polymarket Weather Trading Console 的功能需求、用户场景、核心业务流程、验收标准与非功能性要求。
 
-系统目标是构建一个面向 Polymarket 天气 / 气候预测市场的实时交易研究与执行控制台，支持市场发现、规则解析、概率估计、盘口比较、交易建议、证据论证、BOT 授权、执行网关、训练验证和系统监控。
+系统目标是构建一个面向 Polymarket 天气 / 气候预测市场的实时交易研究与执行控制台，支持市场发现、规则解析、概率估计、盘口比较、交易建议、证据论证、BOT 授权、执行网关、训练验证、系统监控和监测采集。
 
 ---
 
@@ -28,6 +28,7 @@
 8. 通过 authorization gate 控制 BOT 自动执行权限。
 9. 通过 execution gateway 输出 dry-run / order intent / order receipt。
 10. 将实时数据沉淀为 feature store 和 label store，用于训练、回测、校准验证和模型注册。
+11. 提供单市场预警与 family 级异常发现能力，为 dashboard / telegram / automation 提供统一监测语义。
 
 ---
 
@@ -156,6 +157,7 @@ flowchart TB
 - 输出 market implied probability。
 - 输出 yes_price、no_price、favored_side、spread、updated_at。
 - 支持 market_realtime_snapshot 和 market_realtime_simple 输出。
+- 市场发现、市场录入和后续比较必须共享同一份市场快照，避免不同表面对同一市场产生不一致事实。
 
 验收标准：
 
@@ -258,6 +260,7 @@ flowchart TB
 - 计算 edge。
 - 计算 confidence_adjusted_edge。
 - 计算 band_distance。
+- comparison 与 dashboard 展示必须消费同一份上游快照，不得在 UI 层重新发明事实源。
 - 判断 divergence_status。
 - 追加 comparison history。
 - 对相同 market 的重复点做去重。
@@ -362,6 +365,8 @@ flowchart TB
 
 功能要求：
 
+- 顶层应以 `TopParameterView` 作为首屏常态参数面，统一展示 market identity、Polymarket params、weather / forecast params、resolver/source contract 与 decision / gate summary。
+- 首屏应优先显示非空字段，非适用 family 的字段应折叠或隐藏，不应以大量 `-` 占位。
 - 顶部显示当前市场、盘口、resolver、forecast、comparison、BOT 状态。
 - 主区域回答五个核心问题。
 - Markets tab 支持搜索、watchlist、recent、pin、remove。
@@ -388,6 +393,7 @@ flowchart TB
 
 功能要求：
 
+- `/status` 与 `/market` 应消费与 Dashboard 一致的 `TopParameterView` 与 `gate_stack_api.v1`，避免不同表面对首屏语义分叉。
 - 推送 market alert。
 - 推送 divergence alert。
 - 推送 BOT authorization request。
@@ -478,13 +484,14 @@ flowchart TB
 
 - 记录 model_id、model_type、features_version、training_range、validation_metrics。
 - 支持 offline_only / shadow / live。
-- 支持 approved_for_live 标记。
+- 支持 `approved_for_live` 标记，作为 validation 侧候选输入，不直接等同于 `live_approved`。
 - 支持模型回滚。
 
 验收标准：
 
-- 只有 approved_for_live 的模型可以进入 live decision。
+- 只有 `approved_for_live=true` 且 `probability_mode=live_approved` 的模型可以进入 live decision。
 - Shadow model 不影响真实 BOT 执行。
+- `approved_for_live` 仅作为 validation 侧输入，不应与 `live_approved` 混为同一语义。
 
 ---
 
@@ -546,6 +553,68 @@ flowchart TB
 - 分发后通知状态应更新为 sent，并记录 sent 事件。
 - 回执后通知状态应更新为 acked，并记录 acked 事件。
 
+---
+
+### FR-20 Top Parameter Surface
+
+系统应把市场参数、天气参数、forecast 参数、resolver/source contract 与比较 / gate 摘要收口为统一首屏合同。
+
+功能要求：
+
+- 输出 `TopParameterView`。
+- 支持 `market_family` 驱动的 family-specific 顶层参数模板。
+- 支持空字段折叠，避免非适用字段遮蔽核心信息。
+- 支持 comparison history / history relationship / evidence chart / timeline 复用同一份合同。
+
+验收标准：
+
+- Dashboard 与 Telegram 顶层首屏展示同一组核心字段。
+- 非温度 family 不应强制显示温度专属字段。
+- `market_probability` 应优先从上游显式字段或 yes/no price 计算得到，不应长期空白。
+
+### FR-21 上游数据流水线治理
+
+系统应把市场研究、市场录入、resolver、forecast、comparison 与展示统一到同一条可追溯流水线。
+
+功能要求：
+
+- 市场发现 / 录入必须明确唯一主快照。
+- resolver 输出必须回指同一 `market_id` 与唯一事实源。
+- forecast / observation 必须与 resolver 与 target_date 对齐。
+- comparison 只能消费上游快照，不得在 UI 层重写事实。
+- Dashboard / Telegram / Gateway 必须消费同一条上游事实链。
+
+验收标准：
+
+- 同一 `market_id` 的 market / rule / forecast / comparison 可互相回指。
+- 任一表面都不能独立生成与上游冲突的“当前事实”。
+- 当上游源不一致时，UI 只能显示 mismatch / stale / unavailable，而不能静默拼接。
+
+### FR-22 监测采集层与异常发现
+
+当前状态：已实现，作为 Phase 27 完成后的正式基线能力收口。
+
+系统应提供统一的监测采集层，用于单市场实时预警与 family 级异常发现。
+
+功能要求：
+
+- 支持 observation shock、forecast divergence、market reaction gap、resolver / source risk 等单市场指标。
+- 支持 price velocity、edge dislocation、evidence mismatch、microstructure stress、peer relative anomaly、intervention-like score 等 family 指标。
+- 指标必须先校验 `market_id`、`station_id`、`variable_name`、`target_date`、`source_match_grade`、`band_scheme` 等 contract，再进入比较或告警。
+- 指标必须可回放、可重算，并记录 threshold policy version 与 indicator version。
+- `market_alert_event.v1` 与 `market_anomaly_event.v1` 必须可被 dashboard、telegram、automation consumer 统一消费。
+
+验收标准：
+
+- 单市场指标在 source mismatch 时自动降级为 review-only / advisory。
+- family anomaly 仅在同 family / 同日期 / 同变量的 peer 对比下输出。
+- 缺数据不得被默认为 0，必须显式表达 missing / incomplete / degraded。
+- 监测采集结果不得反向改写 gate 语义，gate 仍由 `gate_stack_api.v1` 决定。
+
+Phase 30 已完成后，validation assimilation 与 advanced anomaly 的只读消费面也已接入 dashboard、Telegram 与 workstation，但这些新增可视化仍只消费同一套监测契约，不改变 FR-22 的职责边界。
+
+Phase 31 已完成后，系统进一步新增持续运行的市场发现、证据扫描、异常检测与告警路由链路；这些扫描结果同样只消费既有 resolver / source / measurement / validation 契约，不改变 FR-22 的职责边界，也不把 alert / anomaly 变成 gate 语义。
+
 ## 7. 非功能需求
 
 ### NFR-01 可用性
@@ -583,6 +652,121 @@ flowchart TB
 - 所有 snapshot 应包含 timestamp。
 - 所有实时数据应包含 freshness status。
 - 训练数据必须 point-in-time safe。
+
+---
+
+## 7.1 UI Runtime Architecture Functional Requirements
+
+本节补充 UI Runtime Architecture Refactor v1 的功能需求，适用于 Dashboard、Telegram、CLI 与报告 surface。
+
+### FR-UI-01 页面角色边界
+
+系统必须将页面职责明确分离：
+
+- Operations Monitor 负责运行总控。
+- Monitoring Signals 负责信号与告警流。
+- Opportunity Board 负责机会排序与候选研究入口。
+- Workstation 负责单市场证据深度分析。
+- Command 负责操作员动作闭环与授权控制。
+- Pipeline 负责数据管道与处理诊断。
+- Markets 负责市场池和 watchlist 管理。
+- Charts 负责趋势与可视化分析。
+- History 负责事件回放与审计。
+- Evidence / Raw 负责原始证据、canonical conversion 与 lineage。
+
+验收：
+
+- 页面不得重复承担其他页面的核心职责。
+- Opportunity Board 不得变成实时监控页。
+- Command 不得变成证据深挖或多市场监控页。
+
+### FR-UI-02 View Contract 渲染
+
+Dashboard 页面、Telegram 命令、CLI 摘要和报告必须消费统一 view contracts。
+
+最低要求：
+
+- Operations Monitor 读取 `operations_monitor_view.v1`。
+- Opportunity Board 读取 `opportunity_board_view.v1`。
+- Workstation 读取 `market_workstation_view.v1`。
+- Command 读取 `command_context_view.v1`。
+- Markets 读取 `markets_inventory_view.v1`。
+- Evidence / Raw 读取 `evidence_raw_view.v1`。
+
+验收：
+
+- 前端页面不得直接从 raw data 推导 `primary_state`、`gate_summary`、`opportunity_score`、`next_operator_action`。
+- Telegram 与 Dashboard 对同一 market 的关键状态一致。
+
+### FR-UI-03 主状态治理
+
+系统必须生成并消费统一主状态字段：
+
+```json
+{
+  "primary_state": "BLOCKED",
+  "primary_state_reason": "Gate blocked by validation coverage below threshold",
+  "secondary_states": ["LIVE", "DATA_QUALITY_B"],
+  "display_priority": 92
+}
+```
+
+主状态优先级：
+
+```text
+BLOCKED > ALERT > ANOM > STALE > NORMAL
+```
+
+验收：
+
+- 所有 market card / focus card / quick detail 只显示一个主状态。
+- 主状态必须来自 `primary_state_policy`，不由前端自算。
+- `OPS` 不得直接成为 market card 主状态，除非 view builder 明确映射。
+
+### FR-UI-04 动作可见性治理
+
+系统必须通过 `action_visibility_policy` 控制动作展示和启用状态。
+
+要求：
+
+- Board / Monitor / Markets 允许 `View`、`Add to Focus`、`Open Workstation`、`Send to Command`。
+- Workstation 允许 `Review Evidence`、`Open Charts`、`Send to Command`、secondary `Run Dry-run Review`。
+- Command 允许 `Acknowledge`、`Mute`、`Create Pending Intent`、`Run Dry-run`。
+- `Live Execute` 只能在未来 gated mode 中由 Command 显示。
+
+验收：
+
+- 非 Command 页面不得把 `Live Execute` 作为主按钮。
+- execution-related 按钮必须显示禁用原因。
+- action events 必须写入统一 audit trail。
+
+### FR-UI-05 图例与颜色一致性
+
+系统必须统一 `LIVE / STALE / ALERT / ANOM / BLOCKED / ALLOW / B / OPS` 的状态语义与颜色语义。
+
+验收：
+
+- 红色只用于 `BLOCKED`、`ALERT red`、critical `OPS` 和顶部风险主数字。
+- 琥珀只用于 `ANOM`、warning、medium risk。
+- 绿色只用于 `LIVE`、`ALLOW`、`NORMAL`、healthy。
+- 品红 `B` 只用于字段级数据质量问题。
+
+### FR-UI-06 导航与页面上下文
+
+系统必须按 operator intent 分组导航：
+
+```text
+RUN: Operations Monitor, Monitoring Signals, Command
+RESEARCH: Opportunity Board, Workstation, Charts
+DATA: Pipeline, Markets, Evidence / Raw, History
+SETTINGS: Alerts & Rules, Data & Sources, System
+```
+
+验收：
+
+- 页面跳转必须携带必要 entry context。
+- `Open Workstation`、`Add to Focus`、`Send to Command`、`Review Evidence`、`View History` 行为一致。
+- 页面不得自造局部 context。
 
 ---
 

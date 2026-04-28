@@ -1,0 +1,13 @@
+{
+  "schema_version": "ui_legend_policy.default.v1",
+  "legend": [
+    {"token": "LIVE", "type": "freshness", "color": "green", "description": "Data is current within the configured freshness window."},
+    {"token": "STALE", "type": "freshness", "color": "blue_or_amber", "description": "Data is visible but old or unavailable."},
+    {"token": "ALERT", "type": "market_signal", "color": "red", "description": "Market alert requiring operator attention."},
+    {"token": "ANOM", "type": "anomaly_signal", "color": "amber", "description": "Anomaly requiring review; not an execution allow signal."},
+    {"token": "BLOCKED", "type": "gate_state", "color": "red", "description": "Gate or boundary prevents execution."},
+    {"token": "ALLOW", "type": "gate_state", "color": "green", "description": "Gate allows the relevant bounded action."},
+    {"token": "B", "type": "data_quality", "color": "magenta", "description": "Field-level bad data quality marker."},
+    {"token": "OPS", "type": "system_state", "color": "red_or_amber", "description": "System/ops issue; does not directly define market state."}
+  ]
+}

@@ -3,6 +3,12 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 
 from weather_comparison_engine.schemas.training_sample import TrainingSample
+from weather_comparison_engine.validation.quality_reports import (
+    build_family_rollout_summary,
+    build_family_rollout_trend_summary,
+    build_family_rollout_watchlist,
+    build_governance_summary,
+)
 
 
 class Backtester:
@@ -16,8 +22,8 @@ class Backtester:
             sample
             for sample in samples
             if sample.outcome in {"YES", "NO"}
-            and sample.model_probability is not None
-            and sample.market_probability is not None
+            and _sample_probability(sample, "model_probability") is not None
+            and _sample_probability(sample, "market_probability") is not None
         ]
 
         trades: list[dict] = []
@@ -25,7 +31,9 @@ class Backtester:
         equity_curve: list[float] = []
 
         for sample in labeled:
-            edge = float(sample.model_probability) - float(sample.market_probability)
+            edge = float(_sample_probability(sample, "model_probability")) - float(
+                _sample_probability(sample, "market_probability")
+            )
             if edge >= edge_threshold:
                 trade = _trade_yes(sample, edge)
             elif edge <= -edge_threshold:
@@ -63,6 +71,10 @@ class Backtester:
             "turnover": len(trades),
             "position_counts": dict(Counter(trade["side"] for trade in trades)),
             "family_breakdown": family_breakdown,
+            "governance_summary": build_governance_summary(samples),
+            "family_rollout_summary": build_family_rollout_summary(samples),
+            "family_rollout_trend_summary": build_family_rollout_trend_summary(samples),
+            "family_rollout_watchlist": build_family_rollout_watchlist(samples),
             "note": (
                 "Heuristic backtest uses model_probability vs market_probability edge with unit stake sizing. "
                 "This is a validation scaffold, not a production execution model."
@@ -71,7 +83,7 @@ class Backtester:
 
 
 def _trade_yes(sample: TrainingSample, edge: float) -> dict | None:
-    entry_price = _entry_price(sample.yes_price, sample.market_probability)
+    entry_price = _entry_price(sample.yes_price, _sample_probability(sample, "market_probability"))
     if entry_price is None:
         return None
     pnl = (1 - entry_price) if sample.outcome == "YES" else -entry_price
@@ -86,7 +98,8 @@ def _trade_yes(sample: TrainingSample, edge: float) -> dict | None:
 
 
 def _trade_no(sample: TrainingSample, edge: float) -> dict | None:
-    fallback_no_price = (1 - sample.market_probability) if sample.market_probability is not None else None
+    market_probability = _sample_probability(sample, "market_probability")
+    fallback_no_price = (1 - market_probability) if market_probability is not None else None
     entry_price = _entry_price(sample.no_price, fallback_no_price)
     if entry_price is None:
         return None
@@ -99,6 +112,14 @@ def _trade_no(sample: TrainingSample, edge: float) -> dict | None:
         "entry_price": entry_price,
         "pnl": pnl,
     }
+
+
+def _sample_probability(sample: TrainingSample, field: str) -> float | None:
+    value = getattr(sample, field, None)
+    try:
+        return float(value) if value is not None else None
+    except (TypeError, ValueError):
+        return None
 
 
 def _entry_price(primary: float | None, fallback: float | None) -> float | None:

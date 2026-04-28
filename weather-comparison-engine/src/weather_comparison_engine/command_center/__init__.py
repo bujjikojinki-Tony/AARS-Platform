@@ -1,0 +1,3 @@
+from weather_comparison_engine.command_center.command_context_view_builder import build_command_context_view
+
+__all__ = ["build_command_context_view"]

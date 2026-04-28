@@ -4,9 +4,12 @@ import json
 import os
 import ssl
 from datetime import datetime, timezone
+from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from urllib.error import URLError
+
+import certifi
 
 
 class GammaSearchLoader:
@@ -29,10 +32,26 @@ class GammaSearchLoader:
             with urlopen(request, timeout=15) as response:  # nosec: B310 - trusted public API
                 raw = response.read().decode("utf-8")
         except URLError as exc:
-            if self._is_ssl_handshake_error(exc) and self._allow_insecure_ssl():
-                return self._fetch_without_ssl_verification(request)
+            if self._is_ssl_handshake_error(exc):
+                secure_retry = self._fetch_with_ca_bundle(request)
+                if secure_retry is not None:
+                    return secure_retry
+                if self._allow_insecure_ssl():
+                    return self._fetch_without_ssl_verification(request)
             raise RuntimeError(f"Gamma search failed: {exc}") from exc
 
+        return json.loads(raw)
+
+    def _fetch_with_ca_bundle(self, request: Request) -> object | None:
+        ca_bundle = self._resolve_ca_bundle()
+        if ca_bundle is None:
+            return None
+        context = ssl.create_default_context(cafile=str(ca_bundle))
+        try:
+            with urlopen(request, timeout=15, context=context) as response:  # nosec: B310 - trusted public API
+                raw = response.read().decode("utf-8")
+        except URLError:
+            return None
         return json.loads(raw)
 
     def _fetch_without_ssl_verification(self, request: Request) -> object:
@@ -51,6 +70,19 @@ class GammaSearchLoader:
             "true",
             "yes",
         }
+
+    @staticmethod
+    def _resolve_ca_bundle() -> Path | None:
+        bundle = os.getenv("GAMMA_SEARCH_CA_BUNDLE", "").strip()
+        if bundle:
+            path = Path(bundle)
+            if path.exists():
+                return path
+        try:
+            certifi_path = Path(certifi.where())
+        except Exception:
+            return None
+        return certifi_path if certifi_path.exists() else None
 
     @staticmethod
     def _is_ssl_handshake_error(exc: URLError) -> bool:

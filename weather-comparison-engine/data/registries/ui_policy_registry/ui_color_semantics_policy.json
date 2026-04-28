@@ -1,0 +1,16 @@
+{
+  "schema_version": "ui_color_semantics_policy.default.v1",
+  "colors": {
+    "green": ["LIVE", "ALLOW", "NORMAL", "healthy"],
+    "amber": ["ANOM", "warning", "medium_risk"],
+    "red": ["BLOCKED", "ALERT_RED", "critical_ops", "risk_primary"],
+    "blue": ["selected", "focus", "neutral_info"],
+    "magenta": ["DATA_QUALITY_B"]
+  },
+  "constraints": [
+    "Red must not be used for decoration.",
+    "Amber must not be used for gate allow.",
+    "Magenta is reserved for field-level data quality issue B.",
+    "OPS state must not become market card primary_state unless explicitly mapped by a view builder."
+  ]
+}

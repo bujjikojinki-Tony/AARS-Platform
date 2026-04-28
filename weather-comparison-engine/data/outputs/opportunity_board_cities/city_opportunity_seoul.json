@@ -1,0 +1,84 @@
+{
+  "schema_version": "city_opportunity.v1",
+  "generated_at": "2026-04-23T02:35:32.691338+00:00",
+  "city": "Seoul",
+  "row_count": 1,
+  "rows": [
+    {
+      "row_id": "Seoul.temperature_daily_max",
+      "city": "Seoul",
+      "country": "KR",
+      "market_family": "temperature_daily_max",
+      "active_market_count": 1,
+      "opportunity_score": 0.49,
+      "opportunity_rank": 3,
+      "difficulty_score": 0.3315,
+      "difficulty_label": "medium",
+      "best_model": "JMA",
+      "best_source_stack": [
+        "jma",
+        "official_obs"
+      ],
+      "source_precision_score": 0.7,
+      "freshness_status": "seed_prior",
+      "alert_count": 0,
+      "latest_alert_severity": "-",
+      "anomaly_count": 0,
+      "latest_anomaly_score": null,
+      "gate_risk_summary": "summary_unavailable",
+      "recommended_action": "watch_seed",
+      "opportunity_reason": "edge=0.80;lag=0.45;alerts=0.00;anomalies=0.00;precision=0.70;freshness=0.55",
+      "difficulty_reason": "source=0.34;official=0.16;freshness=0.45;resolver=0.38;family=0.36",
+      "best_model_reason": "manual opportunity seed provides a cold-start best model prior; system scoring should supersede it when enough live evidence is available",
+      "opportunity_components": {
+        "edge_component": 0.8,
+        "market_lag_component": 0.45,
+        "source_precision_component": 0.7,
+        "freshness_component": 0.55,
+        "liquidity_component": 0.0,
+        "anomaly_penalty_component": 0.0
+      },
+      "difficulty_components": {
+        "source_precision_difficulty": 0.34,
+        "resolver_stability_difficulty": 0.38,
+        "settlement_clarity_difficulty": 0.16,
+        "freshness_reliability_difficulty": 0.45,
+        "market_complexity_difficulty": 0.36
+      },
+      "best_model_components": {
+        "family_fit": 1.0,
+        "source_availability": 0.8,
+        "source_precision_fit": 0.9,
+        "freshness_reliability": 0.85,
+        "validation_support": 0.6
+      },
+      "opportunity_policy_ref": "opportunity_scoring_policy.v1",
+      "scoring_policy_ref": "opportunity_scoring_policy.v1",
+      "difficulty_policy_ref": "difficulty_scoring_policy.v1",
+      "model_recommendation_policy_ref": "model_recommendation_policy.v1",
+      "action_mapping_policy_ref": "action_mapping_policy.v1",
+      "freshness_mapping_policy_ref": "freshness_mapping_policy.v1",
+      "source_precision_policy_ref": "source_precision_policy.v1",
+      "seed_id": "seoul.temperature_daily_max",
+      "seeded_from_manual_research": true,
+      "seed_status": "active",
+      "source_origin": "image_2_manual_research",
+      "manual_confidence": "medium",
+      "seed_notes": "Model preference favors East Asia coverage.",
+      "superseded_by_system_score": false,
+      "upstream_refs": {
+        "market_ids": [],
+        "comparison_refs": [],
+        "alert_refs": [],
+        "anomaly_refs": [],
+        "gate_refs": []
+      },
+      "latest_context": {
+        "market_id": "",
+        "comparison_status": "seed_prior",
+        "comparison_reason": null,
+        "action_hint": null
+      }
+    }
+  ]
+}

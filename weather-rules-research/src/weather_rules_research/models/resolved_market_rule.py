@@ -29,6 +29,11 @@ class ResolvedMarketRule(BaseModel):
     source_match_grade: str | None = None
     official_source_url: str | None = None
     source_note: str | None = None
+    source_policy_ref: str | None = None
+    unit_policy_ref: str | None = None
+    precision_policy_ref: str | None = None
+    rounding_policy_ref: str | None = None
+    band_mapping_policy_ref: str | None = None
 
     location_name: str | None = None
     station_name: str | None = None

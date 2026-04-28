@@ -1,0 +1,50 @@
+{
+  "schema_version": "evidence_timeline.v1",
+  "input_mode": "canonical_only",
+  "status": "ready",
+  "tracks": {
+    "market_probability": {
+      "point_count": 1,
+      "latest": {
+        "timestamp": "2026-04-22T13:00:33.278178+00:00",
+        "market_probability": null,
+        "comparison_status": "unknown",
+        "confidence_adjusted_edge": 0.0
+      }
+    },
+    "forecast": {
+      "point_count": 1,
+      "latest": {
+        "timestamp": "-",
+        "display_value": "-",
+        "canonical_value": null,
+        "canonical_unit": "source_defined",
+        "model_band": null
+      }
+    },
+    "observation": {
+      "point_count": 1,
+      "latest": {
+        "timestamp": "-",
+        "display_value": "-",
+        "canonical_value": null,
+        "canonical_unit": "source_defined",
+        "observation_band": "-",
+        "source_match_grade": "-"
+      }
+    },
+    "events": {
+      "marker_count": 1,
+      "markers": [
+        {
+          "type": "gate",
+          "status": "-",
+          "reason": "monitoring_not_healthy",
+          "timestamp": null
+        }
+      ]
+    }
+  },
+  "marker_count": 1,
+  "history_point_count": 1
+}

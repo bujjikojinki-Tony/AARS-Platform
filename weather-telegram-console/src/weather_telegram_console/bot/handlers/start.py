@@ -14,5 +14,5 @@ async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     if update.message:
         await update.message.reply_text(
             "Weather Telegram Console is running.\n"
-            "Use /status, /market, /timeline, or /signals."
+            "Use /status, /market, /opportunities, /timeline, or /signals."
         )

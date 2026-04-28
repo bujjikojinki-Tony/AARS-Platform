@@ -5,10 +5,12 @@ from weather_telegram_console.bot.handlers.status import status_handler
 
 class FakeMessage:
     def __init__(self) -> None:
+        self.texts: list[str] = []
         self.text: str | None = None
         self.parse_mode: str | None = None
 
     async def reply_text(self, text: str, parse_mode: str | None = None) -> None:
+        self.texts.append(text)
         self.text = text
         self.parse_mode = parse_mode
 
@@ -73,3 +75,20 @@ def test_status_handler(monkeypatch) -> None:
     assert "AARS Unified Status" in update.message.text
     assert "execution:blocked" in update.message.text
     assert "Authorization Gate" in update.message.text
+
+
+def test_status_handler_splits_long_message(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "weather_telegram_console.bot.handlers.status.StatusAPI.load_latest_status",
+        lambda self: {"overall_status": "guarded", "generated_at": "2026-04-18T09:00:00+00:00"},
+    )
+    monkeypatch.setattr(
+        "weather_telegram_console.bot.handlers.status.format_status_card",
+        lambda report: "\n\n".join(f"*Section {idx}*\n{text}" for idx, text in enumerate(["x" * 1800] * 3, start=1)),
+    )
+
+    update = FakeUpdate()
+    asyncio.run(status_handler(update, None))
+
+    assert len(update.message.texts) >= 2
+    assert all(len(text) <= 3500 for text in update.message.texts)

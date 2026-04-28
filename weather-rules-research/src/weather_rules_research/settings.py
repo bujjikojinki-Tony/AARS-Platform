@@ -8,6 +8,11 @@ WORKSPACE_ROOT = PACKAGE_ROOT.parent
 DATA_DIR = PACKAGE_ROOT / "data"
 RAW_DIR = DATA_DIR / "raw"
 OUTPUT_DIR = DATA_DIR / "outputs"
+REGISTRIES_DIR = DATA_DIR / "registries"
+MEASUREMENT_REGISTRY_DIR = REGISTRIES_DIR / "measurement_registry"
+
+for path in [DATA_DIR, RAW_DIR, OUTPUT_DIR, REGISTRIES_DIR, MEASUREMENT_REGISTRY_DIR]:
+    path.mkdir(parents=True, exist_ok=True)
 
 REALTIME_MARKET_JSON = Path(
     __import__("os").getenv(
@@ -21,6 +26,37 @@ REALTIME_MARKET_SNAPSHOTS_GLOB = __import__("os").getenv(
     str(WORKSPACE_ROOT / "polymarket-weather-ingest" / "data" / "outputs" / "market_realtime_simple_*.json"),
 )
 
+SOURCE_POLICY_REGISTRY_JSON = Path(
+    __import__("os").getenv(
+        "SOURCE_POLICY_REGISTRY_JSON",
+        str(REGISTRIES_DIR / "source_policy_registry.json"),
+    )
+)
+UNIT_REGISTRY_JSON = Path(
+    __import__("os").getenv(
+        "UNIT_REGISTRY_JSON",
+        str(MEASUREMENT_REGISTRY_DIR / "unit_registry.json"),
+    )
+)
+PRECISION_POLICY_REGISTRY_JSON = Path(
+    __import__("os").getenv(
+        "PRECISION_POLICY_REGISTRY_JSON",
+        str(MEASUREMENT_REGISTRY_DIR / "precision_policy_registry.json"),
+    )
+)
+ROUNDING_POLICY_REGISTRY_JSON = Path(
+    __import__("os").getenv(
+        "ROUNDING_POLICY_REGISTRY_JSON",
+        str(MEASUREMENT_REGISTRY_DIR / "rounding_policy_registry.json"),
+    )
+)
+BAND_MAPPING_POLICY_REGISTRY_JSON = Path(
+    __import__("os").getenv(
+        "BAND_MAPPING_POLICY_REGISTRY_JSON",
+        str(MEASUREMENT_REGISTRY_DIR / "band_mapping_policy_registry.json"),
+    )
+)
+
 RULEBOOK_JSON = Path(
     __import__("os").getenv(
         "RULEBOOK_JSON",
@@ -31,7 +67,7 @@ RULEBOOK_JSON = Path(
 STATION_MAP_JSON = Path(
     __import__("os").getenv(
         "STATION_MAP_JSON",
-        str(OUTPUT_DIR / "sample_station_map.json"),
+        str(DATA_DIR / "processed" / "station_maps" / "manual_station_map.json"),
     )
 )
 

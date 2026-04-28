@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "monitoring_signals_view.schema.json",
+  "title": "monitoring_signals_view.v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "signals",
+    "signal_summary",
+    "view_context"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "monitoring_signals_view.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "signals": {
+      "type": "array"
+    },
+    "signal_summary": {
+      "type": "object"
+    },
+    "selected_signal_detail": {
+      "type": "object"
+    },
+    "view_context": {
+      "type": "object"
+    }
+  }
+}

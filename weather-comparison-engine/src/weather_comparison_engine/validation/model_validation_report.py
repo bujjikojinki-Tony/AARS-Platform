@@ -9,6 +9,12 @@ from weather_comparison_engine.schemas.training_sample import TrainingSample
 from weather_comparison_engine.probability.promotion_policy import PromotionPolicy
 from weather_comparison_engine.validation.backtester import Backtester
 from weather_comparison_engine.validation.calibration_evaluator import CalibrationEvaluator
+from weather_comparison_engine.validation.quality_reports import (
+    build_family_rollout_summary,
+    build_family_rollout_trend_summary,
+    build_family_rollout_watchlist,
+    build_validation_assimilation_summary,
+)
 
 
 def load_training_samples_jsonl(path: str | Path) -> list[TrainingSample]:
@@ -58,6 +64,10 @@ def build_model_validation_report(
     )
     edge_deciles = _edge_deciles(samples)
     resolver_quality = _resolver_quality(samples)
+    governance_summary = _governance_summary(samples)
+    family_rollout_summary = build_family_rollout_summary(samples)
+    family_rollout_trend_summary = build_family_rollout_trend_summary(samples)
+    family_rollout_watchlist = build_family_rollout_watchlist(samples)
 
     labeled_samples = [sample for sample in samples if sample.is_labeled]
     time_values = sorted(sample.timestamp for sample in samples if sample.timestamp)
@@ -93,9 +103,14 @@ def build_model_validation_report(
         "family_validation": family_validation,
         "edge_deciles": edge_deciles,
         "resolver_quality": resolver_quality,
+        "governance_summary": governance_summary,
+        "family_rollout_summary": family_rollout_summary,
+        "family_rollout_trend_summary": family_rollout_trend_summary,
+        "family_rollout_watchlist": family_rollout_watchlist,
         "note": (
-            "Phase 8 validation is evaluating the current heuristic shadow probability and "
-            "edge-based decision scaffold. Outputs are for offline validation only."
+            "Phase 28.1 validation is evaluating the current heuristic shadow probability, "
+            "edge-based decision scaffold, and source/measurement governance. Outputs are for offline "
+            "validation only."
         ),
     }
 
@@ -116,6 +131,13 @@ def build_model_validation_report(
     validation_report["demotion_reason"] = promotion_state["demotion_reason"]
     validation_report["promotion_policy_version"] = promotion_state["promotion_policy_version"]
     validation_report["promotion_blockers"] = promotion_state["blockers"]
+    validation_assimilation_summary = build_validation_assimilation_summary(
+        samples,
+        validation_report=validation_report,
+        label_coverage_report=None,
+        backtest_report=backtest_report,
+    )
+    validation_report["validation_assimilation_summary"] = validation_assimilation_summary
 
     calibration_report = {
         "schema_version": "calibration_report.v1",
@@ -200,8 +222,13 @@ def _edge_deciles(samples: list[TrainingSample]) -> list[dict]:
 def _sample_edge(sample: TrainingSample) -> float | None:
     if sample.edge is not None:
         return float(sample.edge)
-    if sample.model_probability is not None and sample.market_probability is not None:
-        return float(sample.model_probability) - float(sample.market_probability)
+    model_probability = getattr(sample, "model_probability", None)
+    market_probability = getattr(sample, "market_probability", None)
+    if model_probability is not None and market_probability is not None:
+        try:
+            return float(model_probability) - float(market_probability)
+        except (TypeError, ValueError):
+            return None
     return None
 
 
@@ -233,3 +260,71 @@ def _resolver_quality(samples: list[TrainingSample]) -> dict:
         "unmatched_market_rate": round(unmatched_count / total, 6),
         "resolver_status_counts": counts,
     }
+
+
+def _governance_summary(samples: list[TrainingSample]) -> dict:
+    total = len(samples)
+    if total == 0:
+        return {
+            "sample_count": 0,
+            "canonical_sample_count": 0,
+            "source_policy_sample_count": 0,
+            "normalization_version_counts": {},
+            "source_policy_ref_counts": {},
+            "precision_policy_ref_counts": {},
+            "rounding_policy_ref_counts": {},
+            "band_mapping_policy_ref_counts": {},
+            "freshness_status_counts": {},
+            "source_match_grade_counts": {},
+            "canonical_ratio": None,
+            "source_policy_coverage": None,
+            "normalization_coverage": None,
+        }
+
+    canonical_sample_count = 0
+    source_policy_sample_count = 0
+    normalization_version_counts: dict[str, int] = {}
+    source_policy_ref_counts: dict[str, int] = {}
+    precision_policy_ref_counts: dict[str, int] = {}
+    rounding_policy_ref_counts: dict[str, int] = {}
+    band_mapping_policy_ref_counts: dict[str, int] = {}
+    freshness_status_counts: dict[str, int] = {}
+    source_match_grade_counts: dict[str, int] = {}
+
+    for sample in samples:
+        if sample.canonical_value is not None and sample.canonical_unit not in (None, ""):
+            canonical_sample_count += 1
+        if sample.source_policy_ref not in (None, ""):
+            source_policy_sample_count += 1
+
+        _increment_count(normalization_version_counts, sample.normalization_version or "unknown")
+        _increment_count(source_policy_ref_counts, sample.source_policy_ref or "unknown")
+        _increment_count(precision_policy_ref_counts, sample.precision_policy_ref or "unknown")
+        _increment_count(rounding_policy_ref_counts, sample.rounding_policy_ref or "unknown")
+        _increment_count(band_mapping_policy_ref_counts, sample.band_mapping_policy_ref or "unknown")
+        _increment_count(freshness_status_counts, sample.freshness_status or "unknown")
+        _increment_count(source_match_grade_counts, sample.source_match_grade or "unknown")
+
+    return {
+        "sample_count": total,
+        "canonical_sample_count": canonical_sample_count,
+        "source_policy_sample_count": source_policy_sample_count,
+        "normalization_version_counts": normalization_version_counts,
+        "source_policy_ref_counts": source_policy_ref_counts,
+        "precision_policy_ref_counts": precision_policy_ref_counts,
+        "rounding_policy_ref_counts": rounding_policy_ref_counts,
+        "band_mapping_policy_ref_counts": band_mapping_policy_ref_counts,
+        "freshness_status_counts": freshness_status_counts,
+        "source_match_grade_counts": source_match_grade_counts,
+        "canonical_ratio": round(canonical_sample_count / total, 6),
+        "source_policy_coverage": round(source_policy_sample_count / total, 6),
+        "normalization_coverage": round(
+            sum(1 for sample in samples if sample.normalization_version not in (None, ""))
+            / total,
+            6,
+        ),
+    }
+
+
+def _increment_count(counter: dict[str, int], key: str) -> None:
+    counter[key] = counter.get(key, 0) + 1

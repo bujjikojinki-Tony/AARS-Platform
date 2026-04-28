@@ -1,0 +1,21 @@
+{
+  "policy_id": "opportunity_scoring_policy.v1",
+  "schema_version": "opportunity_scoring_policy.v1",
+  "applicable_scope": "opportunity_board.city_family_rows",
+  "formula_or_mapping": "weighted_linear_components",
+  "weights": {
+    "edge_component": 0.30,
+    "market_lag_component": 0.20,
+    "source_precision_component": 0.15,
+    "freshness_component": 0.10,
+    "liquidity_component": 0.15,
+    "anomaly_penalty_component": -0.10
+  },
+  "component_bounds": {
+    "min": 0.0,
+    "max": 1.0
+  },
+  "version": "v1",
+  "status": "active",
+  "notes": "Operator prioritization only. This score does not define execution permission."
+}

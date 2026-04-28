@@ -20,7 +20,9 @@ def render_probability_shadow_panel(probability_state: dict | None) -> None:
     execution_constraint = probability_state.get("execution_constraint", "-")
     approved_for_live = probability_state.get("approved_for_live", "-")
     deployment_mode = probability_state.get("deployment_mode", "-")
-    promotion_reason = probability_state.get("promotion_reason", "-")
+    promotion_state = probability_state.get("promotion_state") or {}
+    promotion_reason = promotion_state.get("promotion_reason", probability_state.get("promotion_reason", "-"))
+    demotion_reason = promotion_state.get("demotion_reason", probability_state.get("demotion_reason", "-"))
     render_compact_note(
         "Shadow probability is a heuristic decision aid, not a calibrated probability. "
         "It does not affect current comparison history or BOT execution.",
@@ -36,7 +38,9 @@ def render_probability_shadow_panel(probability_state: dict | None) -> None:
             ("Execution Constraint", execution_constraint),
             ("Approved For Live", approved_for_live),
             ("Deployment Mode", deployment_mode),
+            ("Promotion State", promotion_state.get("probability_mode", probability_mode)),
             ("Promotion Reason", promotion_reason),
+            ("Demotion Reason", demotion_reason),
             ("Method", probability_state.get("method", "-")),
             ("Market Implied Probability", probability_state.get("market_implied_probability", "-")),
             ("Model Probability", probability_state.get("model_probability", "-")),
@@ -88,6 +92,10 @@ def render_probability_shadow_report_panel(report: dict | None) -> None:
     c5.metric("Calibration", report.get("calibration_status", "-"))
     c6.metric("Approved For Live", report.get("approved_for_live", "-"))
     c7.metric("Deployment Mode", report.get("deployment_mode", "-"))
+    c8, c9, c10 = st.columns(3)
+    c8.metric("Promotion State", (report.get("promotion_state") or {}).get("probability_mode", report.get("probability_mode", "-")))
+    c9.metric("Promotion Reason", (report.get("promotion_state") or {}).get("promotion_reason", report.get("promotion_reason", "-")))
+    c10.metric("Demotion Reason", (report.get("promotion_state") or {}).get("demotion_reason", report.get("demotion_reason", "-")))
 
     top_edges = report.get("top_edges") or []
     if top_edges:

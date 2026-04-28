@@ -19,6 +19,8 @@ Current research mode includes:
 - review flags and parser confidence on normalized rules
 - manual station mapping backed by JSON plus alias normalization
 - bias summary metrics including mean error, MAE, RMSE, and band hit rate
+- startup self-check that keeps station mapping and forecast snapshot aligned before realtime writes
+- resolver output is the canonical market-rule source for downstream comparison and UI consumers
 
 This repo is **research-only**.
 It does **not** execute trades.
@@ -40,6 +42,9 @@ Primary exports:
 - `rulebook.json`
 - `station_map.json`
 - `forecast_bias_report.csv`
+- `forecast_realtime_snapshot.json`
+- `station_settlement_summary.json`
+- `official_label_summary.json`
 
 These will later feed:
 
@@ -152,6 +157,19 @@ This writes:
 - `data/outputs/official_records/official_record_*.json`
 - `data/outputs/official_history.jsonl`
 - `data/outputs/official_label_summary.json`
+
+Realtime worker:
+
+```bash
+python scripts/run_weather_realtime.py
+```
+
+The realtime worker now prefers canonical station mappings, keeps
+`target_date` aligned to the market question when possible, and refreshes the
+forecast snapshot before downstream consumers read it.
+
+Downstream modules should consume these outputs as the single weather-rule
+source of truth rather than re-parsing market questions independently.
 
 To switch the station backfill toward real fetch mode, set:
 

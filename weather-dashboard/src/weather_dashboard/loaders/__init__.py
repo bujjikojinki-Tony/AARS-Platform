@@ -6,6 +6,7 @@ from weather_dashboard.loaders.market_bundle_loader import MarketBundleLoader
 from weather_dashboard.loaders.market_realtime_snapshot_loader import (
     MarketRealtimeSnapshotLoader,
 )
+from weather_dashboard.loaders.opportunity_board_loader import OpportunityBoardLoader
 from weather_dashboard.loaders.realtime_forecast_loader import RealtimeForecastLoader
 from weather_dashboard.loaders.realtime_market_loader import RealtimeMarketLoader
 from weather_dashboard.loaders.rulebook_loader import RulebookLoader
@@ -21,6 +22,7 @@ __all__ = [
     "GammaSearchLoader",
     "MarketBundleLoader",
     "MarketRealtimeSnapshotLoader",
+    "OpportunityBoardLoader",
     "RealtimeMarketLoader",
     "RealtimeForecastLoader",
     "TimeSeriesLoader",

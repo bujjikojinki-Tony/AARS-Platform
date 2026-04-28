@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "pipeline_status_view.schema.json",
+  "title": "pipeline_status_view.v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "pipeline_health",
+    "stages",
+    "metrics"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "pipeline_status_view.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "pipeline_health": {
+      "type": "object"
+    },
+    "stages": {
+      "type": "array"
+    },
+    "metrics": {
+      "type": "object"
+    },
+    "recent_errors": {
+      "type": "array"
+    },
+    "view_context": {
+      "type": "object"
+    }
+  }
+}

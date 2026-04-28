@@ -1,0 +1,239 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "market_workstation_view.schema.json",
+  "title": "market_workstation_view.v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "selected_market_id",
+    "top_parameter_view",
+    "rule_source_model_panel",
+    "evidence_timeline",
+    "validation_compare_panel",
+    "gate_advisory_panel",
+    "entry_context",
+    "latest_gate",
+    "upstream_refs"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "market_workstation_view.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "selected_market_id": {
+      "type": "string"
+    },
+    "top_parameter_view": {
+      "type": "object"
+    },
+    "rule_source_model_panel": {
+      "$ref": "#/definitions/rule_source_model_panel"
+    },
+    "evidence_timeline": {
+      "$ref": "#/definitions/evidence_timeline"
+    },
+    "validation_compare_panel": {
+      "$ref": "#/definitions/validation_compare_panel"
+    },
+    "opportunity_linkage_panel": {
+      "type": "object"
+    },
+    "family_anomaly_summary": {
+      "type": "object"
+    },
+    "entry_context": {
+      "$ref": "#/definitions/entry_context"
+    },
+    "gate_advisory_panel": {
+      "$ref": "#/definitions/gate_advisory_panel"
+    },
+    "latest_alert": {
+      "type": "object"
+    },
+    "latest_anomaly": {
+      "type": "object"
+    },
+    "latest_gate": {
+      "type": "object"
+    },
+    "latest_ops": {
+      "type": "object"
+    },
+    "upstream_refs": {
+      "type": "object"
+    }
+  },
+  "definitions": {
+    "rule_source_model_panel": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "market_rule",
+        "source_contract",
+        "best_model",
+        "measurement_policy",
+        "difficulty"
+      ],
+      "properties": {
+        "market_rule": {
+          "type": "object"
+        },
+        "source_contract": {
+          "type": "object"
+        },
+        "best_model": {
+          "type": "object"
+        },
+        "measurement_policy": {
+          "type": "object"
+        },
+        "difficulty": {
+          "type": "object"
+        }
+      }
+    },
+    "evidence_timeline": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "input_mode",
+        "status",
+        "tracks",
+        "marker_count",
+        "history_point_count"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "evidence_timeline.v1"
+        },
+        "input_mode": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "tracks": {
+          "type": "object"
+        },
+        "marker_count": {
+          "type": "integer"
+        },
+        "history_point_count": {
+          "type": "integer"
+        }
+      }
+    },
+    "validation_compare_panel": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "best_model",
+        "coverage_status",
+        "validation_freshness",
+        "comparison_status",
+        "promotion_state"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "validation_compare_panel.v1"
+        },
+        "best_model": {
+          "type": "string"
+        },
+        "coverage_status": {
+          "type": "string"
+        },
+        "validation_freshness": {
+          "type": "string"
+        },
+        "comparison_status": {
+          "type": "string"
+        },
+        "promotion_state": {
+          "type": "string"
+        }
+      }
+    },
+    "entry_context": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "source_page",
+        "row_id",
+        "recommended_action",
+        "best_model",
+        "best_source_stack"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "entry_context.v1"
+        },
+        "source_page": {
+          "type": "string"
+        },
+        "row_id": {
+          "type": "string"
+        },
+        "opportunity_score": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "difficulty_score": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "recommended_action": {
+          "type": "string"
+        },
+        "best_model": {
+          "type": "string"
+        },
+        "best_source_stack": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "gate_advisory_panel": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "gate_summary",
+        "advisory_summary",
+        "dry_run_area",
+        "authorization_context"
+      ],
+      "properties": {
+        "gate_summary": {
+          "type": "object"
+        },
+        "advisory_summary": {
+          "type": "object"
+        },
+        "dry_run_area": {
+          "type": "object"
+        },
+        "authorization_context": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

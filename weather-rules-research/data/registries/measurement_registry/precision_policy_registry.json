@@ -1,0 +1,90 @@
+{
+  "schema_version": "precision_policy_registry.v1",
+  "generated_at": "2026-04-21T00:00:00Z",
+  "policies": [
+    {
+      "policy_id": "precision_policy.temperature_daily_max.v1",
+      "family": "temperature_daily_max",
+      "variable_name": "daily_max_temperature",
+      "canonical_unit": "celsius",
+      "storage_precision": 3,
+      "comparison_precision": 2,
+      "display_precision": 1,
+      "band_precision": "integer",
+      "status": "active",
+      "version": "v1"
+    },
+    {
+      "policy_id": "precision_policy.temperature_daily_min.v1",
+      "family": "temperature_daily_min",
+      "variable_name": "daily_min_temperature",
+      "canonical_unit": "celsius",
+      "storage_precision": 3,
+      "comparison_precision": 2,
+      "display_precision": 1,
+      "band_precision": "integer",
+      "status": "active",
+      "version": "v1"
+    },
+    {
+      "policy_id": "precision_policy.weather_metric.wind_speed.v1",
+      "family": "weather_metric.wind_speed",
+      "variable_name": "wind_speed",
+      "canonical_unit": "kt",
+      "storage_precision": 3,
+      "comparison_precision": 2,
+      "display_precision": 1,
+      "band_precision": 1,
+      "status": "active",
+      "version": "v1"
+    },
+    {
+      "policy_id": "precision_policy.weather_metric.precipitation.v1",
+      "family": "weather_metric.precipitation",
+      "variable_name": "precipitation_amount",
+      "canonical_unit": "mm",
+      "storage_precision": 3,
+      "comparison_precision": 2,
+      "display_precision": 1,
+      "band_precision": 1,
+      "status": "active",
+      "version": "v1"
+    },
+    {
+      "policy_id": "precision_policy.weather_metric.snowfall.v1",
+      "family": "weather_metric.snowfall",
+      "variable_name": "snowfall_amount",
+      "canonical_unit": "mm",
+      "storage_precision": 3,
+      "comparison_precision": 2,
+      "display_precision": 1,
+      "band_precision": 1,
+      "status": "active",
+      "version": "v1"
+    },
+    {
+      "policy_id": "precision_policy.global_temperature_index.v1",
+      "family": "global_temperature_index",
+      "variable_name": "global_temperature_index",
+      "canonical_unit": "source_defined",
+      "storage_precision": 3,
+      "comparison_precision": 2,
+      "display_precision": 1,
+      "band_precision": "ordinal",
+      "status": "active",
+      "version": "v1"
+    },
+    {
+      "policy_id": "precision_policy.sea_ice_extent.v1",
+      "family": "sea_ice_extent",
+      "variable_name": "sea_ice_extent",
+      "canonical_unit": "source_defined",
+      "storage_precision": 3,
+      "comparison_precision": 2,
+      "display_precision": 1,
+      "band_precision": 1,
+      "status": "active",
+      "version": "v1"
+    }
+  ]
+}

@@ -1,0 +1,352 @@
+{
+  "schema_version": "market_workstation_view.v1",
+  "generated_at": "2026-04-23T05:37:26.460909+00:00",
+  "selected_market_id": "397991",
+  "top_parameter_view": {
+    "schema_version": "top_parameter_view.v2",
+    "market_id": "397991",
+    "market_family": "station_temperature",
+    "market_question": "Highest temperature in Shanghai on April 22?",
+    "location_name": "-",
+    "target_date": "Apr 22",
+    "variable_name": "daily_max_temperature",
+    "canonical_unit": "source_defined",
+    "source_priority": "-",
+    "fallback_mode": "-",
+    "policy_refs": {
+      "source_policy_ref": "-",
+      "precision_policy_ref": "-",
+      "rounding_policy_ref": "-",
+      "band_mapping_policy_ref": "band_mapping.temperature_celsius_integer.v1"
+    },
+    "polymarket": {
+      "yes_price": "-",
+      "no_price": "-",
+      "market_implied_probability": "-",
+      "display_market_probability": "-",
+      "favored_side": "-",
+      "market_band": "-"
+    },
+    "forecast": {
+      "raw_value": "-",
+      "raw_unit": "celsius",
+      "canonical_value": null,
+      "canonical_unit": "source_defined",
+      "display_value": "-",
+      "display_unit": "source_defined",
+      "conversion_rule": null,
+      "conversion_applied": null,
+      "precision_policy_ref": "-",
+      "rounding_policy_ref": "-",
+      "band_mapping_policy_ref": "band_mapping.temperature_celsius_integer.v1",
+      "normalization_version": "measurement_normalization.v1",
+      "forecast_value": "-",
+      "forecast_raw_value": "-",
+      "forecast_raw_unit": "celsius",
+      "forecast_canonical_value": null,
+      "forecast_canonical_unit": "source_defined",
+      "forecast_display_value": "-",
+      "forecast_display_unit": "source_defined",
+      "forecast_timestamp": "-",
+      "source_mode": "-",
+      "required_data_source": "open_meteo_plus_station_mapping"
+    },
+    "weather": {
+      "raw_value": "-",
+      "raw_unit": "celsius",
+      "canonical_value": null,
+      "canonical_unit": "source_defined",
+      "display_value": "-",
+      "display_unit": "source_defined",
+      "conversion_rule": null,
+      "conversion_applied": null,
+      "precision_policy_ref": "-",
+      "rounding_policy_ref": "-",
+      "band_mapping_policy_ref": "band_mapping.temperature_celsius_integer.v1",
+      "normalization_version": "measurement_normalization.v1",
+      "observation_value": "-",
+      "observation_raw_value": "-",
+      "observation_raw_unit": "celsius",
+      "observation_canonical_value": null,
+      "observation_canonical_unit": "source_defined",
+      "observation_display_value": "-",
+      "observation_display_unit": "source_defined",
+      "observation_band": "-",
+      "forecast_value": "-",
+      "forecast_raw_value": "-",
+      "forecast_raw_unit": "celsius",
+      "forecast_canonical_value": null,
+      "forecast_canonical_unit": "source_defined",
+      "forecast_display_value": "-",
+      "forecast_display_unit": "source_defined",
+      "unit": "source_defined",
+      "model_band": "-",
+      "official_band": "-",
+      "station_name": "-",
+      "station_id": "-",
+      "observed_at": "-",
+      "forecast_timestamp": "-",
+      "source_mode": "-",
+      "required_data_source": "open_meteo_plus_station_mapping",
+      "settlement_ready": "-"
+    },
+    "source_contract": {
+      "settlement_source_type": "-",
+      "official_vs_proxy_source": "-",
+      "source_match_grade": "-",
+      "required_sources": "-",
+      "official_source_url": "-",
+      "freshness_status": "-",
+      "source_priority": "-",
+      "fallback_mode": "-",
+      "source_policy_ref": "-",
+      "precision_policy_ref": "-",
+      "rounding_policy_ref": "-",
+      "band_mapping_policy_ref": "band_mapping.temperature_celsius_integer.v1"
+    },
+    "normalization": {
+      "raw_unit": "celsius",
+      "canonical_unit": "source_defined",
+      "display_unit": "source_defined",
+      "raw_value": "-",
+      "canonical_value": null,
+      "display_value": "-",
+      "conversion_rule": null,
+      "conversion_applied": null,
+      "precision_policy_ref": "-",
+      "rounding_policy_ref": "-",
+      "band_mapping_policy_ref": "band_mapping.temperature_celsius_integer.v1",
+      "normalization_version": "measurement_normalization.v1"
+    },
+    "decision": {
+      "fair_value": "-",
+      "edge": 0.0,
+      "probability_mode": "-",
+      "execution_constraint": "-",
+      "can_execute": "-",
+      "primary_block_reason": "none",
+      "recommended_operator_action": "watch",
+      "comparison_status": "unknown"
+    }
+  },
+  "rule_source_model_panel": {
+    "market_rule": {
+      "market_family": "station_temperature",
+      "variable_name": "daily_max_temperature",
+      "location_name": "-",
+      "station_id": "-",
+      "target_date": "Apr 22",
+      "band_scheme": "temperature_4_bucket"
+    },
+    "source_contract": {
+      "required_sources": "-",
+      "settlement_source_type": "-",
+      "official_vs_proxy_source": "-",
+      "source_match_grade": "-",
+      "official_source_url": "-",
+      "resolver_confidence": "-"
+    },
+    "best_model": {
+      "best_model": "ECMWF",
+      "best_source_stack": [
+        "ecmwf",
+        "metar",
+        "official_obs"
+      ],
+      "best_model_reason": "station temperature markets favor ECMWF plus exact-station observations"
+    },
+    "measurement_policy": {
+      "canonical_unit": "source_defined",
+      "precision_policy_ref": "-",
+      "rounding_policy_ref": "-",
+      "band_mapping_policy_ref": "band_mapping.temperature_celsius_integer.v1"
+    },
+    "difficulty": {
+      "difficulty_score": 0.5585,
+      "difficulty_label": "medium",
+      "difficulty_components": {
+        "source_precision_difficulty": 0.65,
+        "resolver_stability_difficulty": 1.0,
+        "settlement_clarity_difficulty": 0.3,
+        "freshness_reliability_difficulty": 0.45,
+        "market_complexity_difficulty": 0.24
+      }
+    }
+  },
+  "evidence_timeline": {
+    "schema_version": "evidence_timeline.v1",
+    "input_mode": "canonical_only",
+    "status": "ready",
+    "tracks": {
+      "market_probability": {
+        "point_count": 1,
+        "latest": {
+          "timestamp": "2026-04-22T13:00:33.278178+00:00",
+          "market_probability": null,
+          "comparison_status": "unknown",
+          "confidence_adjusted_edge": 0.0
+        }
+      },
+      "forecast": {
+        "point_count": 1,
+        "latest": {
+          "timestamp": "-",
+          "display_value": "-",
+          "canonical_value": null,
+          "canonical_unit": "source_defined",
+          "model_band": null
+        }
+      },
+      "observation": {
+        "point_count": 1,
+        "latest": {
+          "timestamp": "-",
+          "display_value": "-",
+          "canonical_value": null,
+          "canonical_unit": "source_defined",
+          "observation_band": "-",
+          "source_match_grade": "-"
+        }
+      },
+      "events": {
+        "marker_count": 1,
+        "markers": [
+          {
+            "type": "gate",
+            "status": "-",
+            "reason": "monitoring_not_healthy",
+            "timestamp": null
+          }
+        ]
+      }
+    },
+    "marker_count": 1,
+    "history_point_count": 1
+  },
+  "validation_compare_panel": {
+    "schema_version": "validation_compare_panel.v1",
+    "best_model": "-",
+    "label_coverage": 0.1,
+    "coverage_status": "blocked",
+    "validation_freshness": "blocked",
+    "freshness_seconds": 391371.467464,
+    "comparison_status": "unknown",
+    "fair_value": "-",
+    "edge": "-",
+    "calibration_status": "not_calibrated",
+    "deployment_mode": "-",
+    "approved_for_live": null,
+    "sample_count": 40,
+    "labeled_sample_count": 4,
+    "brier_score": 0.1628,
+    "calibration_error": 0.393333,
+    "hit_rate": "-",
+    "promotion_state": "-",
+    "promotion_reason": "-",
+    "demotion_reason": "-",
+    "primary_blocker": "freshness:blocked",
+    "canonical_ratio": "-",
+    "source_policy_coverage": "-",
+    "normalization_coverage": "-",
+    "family_coverage_ratio": "-",
+    "family_ready_ratio": "-",
+    "top_watchlist_family": "-",
+    "top_watchlist_reason": "-"
+  },
+  "opportunity_linkage_panel": {
+    "schema_version": "opportunity_workstation_linkage.v1",
+    "row_id": "Shanghai.station_temperature",
+    "city": "Shanghai",
+    "market_family": "station_temperature",
+    "opportunity_score": 0.1775,
+    "opportunity_rank": 9,
+    "difficulty_score": 0.5585,
+    "difficulty_label": "medium",
+    "recommended_action": "open_workstation",
+    "best_model": "ECMWF",
+    "best_source_stack": [
+      "ecmwf",
+      "metar",
+      "official_obs"
+    ],
+    "opportunity_reason": "edge=0.00;lag=0.35;alerts=0.00;anomalies=0.00;precision=0.45;freshness=0.40",
+    "difficulty_reason": "source=0.65;official=0.30;freshness=0.45;resolver=1.00;family=0.24",
+    "market_refs": [
+      "397991"
+    ],
+    "alert_refs": [],
+    "anomaly_refs": []
+  },
+  "entry_context": {
+    "schema_version": "entry_context.v1",
+    "source_page": "opportunity_board",
+    "row_id": "Shanghai.station_temperature",
+    "opportunity_score": 0.1775,
+    "difficulty_score": 0.5585,
+    "recommended_action": "open_workstation",
+    "best_model": "ECMWF",
+    "best_source_stack": [
+      "ecmwf",
+      "metar",
+      "official_obs"
+    ]
+  },
+  "gate_advisory_panel": {
+    "gate_summary": {
+      "data_gate": "-",
+      "resolver_gate": "-",
+      "probability_gate": "-",
+      "freshness_gate": "-",
+      "authorization_gate": "-",
+      "execution_gate": "-",
+      "can_execute": "no",
+      "primary_block_reason": "monitoring_not_healthy"
+    },
+    "advisory_summary": {
+      "recommended_operator_action": "refresh_pipeline_inputs",
+      "advisory_reason": "monitoring_not_healthy",
+      "latest_alert_summary": "-",
+      "latest_anomaly_summary": "-"
+    },
+    "dry_run_area": {
+      "simulate_review": "available",
+      "create_dry_run_intent": "available_when_gate_context_ready",
+      "execution_boundary": "gate_stack_api.v1_only"
+    }
+  },
+  "latest_alert": {},
+  "latest_anomaly": {},
+  "latest_gate": {
+    "gate_status": null,
+    "data_gate": "-",
+    "resolver_gate": "-",
+    "probability_gate": "-",
+    "freshness_gate": "-",
+    "authorization_gate": "-",
+    "execution_gate": "-",
+    "blockers": [
+      "monitoring_not_healthy",
+      "resolver_confidence_low",
+      "resolver_source_not_exact",
+      "probability_not_live_approved",
+      "execution_constraint_not_live_allowed",
+      "calibration_not_calibrated",
+      "stale_worker",
+      "validation_freshness_unhealthy",
+      "label_coverage_unhealthy",
+      "source_policy_unhealthy",
+      "execution_not_ready",
+      "execution_not_live_ready"
+    ],
+    "recommended_operator_action": "refresh_pipeline_inputs",
+    "gate_source": "gate_stack_api.v1"
+  },
+  "latest_ops": {},
+  "upstream_refs": {
+    "market_id": "397991",
+    "top_parameter_view_version": "top_parameter_view.v2",
+    "resolver_ref": "397991",
+    "comparison_ref": "2026-04-21T10:29:20.433775Z",
+    "gate_ref": "gate_stack_api.v1"
+  }
+}

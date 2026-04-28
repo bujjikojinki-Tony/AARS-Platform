@@ -19,3 +19,9 @@
 - Verified third-party Telegram monitoring patterns from `structbuild/polymarket-telegram-alerts-bot`, including webhook verification, monitor persistence, and callback-driven configuration flows.
 - Verified third-party execution/copy-trade patterns from `voicegn/polymarket-bot`, including smart execution and copy-follow module boundaries.
 - Wrote `research_polymarket_telegram_bot_20260409.md` with planning / execution / verification tracks, architecture recommendations, and source-backed build guidance.
+
+## 2026-04-23
+- Reoriented the active task toward Phase 32 Operations Monitor.
+- Identified existing reusable dashboard and Telegram sources for scanner, alert queue, opportunity board, and workstation summaries.
+- Confirmed the dashboard app already has the necessary high-level sections to host a first-class Operations Monitor homepage.
+- Prepared to add a new `operations_monitor_view.v1` contract and a homepage-level monitoring layout that keeps detail drawers folded by default.

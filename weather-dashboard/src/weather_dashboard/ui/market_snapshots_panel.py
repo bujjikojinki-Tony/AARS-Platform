@@ -273,14 +273,14 @@ def render_market_snapshots_panel(
         .watchlist-card {
             margin-top: 0.38rem;
             padding: 0.58rem 0.68rem;
-            border: 1px solid rgba(35, 72, 82, 0.14);
-            border-radius: 14px;
-            background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(248,246,239,0.86));
-            box-shadow: 0 8px 22px rgba(49, 77, 75, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 12px;
+            background: linear-gradient(180deg, rgba(16,20,26,0.98), rgba(12,15,20,0.98));
+            box-shadow: none;
         }
         .watchlist-card--pinned {
-            border-color: rgba(196, 122, 21, 0.42);
-            background: linear-gradient(180deg, rgba(255,249,229,0.98), rgba(253,241,205,0.82));
+            border-color: rgba(215, 171, 87, 0.38);
+            background: linear-gradient(180deg, rgba(28, 24, 15, 0.98), rgba(20, 17, 11, 0.98));
         }
         .watchlist-card-top {
             display: flex;
@@ -293,8 +293,8 @@ def render_market_snapshots_panel(
             display: inline-flex;
             align-items: center;
             border-radius: 999px;
-            background: rgba(20, 82, 72, 0.10);
-            color: #145248;
+            background: rgba(15, 159, 113, 0.12);
+            color: #8fe2b0;
             padding: 0.12rem 0.46rem;
             font-family: "SF Mono", "Menlo", monospace;
             font-size: 0.58rem;
@@ -302,12 +302,12 @@ def render_market_snapshots_panel(
             letter-spacing: 0.08em;
         }
         .watchlist-age {
-            color: #667782;
+            color: #9aa3ad;
             font-size: 0.66rem;
             font-weight: 750;
         }
         .watchlist-question {
-            color: #17252b;
+            color: #f7fbff;
             font-family: "Avenir Next", "Trebuchet MS", sans-serif;
             font-size: 0.86rem;
             font-weight: 850;
@@ -320,10 +320,10 @@ def render_market_snapshots_panel(
             margin-top: 0.34rem;
         }
         .watchlist-meta-row span {
-            border: 1px solid rgba(35, 72, 82, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.10);
             border-radius: 999px;
-            color: #667782;
-            background: rgba(255,255,255,0.58);
+            color: #c8d0d8;
+            background: rgba(255,255,255,0.05);
             padding: 0.08rem 0.4rem;
             font-size: 0.63rem;
             line-height: 1.2;

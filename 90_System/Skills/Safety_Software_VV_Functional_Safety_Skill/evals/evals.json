@@ -1,0 +1,83 @@
+{
+  "skill_name": "safety-software-vv-functional-safety",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "请从 safety software V&V 和 functional safety 的角度，给我写一份研究报告。背景是我们在做化工装置 SIS 改造，团队内部对 IEEE 1012、IEC 61508、IEC 61511 的分工总是混淆。请说明这三个标准分别解决什么问题、在 SIS / SIF 生命周期里怎样配合、哪些地方最容易被误解，最后给一个面向工程落地的工作框架。不要直接下合规结论。",
+      "expected_output": "一份结构化研究报告，能够清楚区分 IEEE 1012、IEC 61508、IEC 61511 的角色，并把它们映射到 SIS / SIF 生命周期和工程证据链上。",
+      "files": [],
+      "expectations": [
+        "The output includes an Executive Summary",
+        "The output distinguishes IEEE 1012 V&V logic from IEC 61508 / IEC 61511 functional safety lifecycle logic",
+        "The output explains that SIL applies to a safety function or SIF rather than simply to a single device",
+        "The output includes lifecycle workflow, evidence chain, and engineering recommendations",
+        "The output avoids claiming formal compliance or certification"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "为下面的变更生成 Change Impact Analysis。系统是 burner management system，现有联锁逻辑中把一次风机低流量跳闸延时从 2 秒改成 5 秒，同时 HMI 上新增一个 maintenance bypass 状态显示。已知这是安全相关逻辑，但我们手上只有旧版 cause and effect matrix、部分 FAT 记录和 PLC logic printout。请按 safety V&V + functional safety 的方式分析受影响项、需要追加的验证/确认活动、缺少哪些证据、是否可以直接上线。",
+      "expected_output": "一份面向安全相关变更的 Change Impact Analysis，能识别逻辑、响应时间、HMI、旁路与证据缺口，并给出受控处置建议。",
+      "files": [],
+      "expectations": [
+        "The output includes a change summary and affected items",
+        "The output identifies impact on safety function, response time, logic, and HMI or bypass behavior",
+        "The output includes verification, regression, and validation impact",
+        "The output explicitly lists missing evidence instead of inventing it",
+        "The output gives a bounded disposition rather than approving the change outright"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "请审查一个核电 digital I&C 软件包当前是否具备进入下一生命周期阶段的条件。已知信息：系统边界基本描述清楚，安全分级暂未最终冻结；有 software requirements spec、部分 design review 记录、单元测试记录、集成测试记录，但 validation scenarios 不完整，配置基线也没有形成正式发布包。请按 IEEE 1012 为主、IEC 61508 / 61511 仅作参考的原则，输出 findings first 的 review / gap analysis，并明确给出 phase-gate recommendation。",
+      "expected_output": "一份以 V&V 完整性为主线的 review / gap analysis，先给结论和缺口，再说明进入下一阶段前需要补齐的证据与控制项。",
+      "files": [],
+      "expectations": [
+        "The output presents a review conclusion and findings before any brief summary",
+        "The output treats IEEE 1012 as the primary V&V logic and does not substitute IEC 61508 / IEC 61511 for nuclear-specific requirements",
+        "The output identifies gaps in validation coverage and configuration baseline control",
+        "The output includes required evidence and corrective actions",
+        "The output ends with a phase-gate recommendation using Pass, Conditional Pass, Hold, Fail, or Insufficient Evidence"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "请为一个 safety-related PLC-based shutdown logic 生成为期一个版本周期的 Software V&V Plan。已知：系统边界包括现场输入、logic solver、shutdown outputs 和 operator reset interface；项目处于详细设计完成、编码和集成即将展开阶段；独立 V&V 资源有限但可以做到关键活动独立审查。请按 IEEE 1012 为主，必要时结合 IEC 61508 / IEC 61511，生成一个可直接进入工程评审的 V&V Plan，不要编造未知信息，未知项请显式列成 gap。",
+      "expected_output": "一份结构化、工程评审可用的 V&V Plan，覆盖边界、目标、组织独立性、生命周期活动、traceability、validation strategy、configuration and anomaly management，并显式列出 gaps。",
+      "files": [],
+      "expectations": [
+        "The output includes Purpose, Scope, Applicable Standards, System Description, and V&V Objectives",
+        "The output includes organization or independence logic for V&V",
+        "The output includes lifecycle V&V activities, traceability strategy, verification methods, and validation strategy",
+        "The output includes configuration management and anomaly management",
+        "The output explicitly marks unknown information as gaps rather than inventing it"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "请生成一份 SIF Safety Requirements Specification。场景：反应器高高压保护，目标是在 reactor pressure 超过 trip setpoint 时，使进料切断并打开泄放路径。已知目标 SIL 暂定为 SIL 2；传感器为 2oo3 pressure transmitters；logic solver 为 safety PLC；final elements 为 feed isolation valve 和 vent valve；safe state 是切断进料并建立泄放。请按 IEC 61511 为主生成 SIF SRS，并明确哪些内容仍需补充证据。",
+      "expected_output": "一份以 IEC 61511 生命周期逻辑组织的 SIF SRS，覆盖 SIF 定义、目标 SIL、传感器/逻辑求解器/最终元件、trip logic、safe state、response time、reset、bypass、proof test、validation criteria 和 evidence gaps。",
+      "files": [],
+      "expectations": [
+        "The output includes SIF Summary, Hazard and Risk Basis, SIF Statement, and Target SIL Basis",
+        "The output includes sensors, logic solver, final elements, trip logic, and safe state",
+        "The output includes response time, reset requirement, bypass or override requirement, and proof test requirement",
+        "The output includes validation criteria and traceability or equivalent evidence linkage",
+        "The output does not claim the SIF achieves the target SIL without complete verification evidence"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "请生成一份 Safety Validation Report 草案。对象是 emergency shutdown function，已知安全要求包括：检测到火气联锁条件后 3 秒内驱动装置进入 safe shutdown；HMI 必须明确显示 trip status 和 bypass status；manual reset 必须在危险状态消除后才能执行。已知目前已有 integration test 记录和一部分 SAT 记录，但 abnormal-condition scenarios 还没有完全补齐。请区分 verification、validation 和 ordinary testing，并明确写出限制条件。",
+      "expected_output": "一份 Safety Validation Report 草案，覆盖 validation basis、configuration baseline、validation scenarios、safety function validation、response time validation、HMI / bypass / reset validation、deviations、validation conclusion 和 restrictions，同时清楚说明当前未闭合项。",
+      "files": [],
+      "expectations": [
+        "The output includes Validation Scope, Validation Basis, Configuration Baseline, and Validation Scenarios",
+        "The output includes safety function validation, response time validation, and HMI or bypass or reset validation",
+        "The output clearly distinguishes validation from verification and ordinary testing",
+        "The output includes deviations or anomalies and conditions or restrictions",
+        "The output explicitly identifies incomplete abnormal-condition scenario coverage as a gap or limitation"
+      ]
+    }
+  ]
+}

@@ -121,6 +121,9 @@ def render_execution_gate_panel(
             ("Gateway Ready", gate["gateway_ready"]),
             ("Probability Mode", gate["probability_mode"]),
             ("Execution Constraint", gate["execution_constraint"]),
+            ("Promotion State", gate.get("promotion_state", gate["probability_mode"])),
+            ("Promotion Reason", gate.get("promotion_reason", "-")),
+            ("Demotion Reason", gate.get("demotion_reason", "-")),
             ("Validation Freshness", gate["validation_freshness_status"]),
             ("Label Coverage", gate["label_coverage_status"]),
             ("Operator Mode", operator_mode),
@@ -203,6 +206,17 @@ def build_execution_gate_state(
     execution_constraint = str(
         (probability_state or {}).get("execution_constraint") or "manual_advisory_only"
     )
+    promotion_state = _promotion_state_from(probability_state)
+    promotion_reason = str(
+        promotion_state.get("promotion_reason")
+        or (probability_state or {}).get("promotion_reason")
+        or "-"
+    )
+    demotion_reason = str(
+        promotion_state.get("demotion_reason")
+        or (probability_state or {}).get("demotion_reason")
+        or "-"
+    )
     validation_status = str((validation_freshness_status or {}).get("status") or "")
     label_coverage_status = str((label_coverage_report or {}).get("status") or "")
 
@@ -262,6 +276,9 @@ def build_execution_gate_state(
         "comparison_status": comparison_status,
         "probability_mode": probability_mode,
         "execution_constraint": execution_constraint,
+        "promotion_state": promotion_state.get("probability_mode") or probability_mode,
+        "promotion_reason": promotion_reason,
+        "demotion_reason": demotion_reason,
         "validation_freshness_status": validation_status or "-",
         "label_coverage_status": label_coverage_status or "-",
         "autonomous_execution_eligible": probability_mode == "live_approved",
@@ -453,6 +470,20 @@ def _probability_contract_from_state(probability_state: dict | None) -> dict:
         "promotion_reason": state.get("promotion_reason"),
         "contract_source": state.get("contract_source"),
         "validation_report_generated_at": state.get("validation_report_generated_at"),
+    }
+
+
+def _promotion_state_from(probability_state: dict | None) -> dict:
+    state = probability_state or {}
+    candidate = state.get("promotion_state")
+    if isinstance(candidate, dict):
+        return candidate
+    return {
+        "probability_mode": state.get("probability_mode"),
+        "execution_constraint": state.get("execution_constraint"),
+        "promotion_reason": state.get("promotion_reason"),
+        "demotion_reason": state.get("demotion_reason"),
+        "approved_for_live": bool(state.get("approved_for_live", False)),
     }
 
 
@@ -992,17 +1023,17 @@ def _render_gate_cards(gate: dict) -> None:
             margin:0.42rem 0;
         }}
         .exec-gate-card {{
-            border:1px solid rgba(35,72,82,0.14);
+            border:1px solid rgba(255,255,255,0.10);
             border-radius:14px;
-            background:linear-gradient(180deg,rgba(255,255,255,0.94),rgba(248,246,239,0.84));
+            background:linear-gradient(180deg,rgba(16,20,26,0.98),rgba(12,15,20,0.98));
             padding:0.48rem 0.56rem;
-            box-shadow:0 8px 20px rgba(49,77,75,0.05);
+            box-shadow:none;
         }}
-        .exec-gate-card--ok {{ border-color:rgba(15,159,113,0.35); }}
-        .exec-gate-card--warn {{ border-color:rgba(196,122,21,0.35); }}
-        .exec-gate-card--block {{ border-color:rgba(196,77,70,0.35); }}
+        .exec-gate-card--ok {{ border-color:rgba(15,159,113,0.30); }}
+        .exec-gate-card--warn {{ border-color:rgba(215,171,87,0.30); }}
+        .exec-gate-card--block {{ border-color:rgba(217,109,103,0.30); }}
         .exec-gate-label {{
-            color:#667782;
+            color:#9aa3ad;
             font-family:"SF Mono","Menlo",monospace;
             font-size:0.58rem;
             font-weight:900;
@@ -1011,7 +1042,7 @@ def _render_gate_cards(gate: dict) -> None:
         }}
         .exec-gate-value {{
             margin-top:0.16rem;
-            color:#17252b;
+            color:#f7fbff;
             font-family:"Avenir Next Condensed","DIN Condensed","Trebuchet MS",sans-serif;
             font-size:1rem;
             font-weight:950;

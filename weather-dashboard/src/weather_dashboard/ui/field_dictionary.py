@@ -64,7 +64,7 @@ FIELD_DICTIONARY: dict[str, dict[str, str]] = {
     "execution_constraint": {
         "label": "Execution Constraint",
         "group": "probability",
-        "definition": "Maximum action level allowed by the probability contract.",
+        "definition": "Upper bound on what the probability contract allows the system to do. It is a ceiling, not an execution decision by itself.",
         "values": "manual_advisory_only, dry_run_only, live_execution_allowed",
         "source": "probability_contract.v1",
     },
@@ -122,6 +122,13 @@ FIELD_DICTIONARY: dict[str, dict[str, str]] = {
         "group": "market",
         "definition": "Latest NO side market price.",
         "values": "0.00-1.00",
+        "source": "market snapshot",
+    },
+    "spread": {
+        "label": "Spread",
+        "group": "market",
+        "definition": "Bid/ask spread or operator-visible price gap for the market.",
+        "values": "numeric spread",
         "source": "market snapshot",
     },
     "favored_side": {
@@ -260,7 +267,7 @@ FIELD_DICTIONARY: dict[str, dict[str, str]] = {
     "approved_for_live": {
         "label": "Approved For Live",
         "group": "validation",
-        "definition": "Whether validation policy currently allows live probability promotion.",
+        "definition": "Validation-side boolean input that allows a model to be considered for live promotion; it is not the same thing as probability_mode=live_approved.",
         "values": "true, false",
         "source": "model validation report",
     },
@@ -274,8 +281,8 @@ FIELD_DICTIONARY: dict[str, dict[str, str]] = {
     "calibration_status": {
         "label": "Calibration Status",
         "group": "validation",
-        "definition": "Calibration quality state used by probability promotion policy.",
-        "values": "not_calibrated, calibrated, stale, live_approved",
+        "definition": "Calibration quality state used as an input to probability promotion policy; it describes calibration freshness/quality only, not promotion outcome.",
+        "values": "not_calibrated, calibrated, stale",
         "source": "model validation / probability contract",
     },
     "promotion_state": {
@@ -390,6 +397,13 @@ FIELD_DICTIONARY: dict[str, dict[str, str]] = {
         "values": "numeric weather value",
         "source": "live weather / station observation",
     },
+    "observation_band": {
+        "label": "Observation Band",
+        "group": "live_status",
+        "definition": "Band derived from the current observation value for the selected market family.",
+        "values": "band label",
+        "source": "observation snapshot / derived",
+    },
     "forecast_value": {
         "label": "Forecast Value",
         "group": "live_status",
@@ -412,10 +426,17 @@ FIELD_DICTIONARY: dict[str, dict[str, str]] = {
         "source": "resolver / forecast snapshot",
     },
     "source_mode": {
-        "label": "Source Mode",
+        "label": "Forecast Status",
         "group": "live_status",
-        "definition": "Forecast source mode describing how the forecast value was generated.",
-        "values": "model, rule, fallback, manual",
+        "definition": "Human-readable forecast extraction status describing how the forecast value was produced or why it is unavailable.",
+        "values": "Daily forecast matched, Hourly fallback used, Target-date forecast unavailable, Unsupported variable, No matching rule, Station mapping unavailable, Global temperature index snapshot, Sea ice extent snapshot, Market unchanged; forecast not refreshed, Manual refresh",
+        "source": "forecast snapshot",
+    },
+    "source_confidence": {
+        "label": "Source Confidence",
+        "group": "live_status",
+        "definition": "Confidence score for the forecast or source inference.",
+        "values": "0.00-1.00",
         "source": "forecast snapshot",
     },
     "required_data_source": {
@@ -474,12 +495,33 @@ FIELD_DICTIONARY: dict[str, dict[str, str]] = {
         "values": "ISO-8601 timestamp",
         "source": "forecast / live weather snapshot",
     },
+    "observed_at": {
+        "label": "Observed At",
+        "group": "live_status",
+        "definition": "The timestamp when the observation snapshot was recorded.",
+        "values": "ISO-8601 timestamp",
+        "source": "observation snapshot / live weather snapshot",
+    },
+    "forecast_timestamp": {
+        "label": "Forecast Timestamp",
+        "group": "live_status",
+        "definition": "The timestamp when the forecast snapshot was generated.",
+        "values": "ISO-8601 timestamp",
+        "source": "forecast snapshot",
+    },
     "freshness_status": {
         "label": "Freshness",
         "group": "live_status",
         "definition": "Freshness state for the resolver or validation input used in the top parameter ribbon.",
         "values": "fresh, warm, stale, blocked, healthy",
         "source": "gate summary / validation status",
+    },
+    "settlement_ready": {
+        "label": "Settlement Ready",
+        "group": "live_status",
+        "definition": "Whether the observation context is close enough to settlement time or resolution state to be treated as operationally ready.",
+        "values": "true, false",
+        "source": "observation snapshot",
     },
     "unmatched_count": {
         "label": "Unmatched Count",

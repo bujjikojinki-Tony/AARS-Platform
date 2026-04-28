@@ -1,0 +1,102 @@
+{
+  "schema_version": "rounding_policy_registry.v1",
+  "generated_at": "2026-04-21T00:00:00Z",
+  "policies": [
+    {
+      "policy_id": "rounding_policy.temperature_daily_max.v1",
+      "family": "temperature_daily_max",
+      "rules": [
+        {
+          "applies_to": "display",
+          "rounding_rule": "round_half_up"
+        },
+        {
+          "applies_to": "band_mapping",
+          "rounding_rule": "round_half_up"
+        }
+      ],
+      "status": "active",
+      "version": "v1"
+    },
+    {
+      "policy_id": "rounding_policy.weather_metric.precipitation.v1",
+      "family": "weather_metric.precipitation",
+      "rules": [
+        {
+          "applies_to": "display",
+          "rounding_rule": "round_half_up"
+        },
+        {
+          "applies_to": "threshold_compare",
+          "rounding_rule": "exact_no_rounding"
+        }
+      ],
+      "status": "active",
+      "version": "v1"
+    },
+    {
+      "policy_id": "rounding_policy.weather_metric.wind_speed.v1",
+      "family": "weather_metric.wind_speed",
+      "rules": [
+        {
+          "applies_to": "display",
+          "rounding_rule": "round_half_up"
+        },
+        {
+          "applies_to": "band_mapping",
+          "rounding_rule": "round_half_up"
+        }
+      ],
+      "status": "active",
+      "version": "v1"
+    },
+    {
+      "policy_id": "rounding_policy.weather_metric.snowfall.v1",
+      "family": "weather_metric.snowfall",
+      "rules": [
+        {
+          "applies_to": "display",
+          "rounding_rule": "round_half_up"
+        },
+        {
+          "applies_to": "band_mapping",
+          "rounding_rule": "exact_no_rounding"
+        }
+      ],
+      "status": "active",
+      "version": "v1"
+    },
+    {
+      "policy_id": "rounding_policy.global_temperature_index.v1",
+      "family": "global_temperature_index",
+      "rules": [
+        {
+          "applies_to": "display",
+          "rounding_rule": "exact_no_rounding"
+        },
+        {
+          "applies_to": "band_mapping",
+          "rounding_rule": "exact_no_rounding"
+        }
+      ],
+      "status": "active",
+      "version": "v1"
+    },
+    {
+      "policy_id": "rounding_policy.sea_ice_extent.v1",
+      "family": "sea_ice_extent",
+      "rules": [
+        {
+          "applies_to": "display",
+          "rounding_rule": "round_half_up"
+        },
+        {
+          "applies_to": "band_mapping",
+          "rounding_rule": "round_half_up"
+        }
+      ],
+      "status": "active",
+      "version": "v1"
+    }
+  ]
+}

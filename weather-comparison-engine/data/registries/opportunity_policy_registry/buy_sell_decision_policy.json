@@ -1,0 +1,134 @@
+{
+  "policy_id": "buy_sell_decision_policy.v1",
+  "schema_version": "buy_sell_decision_policy.v1",
+  "applicable_scope": "single_market_workstation.buy_sell_research_decision",
+  "formula_or_mapping": "gated_edge_direction",
+  "required_inputs": {
+    "market_probability_fields": [
+      "market_implied_probability",
+      "yes_price",
+      "no_price"
+    ],
+    "fair_value_fields": [
+      "fair_value",
+      "probability_mode"
+    ],
+    "edge_fields": [
+      "edge"
+    ],
+    "quality_fields": [
+      "freshness_status",
+      "source_precision_score",
+      "validation_coverage",
+      "source_match_grade"
+    ],
+    "gate_fields": [
+      "can_execute",
+      "primary_block_reason",
+      "execution_constraint"
+    ]
+  },
+  "preconditions": {
+    "required_non_empty_fields": [
+      "market_implied_probability",
+      "fair_value",
+      "edge",
+      "probability_mode"
+    ],
+    "allowed_freshness_statuses": [
+      "fresh",
+      "healthy",
+      "pass",
+      "warm",
+      "warning"
+    ],
+    "blocked_freshness_statuses": [
+      "blocked",
+      "unavailable"
+    ],
+    "min_source_precision_score": 0.7,
+    "min_validation_coverage": 0.8,
+    "allowed_probability_modes": [
+      "shadow_calibrated_candidate",
+      "live_approved"
+    ]
+  },
+  "thresholds": {
+    "research_yes_edge_min": 0.05,
+    "research_no_edge_max": -0.05,
+    "no_trade_abs_edge_max": 0.03
+  },
+  "decision_rules": [
+    {
+      "decision": "refresh_inputs",
+      "when": {
+        "any_required_field_missing": true
+      },
+      "reason": "Market probability or fair value is missing."
+    },
+    {
+      "decision": "refresh_inputs",
+      "when": {
+        "freshness_status_in": [
+          "blocked",
+          "unavailable"
+        ]
+      },
+      "reason": "Evidence freshness is blocked or unavailable."
+    },
+    {
+      "decision": "review_evidence",
+      "when": {
+        "validation_coverage_lt": 0.8
+      },
+      "reason": "Validation coverage is below threshold."
+    },
+    {
+      "decision": "review_evidence",
+      "when": {
+        "source_precision_score_lt": 0.7
+      },
+      "reason": "Source precision is below threshold."
+    },
+    {
+      "decision": "watch_only",
+      "when": {
+        "abs_edge_lte": 0.03
+      },
+      "reason": "Edge is too small to justify action."
+    },
+    {
+      "decision": "research_buy_yes",
+      "when": {
+        "edge_gte": 0.05
+      },
+      "reason": "Fair value is above market implied probability."
+    },
+    {
+      "decision": "research_buy_no",
+      "when": {
+        "edge_lte": -0.05
+      },
+      "reason": "Fair value is below market implied probability."
+    }
+  ],
+  "execution_boundary": {
+    "execution_permission_source": "gate_stack_api.v1_only",
+    "requires_can_execute": true,
+    "notes": [
+      "This policy defines research direction only.",
+      "Alert and anomaly signals may raise review priority but must not replace gate semantics.",
+      "A research_buy_yes or research_buy_no outcome is not execution permission."
+    ]
+  },
+  "output_enums": [
+    "refresh_inputs",
+    "review_evidence",
+    "watch_only",
+    "research_buy_yes",
+    "research_buy_no"
+  ],
+  "version": "v1",
+  "status": "active",
+  "notes": "Use market probability, fair value, edge, data quality, and gate context together. Do not derive execution permission from opportunity, alert, or anomaly signals."
+}

@@ -29,6 +29,13 @@ def build_resolved_market_rule(
     market_question = market_snapshot.get("market_question") or (rule.market_question if rule else None)
 
     if rule is not None:
+        policy_refs = {
+            "source_policy_ref": contract.source_policy_ref,
+            "unit_policy_ref": contract.unit_policy_ref,
+            "precision_policy_ref": contract.precision_policy_ref,
+            "rounding_policy_ref": contract.rounding_policy_ref,
+            "band_mapping_policy_ref": contract.band_mapping_policy_ref,
+        }
         return ResolvedMarketRule(
             market_id=market_id,
             market_question=market_question,
@@ -48,6 +55,7 @@ def build_resolved_market_rule(
             source_match_grade=contract.source_match_grade,
             official_source_url=contract.official_source_url,
             source_note=contract.source_note,
+            **policy_refs,
             location_name=rule.location_name,
             station_name=rule.station_name,
             station_id=contract.station_id,
@@ -74,6 +82,13 @@ def build_resolved_market_rule(
         )
 
     resolver_status = _status_for_snapshot_rule(taxonomy)
+    policy_refs = {
+        "source_policy_ref": contract.source_policy_ref,
+        "unit_policy_ref": contract.unit_policy_ref,
+        "precision_policy_ref": contract.precision_policy_ref,
+        "rounding_policy_ref": contract.rounding_policy_ref,
+        "band_mapping_policy_ref": contract.band_mapping_policy_ref,
+    }
     return ResolvedMarketRule(
         market_id=market_id,
         market_question=market_question,
@@ -93,6 +108,7 @@ def build_resolved_market_rule(
         source_match_grade=contract.source_match_grade,
         official_source_url=contract.official_source_url,
         source_note=contract.source_note,
+        **policy_refs,
         location_name=market_snapshot.get("location_name") or base_snapshot.get("parsed_location_name"),
         station_id=contract.station_id,
         target_date=base_snapshot.get("target_date"),

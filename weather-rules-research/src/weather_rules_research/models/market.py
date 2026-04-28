@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from datetime import date
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from .station import Station
 
 
 class ForecastSnapshot(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     market_id: str
     station_id: str
     market_type: str
@@ -16,6 +18,21 @@ class ForecastSnapshot(BaseModel):
     predicted_temperature_c: float
     source: str = "open-meteo"
     raw_payload_ref: str | None = None
+    source_mode: str | None = None
+    source_path: str | None = None
+    notes: str | None = None
+    raw_value: float | None = None
+    raw_unit: str | None = None
+    canonical_value: float | None = None
+    canonical_unit: str | None = None
+    display_value: float | None = None
+    display_unit: str | None = None
+    conversion_rule: str | None = None
+    conversion_applied: bool = False
+    precision_policy_ref: str | None = None
+    rounding_policy_ref: str | None = None
+    band_mapping_policy_ref: str | None = None
+    normalization_version: str = "measurement_normalization.v1"
 
 
 class StationMapEntry(BaseModel):

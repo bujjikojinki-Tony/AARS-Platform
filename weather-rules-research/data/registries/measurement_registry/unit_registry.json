@@ -1,0 +1,41 @@
+{
+  "schema_version": "unit_registry.v1",
+  "generated_at": "2026-04-21T00:00:00Z",
+  "variable_groups": [
+    {
+      "variable_group": "temperature",
+      "raw_units": ["celsius", "fahrenheit"],
+      "canonical_unit": "celsius",
+      "display_unit": "celsius",
+      "conversion_rules": ["c_to_c", "f_to_c"]
+    },
+    {
+      "variable_group": "wind_speed",
+      "raw_units": ["kt", "mph", "m/s", "km/h"],
+      "canonical_unit": "kt",
+      "display_unit": "kt",
+      "conversion_rules": ["kt_to_kt", "mph_to_kt", "ms_to_kt", "kmh_to_kt"]
+    },
+    {
+      "variable_group": "precipitation",
+      "raw_units": ["mm", "inch"],
+      "canonical_unit": "mm",
+      "display_unit": "mm",
+      "conversion_rules": ["mm_to_mm", "inch_to_mm"]
+    },
+    {
+      "variable_group": "snowfall",
+      "raw_units": ["mm", "cm", "inch"],
+      "canonical_unit": "mm",
+      "display_unit": "mm",
+      "conversion_rules": ["mm_to_mm", "cm_to_mm", "inch_to_mm"]
+    },
+    {
+      "variable_group": "climate_index",
+      "raw_units": ["source_defined"],
+      "canonical_unit": "source_defined",
+      "display_unit": "source_defined",
+      "conversion_rules": ["identity"]
+    }
+  ]
+}

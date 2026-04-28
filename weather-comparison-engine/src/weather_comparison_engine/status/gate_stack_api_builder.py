@@ -40,6 +40,8 @@ class GateStackAPIBuilder:
             latest_dashboard_rows,
             global_gate_stack=normalized,
         )
+        top_parameter_view = payload.get("top_parameter_view")
+        source_policy = payload.get("source_policy")
 
         return {
             "schema_version": GATE_STACK_API_SCHEMA_VERSION,
@@ -55,6 +57,8 @@ class GateStackAPIBuilder:
             "recommended_operator_action": recommended_operator_action,
             "market_count": len(market_gate_views),
             "market_gate_views": market_gate_views,
+            "top_parameter_view": top_parameter_view if isinstance(top_parameter_view, dict) else None,
+            "source_policy": source_policy if isinstance(source_policy, dict) else None,
         }
 
     def write(

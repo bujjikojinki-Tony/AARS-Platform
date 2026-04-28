@@ -78,6 +78,108 @@ GATE_STACK_OPS_ALERTS_JSONL = Path(
         ),
     )
 )
+MARKET_ALERT_EVENTS_DIR = Path(
+    os.getenv(
+        "MARKET_ALERT_EVENTS_DIR",
+        str(
+            WORKSPACE_DIR
+            / "weather-comparison-engine"
+            / "data"
+            / "outputs"
+            / "market_alert_events"
+        ),
+    )
+)
+FAMILY_SCAN_REPORTS_DIR = Path(
+    os.getenv(
+        "FAMILY_SCAN_REPORTS_DIR",
+        str(
+            WORKSPACE_DIR
+            / "weather-comparison-engine"
+            / "data"
+            / "outputs"
+            / "family_scan_reports"
+        ),
+    )
+)
+MARKET_ANOMALY_EVENTS_DIR = Path(
+    os.getenv(
+        "MARKET_ANOMALY_EVENTS_DIR",
+        str(
+            WORKSPACE_DIR
+            / "weather-comparison-engine"
+            / "data"
+            / "outputs"
+            / "market_anomaly_events"
+        ),
+    )
+)
+SCANNER_OUTPUT_DIR = Path(
+    os.getenv(
+        "SCANNER_OUTPUT_DIR",
+        str(WORKSPACE_DIR / "weather-comparison-engine" / "data" / "outputs" / "scanner"),
+    )
+)
+ALERTS_OUTPUT_DIR = Path(
+    os.getenv(
+        "ALERTS_OUTPUT_DIR",
+        str(WORKSPACE_DIR / "weather-comparison-engine" / "data" / "outputs" / "alerts"),
+    )
+)
+MARKET_UNIVERSE_SNAPSHOT_JSON = Path(
+    os.getenv(
+        "MARKET_UNIVERSE_SNAPSHOT_JSON",
+        str(SCANNER_OUTPUT_DIR / "market_universe_snapshot.json"),
+    )
+)
+EVIDENCE_SCAN_SNAPSHOT_JSON = Path(
+    os.getenv(
+        "EVIDENCE_SCAN_SNAPSHOT_JSON",
+        str(SCANNER_OUTPUT_DIR / "evidence_scan_snapshot.json"),
+    )
+)
+SCANNER_STATUS_JSON = Path(
+    os.getenv(
+        "SCANNER_STATUS_JSON",
+        str(SCANNER_OUTPUT_DIR / "scanner_status.json"),
+    )
+)
+SCAN_QUEUE_STATUS_JSON = Path(
+    os.getenv(
+        "SCAN_QUEUE_STATUS_JSON",
+        str(ALERTS_OUTPUT_DIR / "alert_queue_status.json"),
+    )
+)
+MARKET_ALERT_EVENTS_JSON = Path(
+    os.getenv(
+        "MARKET_ALERT_EVENTS_JSON",
+        str(ALERTS_OUTPUT_DIR / "market_alert_events.json"),
+    )
+)
+FAMILY_ANOMALY_SUMMARY_JSON = Path(
+    os.getenv(
+        "FAMILY_ANOMALY_SUMMARY_JSON",
+        str(ALERTS_OUTPUT_DIR / "family_anomaly_summary.json"),
+    )
+)
+SCANNER_OPS_ALERTS_JSON = Path(
+    os.getenv(
+        "SCANNER_OPS_ALERTS_JSON",
+        str(ALERTS_OUTPUT_DIR / "scanner_ops_alerts.json"),
+    )
+)
+SOURCE_POLICY_STATUS_JSON = Path(
+    os.getenv(
+        "SOURCE_POLICY_STATUS_JSON",
+        str(
+            WORKSPACE_DIR
+            / "weather-comparison-engine"
+            / "data"
+            / "outputs"
+            / "source_policy_status.json"
+        ),
+    )
+)
 TELEGRAM_OPS_NOTIFICATIONS_JSONL = Path(
     os.getenv(
         "TELEGRAM_OPS_NOTIFICATIONS_JSONL",
@@ -143,6 +245,66 @@ DASHBOARD_ROWS_JSON = Path(
             / "data"
             / "outputs"
             / "latest_dashboard_rows.json"
+        ),
+    )
+)
+OPPORTUNITY_BOARD_VIEW_JSON = Path(
+    os.getenv(
+        "OPPORTUNITY_BOARD_VIEW_JSON",
+        str(
+            WORKSPACE_DIR
+            / "weather-comparison-engine"
+            / "data"
+            / "outputs"
+            / "opportunity_board_view.json"
+        ),
+    )
+)
+OPERATIONS_MONITOR_OUTPUT_DIR = Path(
+    os.getenv(
+        "OPERATIONS_MONITOR_OUTPUT_DIR",
+        str(
+            WORKSPACE_DIR
+            / "weather-comparison-engine"
+            / "data"
+            / "outputs"
+            / "operations_monitor",
+        ),
+    )
+)
+OPERATIONS_MONITOR_VIEW_JSON = Path(
+    os.getenv(
+        "OPERATIONS_MONITOR_VIEW_JSON",
+        str(OPERATIONS_MONITOR_OUTPUT_DIR / "operations_monitor_view.json"),
+    )
+)
+OPERATIONS_MONITOR_SUMMARY_JSON = Path(
+    os.getenv(
+        "OPERATIONS_MONITOR_SUMMARY_JSON",
+        str(OPERATIONS_MONITOR_OUTPUT_DIR / "operations_monitor_summary.json"),
+    )
+)
+VALIDATION_OUTPUT_DIR = Path(
+    os.getenv(
+        "VALIDATION_OUTPUT_DIR",
+        str(
+            WORKSPACE_DIR
+            / "weather-comparison-engine"
+            / "data"
+            / "outputs"
+            / "validation",
+        ),
+    )
+)
+ADVANCED_ANOMALY_OUTPUT_DIR = Path(
+    os.getenv(
+        "ADVANCED_ANOMALY_OUTPUT_DIR",
+        str(
+            WORKSPACE_DIR
+            / "weather-comparison-engine"
+            / "data"
+            / "outputs"
+            / "anomaly",
         ),
     )
 )
@@ -260,6 +422,31 @@ OPERATOR_MARKET_CONTEXT_JSON = Path(
             / "data"
             / "outputs"
             / "operator_market_context.json"
+        ),
+    )
+)
+PAGE_CONTEXT_JSON = Path(
+    os.getenv(
+        "PAGE_CONTEXT_JSON",
+        str(
+            WORKSPACE_DIR
+            / "weather-dashboard"
+            / "data"
+            / "outputs"
+            / "page_context.json"
+        ),
+    )
+)
+UI_ACTION_VISIBILITY_POLICY_JSON = Path(
+    os.getenv(
+        "UI_ACTION_VISIBILITY_POLICY_JSON",
+        str(
+            WORKSPACE_DIR
+            / "weather-comparison-engine"
+            / "data"
+            / "registries"
+            / "ui_policy_registry"
+            / "action_visibility_policy.json"
         ),
     )
 )

@@ -1,0 +1,51 @@
+{
+  "schema_version": "operations_monitor_summary.v1",
+  "generated_at": "2026-04-23T14:30:47.154434+00:00",
+  "selected_market_id": "397991",
+  "markets_scanned": 18,
+  "focus_markets_count": 6,
+  "fresh_ratio": "0.56",
+  "high_alert_markets": 0,
+  "high_anomaly_markets": 0,
+  "gate_blocked_markets": 18,
+  "ops_alert_count": 5,
+  "scanner_status": "healthy",
+  "scanner_next_scan_eta": "5m",
+  "source_status": "blocked",
+  "queue_accepted_count": 0,
+  "queue_suppressed_count": 0,
+  "recommended_operator_action": "refresh_pipeline_inputs",
+  "primary_warning": "past_stale_threshold",
+  "focus_markets": [
+    {
+      "market_id": "397991",
+      "market_family": "station_temperature",
+      "focus_reason": "selected, block=None, opp=0.81"
+    },
+    {
+      "market_id": "Ankara.temperature_daily_max",
+      "market_family": "temperature_daily_max",
+      "focus_reason": "block=None, opp=0.72"
+    },
+    {
+      "market_id": "ankara.temperature_daily_max",
+      "market_family": "temperature_daily_max",
+      "focus_reason": "block=None"
+    },
+    {
+      "market_id": "Buenos Aires.temperature_daily_max",
+      "market_family": "temperature_daily_max",
+      "focus_reason": "block=None, opp=0.72"
+    },
+    {
+      "market_id": "buenos_aires.temperature_daily_max",
+      "market_family": "temperature_daily_max",
+      "focus_reason": "block=None"
+    }
+  ],
+  "selected_market_summary": {
+    "market_question": "Highest temperature in Shanghai on April 22?",
+    "execution_boundary": "-",
+    "market_family": "station_temperature"
+  }
+}

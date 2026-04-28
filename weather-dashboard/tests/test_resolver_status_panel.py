@@ -1,4 +1,4 @@
-from weather_dashboard.ui.compact_panel import sanitize_text
+from weather_dashboard.ui.compact_panel import sanitize_text, semantic_tone
 from weather_dashboard.ui.resolver_status_panel import _find_rule, build_resolver_status_summary
 
 
@@ -67,3 +67,10 @@ def test_resolver_status_panel_does_not_fallback_to_first_rule():
 
 def test_compact_panel_sanitizes_html_tags():
     assert sanitize_text("<div class='x'>Promotion OK</div>") == "Promotion OK"
+
+
+def test_semantic_tone_highlights_partial_and_blocked_states():
+    assert semantic_tone("Source Match Grade", "exact_station") == "ok"
+    assert semantic_tone("Freshness", "stale") == "warning"
+    assert semantic_tone("Gate Status", "BLOCKED") == "critical"
+    assert semantic_tone("Execution Constraint", "dry_run_only") == "warning"

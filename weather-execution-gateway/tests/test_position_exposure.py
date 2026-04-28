@@ -270,6 +270,56 @@ def test_dry_run_prefers_gate_stack_api_over_unified_status(tmp_path):
 
 
 def test_export_gate_runtime_snapshot_cli(monkeypatch, tmp_path):
+    output_dir = tmp_path / "comparison_engine_outputs"
+    alert_dir = output_dir / "market_alert_events"
+    family_scan_dir = output_dir / "family_scan_reports"
+    anomaly_dir = output_dir / "market_anomaly_events"
+    alert_dir.mkdir(parents=True)
+    family_scan_dir.mkdir(parents=True)
+    anomaly_dir.mkdir(parents=True)
+    (alert_dir / "a.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "market_alert_event.v1",
+                "market_id": "sample_market_001",
+                "severity": "amber",
+                "primary_reason": "forecast_divergence",
+            }
+        ),
+        encoding="utf-8",
+    )
+    (family_scan_dir / "b.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "family_scan_report.v1",
+                "family_count": 1,
+                "market_count": 1,
+            }
+        ),
+        encoding="utf-8",
+    )
+    (anomaly_dir / "c.jsonl").write_text(
+        json.dumps(
+            {
+                "schema_version": "market_anomaly_event.v1",
+                "market_id": "sample_market_001",
+                "anomaly_score": 0.41,
+                "primary_reason": "edge_dislocation",
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    source_policy_path = output_dir / "source_policy_status.json"
+    source_policy_path.write_text(
+        json.dumps(
+            {
+                "schema_version": "source_policy_status.v1",
+                "overall_status": "degraded",
+            }
+        ),
+        encoding="utf-8",
+    )
     gate_stack_api_path = tmp_path / "gate_stack_api.json"
     gate_stack_api_path.write_text(
         json.dumps(
@@ -301,6 +351,10 @@ def test_export_gate_runtime_snapshot_cli(monkeypatch, tmp_path):
     monkeypatch.setattr(gateway_main, "GATE_STACK_API_PATH", gate_stack_api_path)
     monkeypatch.setattr(gateway_main, "UNIFIED_STATUS_PATH", tmp_path / "missing_unified_status.json")
     monkeypatch.setattr(gateway_main, "GATEWAY_GATE_RUNTIME_SNAPSHOT_JSON", out_path)
+    monkeypatch.setattr(gateway_main, "MARKET_ALERT_EVENTS_DIR", alert_dir)
+    monkeypatch.setattr(gateway_main, "FAMILY_SCAN_REPORTS_DIR", family_scan_dir)
+    monkeypatch.setattr(gateway_main, "MARKET_ANOMALY_EVENTS_DIR", anomaly_dir)
+    monkeypatch.setattr(gateway_main, "SOURCE_POLICY_STATUS_PATH", source_policy_path)
 
     result = CliRunner().invoke(
         gateway_main.app,
@@ -312,3 +366,7 @@ def test_export_gate_runtime_snapshot_cli(monkeypatch, tmp_path):
     assert payload["gate_source"] == "api"
     assert payload["source_schema_version"] == "unified_status.v1"
     assert payload["promotion_state"]["probability_mode"] == "shadow_calibrated_candidate"
+    assert payload["top_parameter_view"]["schema_version"] == "top_parameter_view.v1"
+    assert payload["review_context"]["schema_version"] == "gateway_review_context.v1"
+    assert payload["review_context"]["latest_market_alert"]["primary_reason"] == "forecast_divergence"
+    assert payload["review_context"]["monitoring_context"]["source_policy_status"] == "degraded"

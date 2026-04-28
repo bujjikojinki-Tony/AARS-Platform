@@ -94,10 +94,10 @@ def render_data_alignment_panel(
         }
         .alignment-card {
             min-height: 5.8rem;
-            border: 1px solid rgba(35,72,82,0.14);
-            border-radius: 14px;
-            background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(248,246,239,0.86));
-            box-shadow: 0 8px 22px rgba(49,77,75,0.055);
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 12px;
+            background: linear-gradient(180deg, rgba(16,20,26,0.98), rgba(12,15,20,0.98));
+            box-shadow: none;
             padding: 0.58rem 0.66rem;
             position: relative;
             overflow: hidden;
@@ -107,11 +107,11 @@ def render_data_alignment_panel(
             position: absolute;
             inset: 0 auto 0 0;
             width: 4px;
-            background: rgba(102,119,130,0.32);
+            background: rgba(154,163,173,0.32);
         }
-        .alignment-card--ok::before { background: #0f9f71; }
-        .alignment-card--warn::before { background: #c47a15; }
-        .alignment-card--block::before { background: #c44d46; }
+        .alignment-card--ok::before { background: #69d39a; }
+        .alignment-card--warn::before { background: #d7ab57; }
+        .alignment-card--block::before { background: #d96d67; }
         .alignment-card-top {
             display: flex;
             align-items: center;
@@ -119,7 +119,7 @@ def render_data_alignment_panel(
             gap: 0.5rem;
         }
         .alignment-name {
-            color: #17252b;
+            color: #f7fbff;
             font-family: "Avenir Next Condensed", "DIN Condensed", "Trebuchet MS", sans-serif;
             font-size: 0.95rem;
             font-weight: 950;
@@ -135,27 +135,27 @@ def render_data_alignment_panel(
             text-transform: uppercase;
         }
         .alignment-pill--ok {
-            background: rgba(15,159,113,0.12);
-            color: #0f6f52;
+            background: rgba(15,159,113,0.10);
+            color: #8fe2b0;
         }
         .alignment-pill--warn {
-            background: rgba(196,122,21,0.16);
-            color: #8a540d;
+            background: rgba(215,171,87,0.10);
+            color: #e6c67c;
         }
         .alignment-pill--block {
-            background: rgba(196,77,70,0.13);
-            color: #8d312c;
+            background: rgba(217,109,103,0.10);
+            color: #e5a09d;
         }
         .alignment-detail {
             margin-top: 0.36rem;
-            color: #17252b;
+            color: #e9edf2;
             font-size: 0.74rem;
             font-weight: 760;
             line-height: 1.22;
         }
         .alignment-ref {
             margin-top: 0.26rem;
-            color: #667782;
+            color: #9aa3ad;
             font-size: 0.65rem;
             line-height: 1.18;
         }
@@ -261,7 +261,7 @@ def _forecast_check(selected_market_id: str, forecast_snapshot: dict | None) -> 
             "ok",
             "aligned",
             f"model_band={_value(forecast_snapshot, 'model_band')} value={_value(forecast_snapshot, 'value')}",
-            f"source={_value(forecast_snapshot, 'source_mode')} timestamp={_value(forecast_snapshot, 'timestamp')}",
+            f"forecast_status={_value(forecast_snapshot, 'source_mode')} timestamp={_value(forecast_snapshot, 'timestamp')}",
         )
     return _check(
         "Forecast",

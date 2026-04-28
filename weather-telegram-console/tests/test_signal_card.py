@@ -29,15 +29,37 @@ def test_format_signal_card():
         },
         "action_hint": "approve_small",
     }
+    top_parameter_view = {
+        "market_id": "379803",
+        "market_family": "temperature_daily_max",
+        "location_name": "Shanghai",
+        "target_date": "2026-04-16",
+        "variable_name": "daily_max_temperature",
+        "weather": {
+            "observation_value": 29.1,
+            "forecast_value": 30.0,
+            "model_band": "30",
+            "source_match_grade": "exact_station",
+            "freshness_status": "fresh",
+        },
+        "decision": {
+            "probability_mode": "shadow_calibrated_candidate",
+            "execution_constraint": "dry_run_only",
+            "approval_status": "已审批",
+        },
+    }
 
     text = format_signal_card(
         payload,
         approval_status="已审批",
         approval_expires_at="2026-04-12T12:15:00+00:00",
+        top_parameter_view=top_parameter_view,
     )
 
     assert "Weather Signal Alert" in text
-    assert "Central Park" in text
+    assert "Signal Context" in text
+    assert "Shanghai" in text
+    assert "Central Park" not in text
     assert "approve_small" in text
     assert "已审批" in text
     assert "manual_advisory" in text

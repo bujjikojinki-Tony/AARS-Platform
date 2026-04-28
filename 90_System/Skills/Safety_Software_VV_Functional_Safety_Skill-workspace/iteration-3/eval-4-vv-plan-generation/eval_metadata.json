@@ -1,0 +1,12 @@
+{
+  "eval_id": 4,
+  "eval_name": "vv-plan-generation",
+  "prompt": "请为一个 safety-related PLC-based shutdown logic 生成为期一个版本周期的 Software V&V Plan。已知：系统边界包括现场输入、logic solver、shutdown outputs 和 operator reset interface；项目处于详细设计完成、编码和集成即将展开阶段；独立 V&V 资源有限但可以做到关键活动独立审查。请按 IEEE 1012 为主，必要时结合 IEC 61508 / IEC 61511，生成一个可直接进入工程评审的 V&V Plan，不要编造未知信息，未知项请显式列成 gap。",
+  "assertions": [
+    "The output includes Purpose, Scope, Applicable Standards, System Description, and V&V Objectives",
+    "The output includes organization or independence logic for V&V",
+    "The output includes lifecycle V&V activities, traceability strategy, verification methods, and validation strategy",
+    "The output includes configuration management and anomaly management",
+    "The output explicitly marks unknown information as gaps rather than inventing it"
+  ]
+}

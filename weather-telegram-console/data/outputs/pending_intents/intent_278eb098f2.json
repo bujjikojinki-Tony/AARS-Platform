@@ -7,5 +7,8 @@
   "size": 10.0,
   "post_only": true,
   "max_slippage_pct": 0.02,
-  "approved": true
+  "approved": true,
+  "authorization_ref": "approval_3187c1ad61",
+  "schema_version": "execution_intent.v1",
+  "decision_ref": "decision_telegram_sig_7840154de6"
 }

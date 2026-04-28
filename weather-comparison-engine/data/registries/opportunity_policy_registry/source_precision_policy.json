@@ -1,0 +1,32 @@
+{
+  "policy_id": "source_precision_policy.v1",
+  "schema_version": "source_precision_policy.v1",
+  "applicable_scope": "opportunity_board.source_precision_score",
+  "formula_or_mapping": "source_match_and_officialness",
+  "combination_scores": {
+    "exact_station:official": 1.0,
+    "exact_station:proxy": 0.8,
+    "family_exact:official": 0.7,
+    "family_exact:proxy": 0.55,
+    "family_only:official": 0.3,
+    "family_only:proxy": 0.3,
+    "unmatched:official": 0.0,
+    "unmatched:proxy": 0.0
+  },
+  "match_grade_scores": {
+    "exact_station": 0.92,
+    "family_exact": 0.70,
+    "family_only": 0.30,
+    "unmatched": 0.0,
+    "unknown": 0.30
+  },
+  "officialness_adjustments": {
+    "official": 0.08,
+    "proxy": -0.08,
+    "unknown": 0.0
+  },
+  "resolver_confidence_weight": 0.0,
+  "version": "v1",
+  "status": "active",
+  "notes": "Source precision is a prioritization input, not settlement truth."
+}

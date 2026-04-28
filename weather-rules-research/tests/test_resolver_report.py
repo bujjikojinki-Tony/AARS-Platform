@@ -35,6 +35,10 @@ def test_build_resolved_market_rule_for_shanghai_temperature():
     assert resolved.source_match_grade == "exact_station"
     assert resolved.official_source_url == "https://www.wunderground.com/history/weekly/cn/shanghai/ZSPD"
     assert resolved.variable_name == "daily_max_temperature"
+    assert resolved.source_policy_ref == "wunderground_station"
+    assert resolved.unit_policy_ref == "temperature"
+    assert resolved.precision_policy_ref == "precision_policy.temperature_daily_max.v1"
+    assert resolved.band_mapping_policy_ref == "band_mapping.temperature_celsius_integer.v1"
 
 
 def test_build_resolved_market_rule_for_global_temperature_index():
@@ -57,6 +61,11 @@ def test_build_resolved_market_rule_for_global_temperature_index():
     assert resolved.source_match_grade == "family_exact"
     assert resolved.expected_band == "top_1"
     assert resolved.failure_reason is None
+    assert resolved.source_policy_ref == "climate_index_source"
+    assert resolved.unit_policy_ref == "climate_index"
+    assert resolved.precision_policy_ref == "precision_policy.global_temperature_index.v1"
+    assert resolved.rounding_policy_ref == "rounding_policy.global_temperature_index.v1"
+    assert resolved.band_mapping_policy_ref == "band_mapping.global_temperature_index_ordinal.v1"
 
 
 def test_build_resolved_market_rule_for_sea_ice_extent():
@@ -81,6 +90,11 @@ def test_build_resolved_market_rule_for_sea_ice_extent():
     assert resolved.source_match_grade == "family_exact"
     assert resolved.threshold_upper == 4.0
     assert resolved.failure_reason is None
+    assert resolved.source_policy_ref == "sea_ice_dataset"
+    assert resolved.unit_policy_ref == "climate_index"
+    assert resolved.precision_policy_ref == "precision_policy.sea_ice_extent.v1"
+    assert resolved.rounding_policy_ref == "rounding_policy.sea_ice_extent.v1"
+    assert resolved.band_mapping_policy_ref == "band_mapping.sea_ice_range_3way.v1"
 
 
 def test_write_resolver_outputs(tmp_path):
@@ -149,6 +163,10 @@ def test_build_resolved_market_rule_for_precipitation_metric():
     assert resolved.variable_name == "daily_precipitation_sum"
     assert resolved.station_id == "ZSPD"
     assert resolved.source_match_grade == "exact_station"
+    assert resolved.unit_policy_ref == "precipitation"
+    assert resolved.precision_policy_ref == "precision_policy.weather_metric.precipitation.v1"
+    assert resolved.rounding_policy_ref == "rounding_policy.weather_metric.precipitation.v1"
+    assert resolved.band_mapping_policy_ref == "band_mapping.precipitation_mm_threshold.v1"
 
 
 def test_build_resolved_market_rule_for_precipitation_metric_with_range():
@@ -219,6 +237,10 @@ def test_build_resolved_market_rule_for_snowfall_metric_with_range():
     assert resolved.threshold_lower == 5.0
     assert resolved.expected_band == "above_range"
     assert resolved.unit == "cm"
+    assert resolved.unit_policy_ref == "snowfall"
+    assert resolved.precision_policy_ref == "precision_policy.weather_metric.snowfall.v1"
+    assert resolved.rounding_policy_ref == "rounding_policy.weather_metric.snowfall.v1"
+    assert resolved.band_mapping_policy_ref == "band_mapping.snowfall_mm_threshold.v1"
 
 
 def test_build_resolved_market_rule_for_wind_metric_with_range():
@@ -255,3 +277,7 @@ def test_build_resolved_market_rule_for_wind_metric_with_range():
     assert resolved.threshold_upper == 40.0
     assert resolved.expected_band == "in_range"
     assert resolved.unit == "km_h"
+    assert resolved.unit_policy_ref == "wind_speed"
+    assert resolved.precision_policy_ref == "precision_policy.weather_metric.wind_speed.v1"
+    assert resolved.rounding_policy_ref == "rounding_policy.weather_metric.wind_speed.v1"
+    assert resolved.band_mapping_policy_ref == "band_mapping.wind_speed_threshold_knots.v1"

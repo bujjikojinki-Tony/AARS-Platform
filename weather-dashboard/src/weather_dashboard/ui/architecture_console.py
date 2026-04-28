@@ -20,7 +20,95 @@ def find_resolver_rule(resolver_report: dict | None, market_id: str | None) -> d
 
 
 def render_architecture_styles() -> None:
-    return None
+    st.markdown(
+        """
+        <style>
+        .stApp [data-testid="stHeader"],
+        .stApp [data-testid="stToolbar"],
+        .stApp [data-testid="stDecoration"],
+        .stApp [data-testid="stStatusWidget"] {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        .stApp {
+            background:
+                radial-gradient(circle at 8% 0%, rgba(79, 143, 230, 0.10), transparent 28%),
+                radial-gradient(circle at 92% 12%, rgba(105, 211, 154, 0.08), transparent 30%),
+                linear-gradient(180deg, #020305 0%, #070a0f 42%, #090c10 100%);
+            color: #f7fbff;
+        }
+        .architecture-brief,
+        .realtime-architecture-chain {
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            background: linear-gradient(180deg, rgba(15, 18, 24, 0.99), rgba(9, 12, 16, 0.99));
+            box-shadow: none;
+            padding: 0.32rem 0.42rem;
+            margin: 0.16rem 0;
+        }
+        .architecture-brief__grid,
+        .realtime-architecture-chain__grid {
+            display: grid;
+            gap: 0.28rem;
+        }
+        .architecture-brief__grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+        .realtime-architecture-chain__grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+        .architecture-brief__card,
+        .realtime-architecture-chain__card {
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            background: rgba(12, 15, 20, 0.98);
+            padding: 0.26rem 0.3rem;
+        }
+        .architecture-brief__label,
+        .realtime-architecture-chain__label {
+            color: #a3adb7;
+            font-family: "SF Mono", "Menlo", monospace;
+            font-size: 0.55rem;
+            font-weight: 900;
+            letter-spacing: 0.10em;
+            text-transform: uppercase;
+        }
+        .architecture-brief__value,
+        .realtime-architecture-chain__value {
+            color: #f7fbff;
+            font-family: "Avenir Next Condensed", "DIN Condensed", "Trebuchet MS", sans-serif;
+            font-size: 0.9rem;
+            font-weight: 900;
+            line-height: 1.12;
+            margin-top: 0.06rem;
+        }
+        .architecture-brief__hint,
+        .realtime-architecture-chain__hint {
+            color: #93a0aa;
+            font-size: 0.7rem;
+            line-height: 1.18;
+            margin-top: 0.06rem;
+        }
+        .architecture-brief__title,
+        .realtime-architecture-chain__title {
+            color: #f7fbff;
+            font-family: "Avenir Next Condensed", "DIN Condensed", "Trebuchet MS", sans-serif;
+            font-size: 0.92rem;
+            font-weight: 950;
+            letter-spacing: 0.03em;
+            line-height: 1.08;
+            margin-bottom: 0.12rem;
+        }
+        .architecture-brief__meta {
+            color: #a3adb7;
+            font-size: 0.66rem;
+            line-height: 1.2;
+            margin-bottom: 0.12rem;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def render_architecture_brief(
@@ -43,7 +131,7 @@ def render_architecture_brief(
         (market_snapshot or {}).get("market_family"),
         "-",
     )
-    market_probability = _fmt_num((market_snapshot or {}).get("market_probability"))
+    market_probability = _market_probability(market_snapshot, comparison_row)
     fair_value = _fmt_num((probability_state or {}).get("fair_value"))
     edge = _fmt_num((probability_state or {}).get("edge"), signed=True)
     resolver_status = str((resolver_rule or {}).get("resolver_status") or "-")
@@ -56,10 +144,15 @@ def render_architecture_brief(
         f"market={sanitize_text(market_id)} · family={sanitize_text(family)} · action_hint={sanitize_text(action_hint)}",
     )
 
-    with st.container(border=True):
-        st.metric("Current Market", sanitize_text(market_id))
-        st.markdown(f"**Question:** {sanitize_text(question)}")
-        st.markdown(f"**Market Family:** {sanitize_text(family)}")
+    st.markdown(
+        f"""
+        <section class="architecture-brief">
+          <div class="architecture-brief__meta">market {sanitize_text(market_id)} · family {sanitize_text(family)} · {sanitize_text(action_hint)}</div>
+          <div class="architecture-brief__hint">Question: {sanitize_text(question)}</div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
 
     cols = st.columns(5)
     _render_metric_card(cols[0], "Market Prob", market_probability, (market_snapshot or {}).get("favored_side") or "-")
@@ -108,13 +201,24 @@ def render_layer_ribbon(
         ("07", "Authorization", "authorized" if bot_authorized else "locked", "ok" if bot_authorized else "block"),
         ("08", "Execution", "dry-run only", "warn"),
     ]
+    st.markdown('<section class="realtime-architecture-chain">', unsafe_allow_html=True)
     cols = st.columns(4)
     for idx, layer in enumerate(layers):
         with cols[idx % 4]:
             with st.container(border=True):
-                st.caption(f"{layer[0]} {sanitize_text(layer[1]).upper()}")
-                st.metric("Status", sanitize_text(layer[2]))
-                st.caption(f"Tone: {sanitize_text(layer[3])}")
+                st.markdown(
+                    f"<div class='realtime-architecture-chain__label'>{sanitize_text(layer[0])} {sanitize_text(layer[1]).upper()}</div>",
+                    unsafe_allow_html=True,
+                )
+                st.markdown(
+                    f"<div class='realtime-architecture-chain__value'>{sanitize_text(layer[2])}</div>",
+                    unsafe_allow_html=True,
+                )
+                st.markdown(
+                    f"<div class='realtime-architecture-chain__hint'>Tone: {sanitize_text(layer[3])}</div>",
+                    unsafe_allow_html=True,
+                )
+    st.markdown("</section>", unsafe_allow_html=True)
 
 
 def render_pipeline_summary(
@@ -191,9 +295,18 @@ def render_pipeline_flow(
 def _render_metric_card(col, label: str, value: str, hint: object) -> None:
     with col:
         with st.container(border=True):
-            st.caption(sanitize_text(label).upper())
-            st.metric("Value", sanitize_text(value))
-            st.caption(sanitize_text(hint))
+            st.markdown(
+                f"<div class='architecture-brief__label'>{sanitize_text(label)}</div>",
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                f"<div class='architecture-brief__value'>{sanitize_text(value)}</div>",
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                f"<div class='architecture-brief__hint'>{sanitize_text(hint)}</div>",
+                unsafe_allow_html=True,
+            )
 
 
 def _flow_card(step: str, name: str, main: object, sub: object) -> dict:
@@ -246,3 +359,19 @@ def _compact_dict(payload: dict | None, keys: list[str]) -> dict:
     if not payload:
         return {"status": "missing"}
     return {key: payload.get(key) for key in keys if key in payload}
+
+
+def _market_probability(market_snapshot: dict | None, comparison_row: dict | None) -> str:
+    market = market_snapshot or {}
+    comparison = comparison_row or {}
+    for candidate in (
+        market.get("market_probability"),
+        market.get("favored_probability"),
+        comparison.get("market_probability"),
+        comparison.get("favored_probability"),
+        market.get("yes_price"),
+        comparison.get("yes_price"),
+    ):
+        if candidate not in (None, ""):
+            return _fmt_num(candidate)
+    return "unavailable"

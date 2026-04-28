@@ -143,7 +143,12 @@ def _overall_status(counts: dict[str, int]) -> str:
 def _extract_status(payload: Any) -> str | None:
     if not isinstance(payload, dict):
         return None
-    status = payload.get("status")
-    if isinstance(status, str) and status in {"healthy", "warning", "blocked"}:
-        return status
+    for key in ("status", "overall_status"):
+        status = payload.get(key)
+        if isinstance(status, str) and status in {"healthy", "warning", "blocked", "degraded", "missing"}:
+            if status == "degraded":
+                return "warning"
+            if status == "missing":
+                return "blocked"
+            return status
     return None

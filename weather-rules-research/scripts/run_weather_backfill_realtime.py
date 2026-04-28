@@ -16,7 +16,12 @@ for path in (SRC, SCRIPTS):
         sys.path.insert(0, str(path))
 
 from run_weather_backfill_once import _load_market_snapshots
-from run_weather_realtime import FORECAST_REFRESH_INTERVAL_SECONDS, MARKET_CHECK_INTERVAL_SECONDS, poll_once
+from run_weather_realtime import (
+    FORECAST_REFRESH_INTERVAL_SECONDS,
+    MARKET_CHECK_INTERVAL_SECONDS,
+    poll_once,
+    startup_self_check_and_sync,
+)
 
 
 MAX_CYCLES = int(os.getenv("WEATHER_BACKFILL_MAX_CYCLES", "0"))
@@ -37,6 +42,10 @@ async def main() -> None:
     print(f"Market check     : {MARKET_CHECK_INTERVAL_SECONDS}s")
     print(f"Max cycles       : {MAX_CYCLES or 'infinite'}")
     print("=" * 80)
+
+    bootstrap_snapshots = _load_market_snapshots()
+    if bootstrap_snapshots:
+        await startup_self_check_and_sync(live_market=bootstrap_snapshots[0])
 
     last_fingerprint_by_market: dict[str, tuple[str, str, str]] = {}
     last_refresh_at_by_market: dict[str, datetime] = {}

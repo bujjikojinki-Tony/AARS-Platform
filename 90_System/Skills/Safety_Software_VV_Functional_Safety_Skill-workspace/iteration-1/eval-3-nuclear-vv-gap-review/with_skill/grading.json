@@ -1,0 +1,79 @@
+{
+  "expectations": [
+    {
+      "text": "The output presents a review conclusion and findings before any brief summary",
+      "passed": true,
+      "evidence": "The output starts its review body with `## Review Conclusion`, followed by `## Findings`, and only later includes `## Brief Summary`."
+    },
+    {
+      "text": "The output treats IEEE 1012 as the primary V&V logic and does not substitute IEC 61508 / IEC 61511 for nuclear-specific requirements",
+      "passed": true,
+      "evidence": "The output states: `IEEE 1012 is the primary V&V logic` and that IEC 61508 / IEC 61511 are `supporting functional-safety references and not substitutes for nuclear-specific requirements.`"
+    },
+    {
+      "text": "The output identifies gaps in validation coverage and configuration baseline control",
+      "passed": true,
+      "evidence": "The top findings explicitly call out `validation coverage is incomplete` and `configuration baseline control is not yet established`."
+    },
+    {
+      "text": "The output includes required evidence and corrective actions",
+      "passed": true,
+      "evidence": "The output contains `## Required Evidence` and `## Corrective Actions` sections with concrete items."
+    },
+    {
+      "text": "The output ends with a phase-gate recommendation using Pass, Conditional Pass, Hold, Fail, or Insufficient Evidence",
+      "passed": true,
+      "evidence": "The output contains `## Phase-Gate Recommendation` with `Hold`, and the closure status is `Hold - Evidence Missing`."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "tool_calls": {
+      "Read": 0,
+      "Write": 1,
+      "Bash": 0
+    },
+    "total_tool_calls": 1,
+    "total_steps": 1,
+    "errors_encountered": 0,
+    "output_chars": 5986,
+    "transcript_chars": 0
+  },
+  "timing": {
+    "executor_duration_seconds": 0.0,
+    "grader_duration_seconds": 0.0,
+    "total_duration_seconds": 0.0
+  },
+  "claims": [
+    {
+      "claim": "The package is not ready for a clean next-phase recommendation on the current evidence set",
+      "type": "quality",
+      "verified": true,
+      "evidence": "The output issues a `Hold` conclusion and ties it to incomplete validation, unfrozen classification, and lack of a formal baseline package."
+    },
+    {
+      "claim": "Testing evidence alone does not close lifecycle V&V readiness",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The output notes that the evidence set is weighted toward testing and thinner on validation completeness, configuration control, and V&V closure evidence."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [
+      "This review was graded from Codex-generated output without a separate execution transcript."
+    ],
+    "needs_review": [],
+    "workarounds": [
+      "Quantitative baseline comparison is still missing in the Codex-only workflow."
+    ]
+  },
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "No suggestions, evals look solid for a first-pass lifecycle gate review check."
+  }
+}

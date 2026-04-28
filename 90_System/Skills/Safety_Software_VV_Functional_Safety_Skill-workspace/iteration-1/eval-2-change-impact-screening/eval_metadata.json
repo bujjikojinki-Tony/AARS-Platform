@@ -1,0 +1,12 @@
+{
+  "eval_id": 2,
+  "eval_name": "change-impact-screening",
+  "prompt": "为下面的变更生成 Change Impact Analysis。系统是 burner management system，现有联锁逻辑中把一次风机低流量跳闸延时从 2 秒改成 5 秒，同时 HMI 上新增一个 maintenance bypass 状态显示。已知这是安全相关逻辑，但我们手上只有旧版 cause and effect matrix、部分 FAT 记录和 PLC logic printout。请按 safety V&V + functional safety 的方式分析受影响项、需要追加的验证/确认活动、缺少哪些证据、是否可以直接上线。",
+  "assertions": [
+    "The output includes a change summary and affected items",
+    "The output identifies impact on safety function, response time, logic, and HMI or bypass behavior",
+    "The output includes verification, regression, and validation impact",
+    "The output explicitly lists missing evidence instead of inventing it",
+    "The output gives a bounded disposition rather than approving the change outright"
+  ]
+}

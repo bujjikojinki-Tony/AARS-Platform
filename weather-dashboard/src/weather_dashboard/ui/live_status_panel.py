@@ -7,6 +7,8 @@ from weather_dashboard.ui.compact_panel import (
     render_kv_section,
     render_panel_title,
     sanitize_text,
+    semantic_tone,
+    semantic_value_html,
 )
 from weather_dashboard.ui.field_dictionary import field_label
 from weather_dashboard.ui.operator_messages import (
@@ -91,9 +93,24 @@ def render_live_status_panel(
         with col:
             with st.container(border=True):
                 st.caption(sanitize_text(card["title"]))
-                st.metric("Status", sanitize_text(card["status"]))
+                status_tone = semantic_tone("status", card["status"])
+                st.markdown(
+                    f"""
+                    <div class="compact-metric compact-metric--{status_tone}">
+                      <span>Status</span>
+                      <strong>{semantic_value_html("Status", card["status"], metric=True)}</strong>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
                 for label, value in card["rows"]:
-                    st.markdown(f"**{sanitize_text(label)}:** `{sanitize_text(value)}`")
+                    st.markdown(
+                        f"<div class='compact-kv-row compact-kv-row--{semantic_tone(label, value)}'>"
+                        f"<span>{sanitize_text(label)}</span>"
+                        f"<strong>{semantic_value_html(label, value)}</strong>"
+                        f"</div>",
+                        unsafe_allow_html=True,
+                    )
 
     if st.checkbox(
         "Show live status details",
@@ -135,7 +152,7 @@ def render_live_status_panel(
                     ("Timestamp", forecast_snapshot.get("timestamp", "-")),
                     ("Model Band", forecast_snapshot.get("model_band", "-")),
                     ("Confidence Score", forecast_snapshot.get("confidence_score", "-")),
-                    ("Source Mode", forecast_snapshot.get("source_mode", "-")),
+                    ("Forecast Status", forecast_snapshot.get("source_mode", "-")),
                     ("Notes", forecast_snapshot.get("notes", "-")),
                 ]
                 if selected_market_id and not forecast_matches_market:

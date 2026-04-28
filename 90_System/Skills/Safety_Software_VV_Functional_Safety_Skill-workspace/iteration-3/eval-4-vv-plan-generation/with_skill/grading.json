@@ -1,0 +1,69 @@
+{
+  "expectations": [
+    {
+      "text": "The output includes Purpose, Scope, Applicable Standards, System Description, and V&V Objectives",
+      "passed": true,
+      "evidence": "The output contains `## 1. Purpose`, `## 2. Scope`, `## 3. Applicable Standards`, `## 4. System Description`, and `## 6. V&V Objectives`."
+    },
+    {
+      "text": "The output includes organization or independence logic for V&V",
+      "passed": true,
+      "evidence": "The output contains `## 7. Organization and Independence` and explains how key activities receive independent review despite limited resources."
+    },
+    {
+      "text": "The output includes lifecycle V&V activities, traceability strategy, verification methods, and validation strategy",
+      "passed": true,
+      "evidence": "The output contains `## 8. Lifecycle V&V Activities`, `## 9. Traceability Strategy`, `## 10. Verification Methods`, and `## 11. Validation Strategy`."
+    },
+    {
+      "text": "The output includes configuration management and anomaly management",
+      "passed": true,
+      "evidence": "The output includes `## 13. Configuration Management` and `## 14. Anomaly Management`."
+    },
+    {
+      "text": "The output explicitly marks unknown information as gaps rather than inventing it",
+      "passed": true,
+      "evidence": "Multiple unknowns are explicitly labeled `gap`, including interface inventory, SIL basis, validation scenarios, release procedure, and approvals."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "tool_calls": {
+      "Read": 0,
+      "Write": 1,
+      "Bash": 0
+    },
+    "total_tool_calls": 1,
+    "total_steps": 1,
+    "errors_encountered": 0,
+    "output_chars": 6709,
+    "transcript_chars": 0
+  },
+  "timing": {
+    "executor_duration_seconds": 0.0,
+    "grader_duration_seconds": 0.0,
+    "total_duration_seconds": 0.0
+  },
+  "claims": [
+    {
+      "claim": "The skill can generate a review-ready V&V Plan structure without fabricating unknowns",
+      "type": "quality",
+      "verified": true,
+      "evidence": "The output follows a governed V&V Plan shape and consistently marks unknown project specifics as gaps."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  },
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "No suggestions, this eval discriminates well for structured V&V Plan generation."
+  }
+}

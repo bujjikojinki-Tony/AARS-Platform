@@ -1,0 +1,69 @@
+{
+  "expectations": [
+    {
+      "text": "The output presents a review conclusion and findings before any brief summary",
+      "passed": true,
+      "evidence": "The output orders `## Review Conclusion`, then `## Findings`, then `## Brief Summary`."
+    },
+    {
+      "text": "The output treats IEEE 1012 as the primary V&V logic and does not substitute IEC 61508 / IEC 61511 for nuclear-specific requirements",
+      "passed": true,
+      "evidence": "The invocation context and applicable logic sections explicitly say IEEE 1012 is primary and IEC 61508 / 61511 are supporting references only."
+    },
+    {
+      "text": "The output identifies gaps in validation coverage and configuration baseline control",
+      "passed": true,
+      "evidence": "Finding 1 calls out incomplete validation coverage and Finding 2 calls out missing formal configuration baseline control."
+    },
+    {
+      "text": "The output includes required evidence and corrective actions",
+      "passed": true,
+      "evidence": "The output includes `## Required Evidence` and `## Corrective Actions` sections."
+    },
+    {
+      "text": "The output ends with a phase-gate recommendation using Pass, Conditional Pass, Hold, Fail, or Insufficient Evidence",
+      "passed": true,
+      "evidence": "The output contains `## Phase-Gate Recommendation` with `Hold`, followed by closure status `Hold - Evidence Missing`."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "tool_calls": {
+      "Read": 0,
+      "Write": 1,
+      "Bash": 0
+    },
+    "total_tool_calls": 1,
+    "total_steps": 1,
+    "errors_encountered": 0,
+    "output_chars": 5122,
+    "transcript_chars": 0
+  },
+  "timing": {
+    "executor_duration_seconds": 0.0,
+    "grader_duration_seconds": 0.0,
+    "total_duration_seconds": 0.0
+  },
+  "claims": [
+    {
+      "claim": "The review output is more rigidly findings-first than iteration 1",
+      "type": "quality",
+      "verified": true,
+      "evidence": "The output now cleanly follows the packaged review template: conclusion, findings, brief summary, satisfied items, missing items, risks, evidence, actions, recommendation."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  },
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "No suggestions, the review structure is tighter and more consistent than iteration 1."
+  }
+}

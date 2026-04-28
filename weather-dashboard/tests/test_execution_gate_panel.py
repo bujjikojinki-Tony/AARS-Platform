@@ -38,6 +38,9 @@ def test_execution_gate_blocks_without_authorization(tmp_path: Path):
     assert state["data_aligned"] is True
     assert state["can_write_intent"] is False
     assert state["probability_mode"] == "heuristic_not_calibrated"
+    assert state["promotion_state"] == "heuristic_not_calibrated"
+    assert state["promotion_reason"] == "-"
+    assert state["demotion_reason"] == "-"
     assert "bot_not_authorized" in state["blockers"]
 
 
