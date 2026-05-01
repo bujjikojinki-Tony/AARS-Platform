@@ -25,3 +25,184 @@
 - Identified existing reusable dashboard and Telegram sources for scanner, alert queue, opportunity board, and workstation summaries.
 - Confirmed the dashboard app already has the necessary high-level sections to host a first-class Operations Monitor homepage.
 - Prepared to add a new `operations_monitor_view.v1` contract and a homepage-level monitoring layout that keeps detail drawers folded by default.
+
+## 2026-04-29
+- Reoriented the active task to PWB-03 Probability Governance & Calibration v0.
+- Read the PWB-02 status and freeze notes to preserve the accepted baseline.
+- Created an executable PWB-03 task plan with phases for registry, shadow engines, calibration, governance APIs, UI, and verification.
+- Documented the PWB-03 boundary in `findings.md` so the next implementation step stays additive and non-trading.
+- Wrote `docs/implementation/round-pwb-03-backlog.md` as the first executable artifact for the round.
+- Added PWB-03 acceptance coverage in `polymarket-bot/tests/test_pwb03_probability_governance.py`.
+- Added PWB-03 freeze docs:
+  - `docs/implementation/round-pwb-03-status-note.md`
+  - `docs/implementation/round-pwb-03-accepted-path-inventory.md`
+  - `docs/implementation/round-pwb-03-baseline-freeze.md`
+- Verified PWB-03 freeze tests pass and PWB-01/PWB-02 regression tests remain green.
+- Implemented PWB-03 Phase A/B governance models, SQLite schema, default engine configs, and repository methods.
+- Added storage smoke tests in `polymarket-bot/tests/test_pwb03_storage.py`.
+- Verified PWB-03 storage tests pass and existing PWB-01/PWB-02 regression tests remain green.
+- Implemented PWB-03 Phase C/D engine registry, shadow engines, runner, active policy, and comparison builder.
+- Added engine comparison smoke test in `polymarket-bot/tests/test_pwb03_engine_comparison.py`.
+- Verified PWB-03 comparison tests pass and existing PWB-01/PWB-02 regression tests remain green.
+- Implemented PWB-03 Phase E/F calibration metrics, market outcome service, calibration service, and model promotion gate.
+- Added calibration and promotion smoke test in `polymarket-bot/tests/test_pwb03_calibration_promotion.py`.
+- Verified PWB-03 calibration/promotion tests pass and existing PWB-01/PWB-02 regression tests remain green.
+- Implemented PWB-03 Phase H UI panels for probability comparison, calibration history, and engine registry.
+- Wired the new PWB-03 governance panels into the Streamlit shell for Workstation, History, and Settings surfaces.
+- Verified the modified Streamlit modules compile and the full PWB-01/PWB-02/PWB-03 regression suite still passes.
+- Implemented PWB-04C app factory hardening by adding `create_app(db_path, allow_network=False)` to `polymarket-bot/backend/main.py`.
+- Updated PWB-02 and PWB-03 API tests to use isolated temporary databases through the new factory.
+- Added `polymarket-bot/tests/test_pwb04c_app_factory.py` to verify separate app instances do not share SQLite state.
+- Verified the isolation-focused test subset passes: PWB-02, PWB-03, and PWB-04C tests are green.
+- Completed PWB-04C router integration by ensuring `create_app()` mounts the full router set and passes weather router runtime defaults through the factory.
+- Added PWB-04C freeze docs:
+  - `docs/implementation/round-pwb-04c-status-note.md`
+  - `docs/implementation/round-pwb-04c-accepted-path-inventory.md`
+  - `docs/implementation/round-pwb-04c-baseline-freeze.md`
+- Verified the combined PWB-02 / PWB-03 / PWB-04C test subset passes: `24 passed`.
+- Implemented PWB-04D read-only Polymarket connector models and client stubs.
+- Added a read-only Polymarket connector status panel to Settings.
+- Added `tests/test_pwb04d_polymarket_read_only_connector.py` for serialization, network refusal, weather filtering, HYBRID fallback, and live-execution rejection.
+- Added PWB-04D freeze docs:
+  - `docs/implementation/round-pwb-04d-status-note.md`
+  - `docs/implementation/round-pwb-04d-accepted-path-inventory.md`
+  - `docs/implementation/round-pwb-04d-baseline-freeze.md`
+- Verified the full regression suite passes: `53 passed`.
+- Upgraded the `weather-dashboard` Settings connector panel from a static placeholder to a live read-only Polymarket panel backed by `/api/polymarket/*`.
+- Added panel state/types for source mode, network gate, connector health, cached market rows, preview snapshots, warnings, and raw connector state.
+- Added `weather-dashboard/tests/test_polymarket_connector_panel.py` and verified the panel-specific UI regression passes.
+- Replaced `polymarket-bot/tests/test_pwb04d_polymarket_read_only_connector.py` with a consolidated Phase I acceptance suite covering config safety, read-only clients, normalizer/filter, health, market source, cache, APIs, source mode, no-candidate sync, and `LIVE_EXECUTE` rejection.
+- Verified targeted PWB-04D backend regression passes: `54 passed`.
+- Verified Settings-related dashboard regression passes: `11 passed`.
+- Opened Round PWB-04E and added the executable backlog document `docs/implementation/pwb-04e-backlog.md` for Market Data Cache & Snapshot Archive v0.
+- Implemented PWB-04E Phase A/B snapshot archive models, SQLite schema, indexes, and repository methods.
+- Added `polymarket-bot/tests/test_pwb04e_market_snapshot_archive.py` for archive model, table, repository, service, and API coverage.
+- Implemented `backend/archive/market_snapshot_archive_service.py` and `backend/api/routes_snapshot_archive.py`.
+- Registered snapshot archive APIs in `backend/app_factory.py`.
+- Added optional read-only capture hooks:
+  - `archive=true` support in `/api/polymarket/sync-weather-markets`
+  - post-scan `archive_on_scan` capture using the snapshots already seen by `StrategyRunner`
+- Upgraded the current dashboard shell with `weather-dashboard/src/weather_dashboard/ui/market_snapshot_archive_panel.py` and attached it to the History page.
+- Added `weather-dashboard/tests/test_market_snapshot_archive_panel.py`.
+- Added PWB-04E freeze docs:
+  - `docs/implementation/round-pwb-04e-status-note.md`
+  - `docs/implementation/round-pwb-04e-accepted-path-inventory.md`
+  - `docs/implementation/round-pwb-04e-baseline-freeze.md`
+- Verified PWB-04E snapshot archive tests pass: `15 passed`.
+- Verified combined backend regression subset passes: `60 passed`.
+- Verified dashboard archive/polymarket panel tests pass: `7 passed`.
+- Opened Round PWB-04F and added the charter document `docs/implementation/round-pwb-04f-weather-forecast-archive-v0-charter.md`.
+- Added the executable backlog document `docs/implementation/pwb-04f-backlog.md` for Weather Forecast Archive v0.
+- Updated planning files so the next implementation step can start from PWB-04F Phase A/B without re-deriving scope or safety boundaries.
+- Implemented PWB-04F backend archive foundations: weather archive models, SQLite tables, repository methods, archive service, and weather archive API routes.
+- Added the passive `archive_weather_on_probability_build` hook to the weather probability provider and app/service factory wiring.
+- Added `polymarket-bot/tests/test_pwb04f_weather_forecast_archive.py` for weather archive persistence, passive archive-latest behavior, optional probability-build archive, candidate-count stability, and `LIVE_EXECUTE` safety.
+- Added PWB-04F freeze docs:
+  - `docs/implementation/round-pwb-04f-status-note.md`
+  - `docs/implementation/round-pwb-04f-accepted-path-inventory.md`
+  - `docs/implementation/round-pwb-04f-baseline-freeze.md`
+- Added the dedicated governance boundary document `docs/governance/weather-archive-safety-rules-v0.md` so the no-fetch / no-strategy / no-simulation / no-execution line is frozen separately from the architecture note.
+- Opened Round PWB-04G and added the charter document `docs/implementation/round-pwb-04g-outcome-resolver-read-only-v0-charter.md`.
+- Added the executable backlog document `docs/implementation/pwb-04g-backlog.md` for Outcome Resolver Read-Only v0.
+- Updated planning files so the next implementation step can start from PWB-04G model/storage work without re-deriving the read-only safety boundary.
+- Implemented PWB-04G outcome resolver foundations, service, APIs, dashboard shell panel, acceptance tests, and freeze docs.
+- Verified PWB-04G backend tests pass: `7 passed`.
+- Verified the new dashboard shell outcome panel tests pass: `3 passed`.
+- Verified combined PWB-04E / PWB-04F / PWB-04G backend regression subset passes: `29 passed`.
+- Opened Round PWB-05 and added the charter document `docs/implementation/round-pwb-05-real-calibration-data-and-backtest-memory-v0-charter.md`.
+- Added the executable backlog document `docs/implementation/pwb-05-backlog.md` for Real Calibration Data & Backtest Memory v0.
+- Updated planning files so the next implementation step can start from PWB-05 model/storage work without re-deriving the read-only memory boundary.
+- Implemented PWB-05 calibration memory models, SQLite schema, repository methods, builders, APIs, dashboard shell panel, acceptance tests, and freeze docs.
+- Verified PWB-05 backend tests pass: `9 passed`.
+- Verified combined PWB-04G / PWB-05 backend regression subset passes: `16 passed`.
+- Opened Round PWB-05A and added the charter document `docs/implementation/round-pwb-05a-real-deb-shadow-implementation-v0-charter.md`.
+- Added the executable backlog document `docs/implementation/pwb-05a-backlog.md` for Real DEB Shadow Implementation v0.
+- Updated planning files so the next implementation step can start from PWB-05A model/storage work without re-deriving the shadow-only safety boundary.
+- Implemented PWB-05A DEB shadow models, SQLite schema, repository methods, read-only service, read-only APIs, dashboard shell panel, acceptance tests, and freeze docs.
+- Static syntax verification passed for the new PWB-05A backend and dashboard files using `python3 -m py_compile` with a temporary bytecode cache directory.
+- Opened Round PWB-05B and added the charter document `docs/implementation/round-pwb-05b-emos-shadow-evaluation-v0-charter.md`.
+- Added the executable backlog document `docs/implementation/pwb-05b-backlog.md` for EMOS Shadow Evaluation v0.
+- Updated planning files so the next implementation step can start from PWB-05B model/storage work without re-deriving the shadow-only safety boundary.
+- Implemented PWB-05B EMOS shadow models, SQLite schema, repository methods, read-only service, read-only APIs, dashboard shell panel, acceptance tests, and freeze docs.
+- Opened Round PWB-05C and added the charter document `docs/implementation/round-pwb-05c-shadow-engine-evaluation-matrix-v0-charter.md`.
+- Added the executable backlog document `docs/implementation/pwb-05c-backlog.md` for Shadow Engine Evaluation Matrix v0.
+- Updated planning files so the next implementation step can start from PWB-05C model/storage work without re-deriving the read-only comparison boundary.
+- Implemented PWB-05C shadow evaluation models, SQLite schema, repository methods, read-only service, read-only APIs, dashboard shell panel, acceptance tests, and freeze docs.
+- Opened Round PWB-06 as a conservative governed command review round.
+- Chose a read-only command-review framing based on the architecture's governed action console layer, keeping the new round non-executing.
+- Implemented PWB-06 Phase A/B command review models, SQLite schema, repository helpers, and repository smoke tests.
+- Added a new `command_review` model module plus summary and bundle helpers for read-only command review state.
+- Verified the new backend files compile with `python3 -m py_compile`.
+- Implemented PWB-06 Phase C/D command review service, router, and app-factory registration.
+- Added read-only `/api/command-review/*` endpoints with hard safety flags and no execution side effects.
+- Implemented PWB-06 governed command review dashboard shell visibility in the History page.
+- Added the `CommandReviewPanel` plus command review dashboard shell tests and PWB-06 freeze documents.
+- Verified the backend command review repository with a bundled-runtime smoke check and validated the new Python files with `py_compile`.
+- Opened Round PWB-07 as a conservative governed execution-decision review round.
+- Chose a read-only execution-decision framing based on the architecture's Layer 6 governance & execution layer, keeping the new round non-executing.
+- Added the PWB-07 charter and backlog documents for governed execution-decision review.
+- Implemented PWB-07 Phase A/B execution-decision review models, SQLite schema, repository methods, and repository smoke tests.
+- Added the new `execution_decision_review` model module plus summary and bundle helpers for read-only execution-decision review state.
+- Verified the new backend files compile with `python3 -m py_compile` and the bundled runtime smoke passes for the execution-decision review repository.
+- Implemented PWB-07 Phase C/D execution-decision review service, router, and app-factory registration.
+- Added read-only `/api/execution-decision-review/*` endpoints with hard safety flags and no execution side effects.
+- Verified the new backend service with a bundled-runtime smoke check.
+- Implemented PWB-07 Phase E/F execution-decision review dashboard shell visibility.
+- Added `weather-dashboard/src/weather_dashboard/ui/execution_decision_review_panel.py` and wired it into the History shell.
+- Added PWB-07 dashboard smoke coverage and freeze docs.
+- Verified the new panel module and History shell import path with the local `python3` runtime.
+- Opened Round PWB-08 as a conservative governed execution-queue review round.
+- Chose a read-only execution-queue framing based on the architecture's Layer 6 governance & execution layer, keeping the new round non-executing.
+- Added the PWB-08 charter and backlog documents for governed execution-queue review.
+- Updated planning files so the next implementation step can start from PWB-08 Phase A/B without re-deriving the queue-review safety boundary.
+- Implemented PWB-08 Phase A/B execution-queue review models, SQLite schema, repository methods, and repository smoke tests.
+- Added the new `execution_queue_review` model module plus summary and bundle helpers for read-only execution-queue review state.
+- Verified the new backend files compile with `python3 -m py_compile` and a local smoke check passes for the queue review repository.
+- Implemented PWB-08 Phase C/D execution-queue review service, router, and app-factory registration.
+- Added read-only `/api/execution-queue-review/*` endpoints with hard safety flags and no execution side effects.
+- Implemented PWB-08 Phase E/F execution-queue review dashboard shell visibility.
+- Added `weather-dashboard/src/weather_dashboard/ui/execution_queue_review_panel.py` and wired it into the History shell.
+- Added PWB-08 dashboard smoke coverage and freeze docs.
+- Verified the new panel module and History shell import path with the local `python3` runtime.
+- Opened Round PWB-09 as a conservative governed approval-window review round.
+- Chose a read-only approval-window framing based on the architecture's Layer 6 governance & execution layer, keeping the new round non-executing.
+- Added the PWB-09 charter and backlog documents for governed approval-window review.
+- Updated planning files so the next implementation step can start from PWB-09 Phase A/B without re-deriving the approval-review safety boundary.
+- Implemented PWB-09 Phase A/B approval-window review models, SQLite schema, repository methods, and repository smoke tests.
+- Added the new `approval_window_review` model module plus summary and bundle helpers for read-only approval-window review state.
+- Verified the new backend files compile with `python3 -m py_compile` and a local smoke check passes for the approval-window review repository.
+- Implemented PWB-09 Phase C/D approval-window review service, router, and app-factory registration.
+- Added read-only `/api/approval-window-review/*` endpoints with hard safety flags and no execution side effects.
+- Verified the new backend service with a local smoke check.
+- Implemented PWB-09 Phase E/F approval-window review dashboard shell visibility.
+- Added `weather-dashboard/src/weather_dashboard/ui/approval_window_review_panel.py` and wired it into the History shell.
+- Added PWB-09 dashboard smoke coverage and freeze docs.
+- Verified the new panel module and History shell import path with the local `python3` runtime.
+- Opened Round PWB-10 as a conservative governed activation-readiness review round.
+- Chose a read-only activation-readiness framing based on the architecture's Layer 6 governance & execution layer, keeping the new round non-executing.
+- Added the PWB-10 charter and backlog documents for governed activation-readiness review.
+- Updated planning files so the next implementation step can start from PWB-10 Phase A/B without re-deriving the readiness-review safety boundary.
+- Implemented PWB-10 Phase A/B activation-readiness review models, SQLite schema, repository methods, and repository smoke tests.
+- Added the new `activation_readiness_review` model module plus summary and bundle helpers for read-only activation-readiness review state.
+- Verified the new backend files compile with `python3 -m py_compile` and a local smoke check passes for the activation-readiness review repository.
+- Implemented PWB-10 Phase C/D activation-readiness review service, router, and app-factory registration.
+- Added read-only `/api/activation-readiness-review/*` endpoints with hard safety flags and no execution side effects.
+- Verified the new backend service with a local smoke check.
+- Implemented PWB-10 Phase E/F activation-readiness review dashboard shell visibility.
+- Added `weather-dashboard/src/weather_dashboard/ui/activation_readiness_review_panel.py` and wired it into the History shell.
+- Added PWB-10 dashboard smoke coverage and freeze docs.
+- Verified the new panel module and History shell import path with the local `python3` runtime.
+- Opened Round PWB-11 as a conservative governed activation-authorization review round.
+- Chose a read-only activation-authorization framing based on the architecture's Layer 6 governance & execution layer, keeping the new round non-executing.
+- Added the PWB-11 charter and backlog documents for governed activation-authorization review.
+- Updated planning files so the next implementation step can start from PWB-11 Phase A/B without re-deriving the authorization-review safety boundary.
+- Implemented PWB-11 Phase A/B activation-authorization review models, SQLite schema, repository methods, and repository smoke tests.
+- Added the new `activation_authorization_review` model module plus summary and bundle helpers for read-only activation-authorization review state.
+- Verified the new backend files compile with `python3 -m py_compile` and a local smoke check passes for the activation-authorization review repository.
+- Implemented PWB-11 Phase C/D activation-authorization review service, router, and app-factory registration.
+- Added read-only `/api/activation-authorization-review/*` endpoints with hard safety flags and no execution side effects.
+- Verified the new backend service with a local smoke check.
+- Implemented PWB-11 Phase E/F activation-authorization review dashboard shell visibility.
+- Added `weather-dashboard/src/weather_dashboard/ui/activation_authorization_review_panel.py` and wired it into the History shell.
+- Added PWB-11 dashboard smoke coverage and freeze docs.
+- Verified the new panel module and History shell import path with the local `python3` runtime.

@@ -22,3 +22,177 @@
 - The dashboard already has first-class sources for scanner status, alert queue, market alerts, family anomaly summaries, opportunity board rows, market workstation summaries, and unified status, so Operations Monitor can be assembled as a read-only aggregation layer instead of inventing new facts.
 - `weather-dashboard/src/weather_dashboard/app.py` already loads `render_monitoring_signals_panel`, `render_opportunity_board_panel`, and `render_market_workstation_page`, which gives a direct path to a new homepage-level Operations Monitor layout.
 - Telegram already exposes `/monitoring`, `/scanstatus`, `/alerts`, `/anomalies`, `/market`, and `/opportunities`, so the new monitor view can be surfaced as lightweight read-only summaries rather than a new command family.
+
+## PWB-03 Baseline Inputs
+- PWB-02 is frozen and accepted, so PWB-03 must stay additive and preserve the Gaussian v0 weather chain.
+- The new round is governance-focused: compare engines, store calibration, and govern active probability selection without changing strategy or enabling trading.
+- Shadow engines are intentionally placeholders, so their job is comparison and calibration scaffolding rather than model improvement.
+- The active primary engine remains `gaussian_v0` until a promotion gate explicitly changes it.
+
+## PWB-03 Storage Baseline
+- The governance layer now has dedicated model and SQLite storage support for engine configs, engine runs, comparisons, outcomes, calibration results, and promotion decisions.
+- Default engine configs are seeded at database initialization: `gaussian_v0` primary, `deb_shadow_v0` shadow, and `emos_shadow_v0` shadow.
+- Repository round-trips for the governance objects are covered by storage smoke tests and stay offline/non-trading.
+
+## PWB-03 Engine Registry Baseline
+- The probability engine registry now exposes enabled configs, the primary engine config, and shadow engine configs.
+- Shadow engines are deterministic placeholders that compare against Gaussian v0 but do not drive active trading decisions.
+- The comparison builder always selects the primary engine run as the active probability and records disagreement without changing engine policy.
+
+## PWB-03 Calibration Baseline
+- Calibration is manual-outcome driven and only proceeds when the latest market outcome is `RESOLVED` with a non-null direction hit.
+- Brier score, absolute error, and probability bucket are implemented as pure local metrics.
+- Promotion decisions are persisted and default to `KEEP_PRIMARY` for `gaussian_v0` and `NEEDS_MORE_DATA` for shadow engines until evidence grows.
+
+## PWB-03 UI Baseline
+- Workstation now shows the probability comparison panel alongside the existing weather probability and evidence view.
+- History now exposes calibration history controls and rows.
+- Settings now exposes the probability engine registry and promotion evaluation entry point for governance review.
+
+## PWB-04C Isolation Baseline
+- `backend.main.create_app(db_path, allow_network=False)` now provides isolated FastAPI instances backed by caller-selected SQLite files.
+- PWB-02 and PWB-03 API tests now use temporary app instances instead of the module-level default app.
+- The new isolation regression test confirms that changing one app's execution mode does not leak into another app with a different database path.
+
+## PWB-04C Router Integration Baseline
+- `create_app()` now mounts the opportunities, command, history, settings, weather, evidence, workstation, and probability governance routers.
+- The weather router receives `allow_network`, `default_year`, and `default_sigma` from the factory, keeping runtime defaults centralized.
+- PWB-04C is frozen as engineering hardening only, with no trading or model-behavior changes.
+
+## PWB-04D Read-Only Connector Baseline
+- PWB-04D now has a read-only Polymarket connector boundary with defaults set to `MOCK_ONLY` and `allow_polymarket_network = false`.
+- Gamma/CLOB client stubs expose GET-only methods and refuse network access when disabled; no order, cancel, or sign methods are present.
+- Weather filtering excludes closed and non-binary markets, and HYBRID mode falls back to mock data when the network is disabled.
+- The Settings page now surfaces connector status and warnings without introducing trading controls.
+
+## PWB-04D Phase H/I Baseline
+- The actual UI shell for this workspace is `weather-dashboard`, not a React `frontend/` app, so the accepted Phase H implementation was applied to the Streamlit Settings page.
+- The Settings connector panel now performs live read-only actions against `/api/polymarket/health`, `/markets`, `/weather-markets`, `/sync-weather-markets`, and `/source-mode` while preserving the no-wallet / no-order / no-live-trading boundary.
+- PWB-04D acceptance coverage is now consolidated into a single backend regression file that checks defaults, forbidden methods/fields, normalization, filtering, mock fallback, API behavior, execution-mode isolation, and `LIVE_EXECUTE` rejection.
+
+## PWB-04E Backlog Baseline
+- PWB-04E is positioned as a read-only archive round that preserves time-indexed `MarketSnapshot` state rather than adding modeling or trading behavior.
+- The accepted capture points are post-scan capture, sync capture, manual archive, and current-source archive.
+- The most important safety boundary is that archive writes must never trigger strategy, simulation, execution, or promotion behavior.
+
+## PWB-04E Implementation Baseline
+- Snapshot archive persistence now exists as a first-class layer with dedicated models, SQLite storage, repository methods, and an archive service.
+- `archive-current-source` and optional sync/scan capture hooks remain non-executing: they archive snapshots only and do not create candidates, run simulations, or trigger execution.
+- The current UI shell for PWB-04E is the `weather-dashboard` History page, where the archive panel exposes summary, recent rows, market-series lookup, and current-source archive actions without any trading controls.
+
+## PWB-04F Backlog Baseline
+- PWB-04F is positioned as the weather-side companion to PWB-04E: it archives forecast inputs, evidence packs, and weather views rather than market snapshots.
+- The critical value of the round is future alignment: market snapshot archive plus weather archive plus probability runs can later become calibration and backtest samples.
+- The most important freeze line for implementation is that weather archive behavior must stay passive and must not trigger strategy, simulation, execution, or promotion behavior.
+
+## PWB-04F Implementation Baseline
+- Weather archive persistence now exists as a first-class weather-side layer with dedicated models, SQLite storage, repository methods, and an archive service.
+- `archive_weather_on_probability_build` is a passive sidecar only: it archives weather-side records after a normal probability build and must not change `model_probability` or weather-view semantics.
+- `POST /api/weather-archive/latest/{market_id}` archives existing latest weather-side records from repository state only and does not fetch external weather, run strategy, simulate, or execute.
+
+## PWB-04F Governance Baseline
+- PWB-04F now has a dedicated governance document that freezes weather archive as a passive evidence layer rather than a computation or execution layer.
+- The strongest red line is that weather archive APIs must not trigger weather fetch, `WeatherProbabilityProvider`, `StrategyRunner`, simulation, execution, calibration, or promotion behavior.
+
+## PWB-04G Backlog Baseline
+- PWB-04G is positioned as the read-only outcome-side companion to PWB-04E market archive and PWB-04F weather archive.
+- The value of the round is to preserve outcome-resolution facts without introducing settlement execution or automatic strategy behavior.
+- The key safety line is that resolver behavior must stay passive: it may store outcome facts, but it must not settle trades, change execution mode, or trigger strategy/simulation/execution flows.
+
+## PWB-04G Implementation Baseline
+- PWB-04G now has a separate outcome-side persistence layer for manual market outcomes, weather actual observations, and derived read-only resolution records.
+- `resolve-from-weather` uses existing weather actual rows plus current threshold/direction context only; it does not fetch weather, run strategy, simulate, execute, calibrate, or promote.
+- The current UI shell for PWB-04G is the `weather-dashboard` History page, where the outcome panel exposes summary, recent rows, market bundle lookup, and manual forms without any trading controls.
+
+## PWB-05 Backlog Baseline
+- PWB-05 is positioned as the first round that assembles accepted market archive, weather archive, probability, and outcome facts into reusable historical memory.
+- The value of the round is not new modeling but durable sample assembly for later calibration and backtest work.
+- The most important safety line is that PWB-05 must stay read-only and non-executing: it may assemble existing records, but it must not re-trigger strategy, simulation, execution, or promotion behavior.
+
+## PWB-05 Implementation Baseline
+- PWB-05 now has a first-class calibration-memory and backtest-memory layer with dedicated models, SQLite storage, repository methods, read-only builders, APIs, and dashboard shell visibility.
+- Calibration samples are assembled from existing market/weather/probability/outcome records only; missing components stay in eligibility checks rather than triggering rebuilds or fetches.
+- Hypothetical backtest memory is derived from calibration samples only and remains analytical memory, not a simulator or execution path.
+
+## PWB-05A Backlog Baseline
+- PWB-05A is positioned as the first real DEB shadow round that consumes accepted historical memory rather than placeholder-only logic.
+- The value of the round is shadow computation and diagnostics from real sample memory, not active-engine control.
+- The most important safety line is that PWB-05A must stay shadow-only and non-executing: it may compute and persist DEB shadow outputs, but it must not change the active engine, trigger strategy, simulation, execution, or promotion behavior.
+
+## PWB-05A Verification Environment
+- The local default interpreter available in this session is `/usr/bin/python3`, and it does not currently have `fastapi` installed.
+- Because of that environment gap, backend pytest execution for the new PWB-05A acceptance file could not be completed in-session even though static syntax verification passed for the new files.
+
+## PWB-05B Backlog Baseline
+- PWB-05B is positioned as the first real EMOS shadow round that consumes accepted historical memory rather than placeholder-only logic.
+- The value of the round is shadow computation and diagnostics from real sample memory, not active-engine control.
+- The most important safety line is that PWB-05B must stay shadow-only and non-executing: it may compute and persist EMOS shadow outputs, but it must not change the active engine, trigger strategy, simulation, execution, or promotion behavior.
+
+## PWB-05B Verification Environment
+- The local default interpreter available in this session is still `/usr/bin/python3`, and it still does not currently have `fastapi` or `pytest` installed.
+- Because of that environment gap, backend and dashboard pytest execution for the new PWB-05B acceptance files could not be completed in-session even though static syntax verification passed for the new files.
+
+## PWB-05C Backlog Baseline
+- PWB-05C is positioned as the first read-only comparison round that evaluates Gaussian, DEB shadow, and EMOS shadow on the same accepted historical memory.
+- The value of the round is cross-engine evidence and ranking visibility, not active-engine control.
+- The most important safety line is that PWB-05C must stay read-only and non-executing: it may compute and persist evaluation rows, but it must not change the active engine, trigger strategy, simulation, execution, or promotion behavior.
+
+## PWB-05C Verification Environment
+- The local default interpreter available in this session is still `/usr/bin/python3`, and it still does not currently have `fastapi` or `pytest` installed.
+- Because of that environment gap, backend and dashboard pytest execution for the new PWB-05C acceptance files could not be completed in-session even though static syntax verification passed for the new files.
+
+## PWB-06 Round Framing
+- The architecture's Layer 6 describes a governed action console, so the safest next step after the shadow-evaluation chain is a read-only command review surface.
+- The new round should remain advisory only: it may surface approval metadata and decision context, but it must not trigger execution, simulation, or promotion behavior.
+
+## PWB-06 Verification Environment
+- The local `python3` shell for this session does not currently have `pydantic` installed, so direct backend smoke execution could not be completed even though the new files passed `py_compile`.
+- The bundled workspace Python runtime does allow backend smoke execution, but it does not include `streamlit`, so dashboard panel imports are verified here via `py_compile` rather than a live import smoke.
+
+## PWB-07 Round Framing
+- Layer 6 of the architecture is the governance and execution layer, so the next safe extension after command review is a read-only execution-decision review surface.
+- The new round must stay advisory only: it may surface execution-mode, gate, and approval context, but it must not trigger execution, simulation, promotion, or trading behavior.
+
+## PWB-07 Verification Environment
+- The bundled workspace Python runtime can import the new execution-decision review model and repository paths, so PWB-07 Phase A/B smoke validation passed there.
+- The bundled workspace Python runtime in this session does not include `fastapi`, so API smoke for the new execution-decision review router could not be completed here even though the service and repository smokes passed and the Python files compiled.
+- The local `python3` runtime can import the new execution-decision review panel and the History shell after the UI wiring change, so the dashboard phase is verified at the import/smoke level even though bundled `pytest` is still unavailable.
+
+## PWB-08 Round Framing
+- The next conservative layer after execution-decision review is a read-only execution-queue review surface.
+- The round should remain advisory only: it may surface queue state and approval context, but it must not trigger execution, simulation, promotion, or trading behavior.
+
+## PWB-08 Verification Environment
+- The local `python3` runtime can compile and smoke-test the new execution-queue review repository layer.
+- The local `python3` runtime can compile the new execution-queue review panel and History shell wiring, but it still lacks Streamlit for a live import smoke.
+- The bundled runtime remains useful for backend compile/smoke checks, but it does not include `pytest`, so full test execution is still deferred to the project environment with dependencies installed.
+
+## PWB-09 Round Framing
+- The next conservative layer after execution-queue review is a read-only approval-window review surface.
+- The round should remain advisory only: it may surface approval state and audit context, but it must not trigger execution, simulation, promotion, or trading behavior.
+
+## PWB-09 Verification Environment
+- The local `python3` runtime can compile and smoke-test the new approval-window review repository layer.
+- The local `python3` runtime can also compile and smoke-test the new approval-window review service layer.
+- The local `python3` runtime can compile the new approval-window review panel and the History shell wiring, but live Streamlit rendering remains environment-bound in this session.
+- API and dashboard live verification are still partially environment-bound because the bundled runtime does not include full `fastapi` / `pytest` / `streamlit` coverage for an end-to-end run.
+
+## PWB-10 Round Framing
+- The next conservative layer after approval-window review is a read-only activation-readiness review surface.
+- The round should remain advisory only: it may surface activation-readiness state and governance context, but it must not trigger execution, simulation, promotion, or trading behavior.
+
+## PWB-10 Verification Environment
+- The local `python3` runtime can compile and smoke-test the new activation-readiness review repository layer.
+- The local `python3` runtime can also compile and smoke-test the new activation-readiness review service layer.
+- The local `python3` runtime can compile the new activation-readiness review panel and the History shell wiring, but live Streamlit rendering remains environment-bound in this session.
+- API and dashboard live verification are still partially environment-bound because the bundled runtime does not include full `fastapi` / `pytest` / `streamlit` coverage for an end-to-end run.
+
+## PWB-11 Round Framing
+- The next conservative layer after activation-readiness review is a read-only activation-authorization review surface.
+- The round should remain advisory only: it may surface activation-authorization state and governance context, but it must not trigger execution, simulation, promotion, or trading behavior.
+
+## PWB-11 Verification Environment
+- The local `python3` runtime can compile and smoke-test the new activation-authorization review repository layer.
+- The local `python3` runtime can also compile and smoke-test the new activation-authorization review service layer.
+- The local `python3` runtime can compile the new activation-authorization review panel and the History shell wiring, but live Streamlit rendering remains environment-bound in this session.
+- API and dashboard live verification are still partially environment-bound because the bundled runtime does not include full `fastapi` / `pytest` / `streamlit` coverage for an end-to-end run.

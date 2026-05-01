@@ -18,6 +18,8 @@ from weather_dashboard.settings import (
     WORKSPACE_DIR,
 )
 from weather_dashboard.ui.action_policy import decide_action_visibility
+from weather_dashboard.ui.polymarket_connector_panel import render_polymarket_connector_panel
+from weather_dashboard.ui.pwb03_components import render_probability_engine_registry_table
 
 
 UI_POLICY_REGISTRY_DIR = WORKSPACE_DIR / "weather-comparison-engine" / "data" / "registries" / "ui_policy_registry"
@@ -315,6 +317,19 @@ def render_system_settings_page() -> None:
         _render_system_detail(system, selected_service)
         _render_service_editor(selected_service)
 
+    _render_page_frame_end()
+
+
+def render_probability_governance_settings_page() -> None:
+    _render_settings_theme()
+    _render_page_frame_start(
+        title="Settings > Probability Governance",
+        subtitle="Registry, active primary, shadow comparison controls, and read-only market connector state.",
+        active_label="PROBABILITY GOVERNANCE",
+    )
+    render_probability_engine_registry_table()
+    st.markdown("---")
+    render_polymarket_connector_panel()
     _render_page_frame_end()
 
 

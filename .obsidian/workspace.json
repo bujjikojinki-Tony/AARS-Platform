@@ -111,12 +111,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "weather-telegram-console/AARS Polymarket Weather Trading Source Cadence  Freshness  Priority Policy v0.1.md",
+                "file": "03_Projects/Polymarket/**Round_PWB-01_Acceptance_Test**.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "AARS Polymarket Weather Trading Source Cadence  Freshness  Priority Policy v0.1"
+              "title": "**Round_PWB-01_Acceptance_Test**"
             }
           }
         ],
@@ -291,21 +291,32 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "052e4da08e3179f5",
+  "active": "1c0479be21d138f1",
   "lastOpenFiles": [
+    "polymarket-bot/scripts/test_weather_probability_provider.py",
+    "polymarket-bot/tests/test_pwb02_phase_f.py",
+    "polymarket-bot/backend/strategies/weather_edge_strategy.py",
+    "polymarket-bot/backend/probability/weather_probability_provider.py",
+    "polymarket-bot/tests/__pycache__/test_pwb02_probability.cpython-313-pytest-8.3.4.pyc",
+    "polymarket-bot/tests/__pycache__/test_pwb02_probability.cpython-313.pyc",
+    "polymarket-bot/scripts/__pycache__/test_probability_view.cpython-313.pyc",
+    "polymarket-bot/backend/probability/__pycache__/probability_view_builder.cpython-313.pyc",
+    "polymarket-bot/backend/probability/__pycache__/gaussian_probability_engine.cpython-313.pyc",
+    "polymarket-bot/tests/test_pwb02_probability.py",
+    "polymarket-bot/scripts/test_probability_view.py",
+    "polymarket-bot/README.md",
+    "weather-comparison-engine/src/weather_comparison_engine/polymarket_bot/README.md",
+    "docs/architecture/execution-core-v0.md",
+    "weather-telegram-console/AARS Polymarket Weather Trading Source Cadence  Freshness  Priority Policy v0.1.md",
+    "03_Projects/Polymarket/**Round_PWB-01_Acceptance_Test**.md",
+    "docs/implementation/round-pwb-01-baseline-freeze-note.md",
+    "docs/implementation/round-pwb-01-accepted-path-inventory.md",
+    "docs/implementation/round-pwb-01-status-note.md",
+    "docs/governance/README.md",
+    "docs/implementation/round-pwb-01-execution-core-v0-charter.md",
     "docs/architecture/polymarket-bot-architecture-refinement-v1.md",
-    "docs/architecture",
-    "90_System/Skills/HMI_Frontend_Design_Skill-workspace/trigger-opt/eval_results.json",
-    "90_System/Skills/HMI_Frontend_Design_Skill-workspace/trigger-opt/run_eval_seq.py",
-    "90_System/Skills/HMI_Frontend_Design_Skill-workspace/trigger-opt/eval_set.json",
-    "90_System/Skills/HMI_Frontend_Design_Skill/evals/evals.json",
-    "90_System/Skills/HMI_Frontend_Design_Skill-workspace/trigger-opt",
-    "90_System/Skills/HMI_Frontend_Design_Skill-workspace",
-    "90_System/Skills/HMI_Frontend_Design_Skill/evals",
     "90_System/Skills/HMI_Frontend_Design_Skill/examples/React_Implementation_Prompt_Example.md",
     "90_System/Skills/HMI_Frontend_Design_Skill/examples/HMI_UI_Review_Example.md",
-    "dist/HMI_Frontend_Design_Skill.skill",
-    "dist",
     "90_System/Skills/HMI_Frontend_Design_Skill/references/06_HMI_Design_Review_Checklist_v0.md",
     "90_System/Skills/HMI_Frontend_Design_Skill/references/05_HMI_Automation_AI_Interface_Guideline_v0.md",
     "90_System/Skills/HMI_Frontend_Design_Skill/references/04_HMI_Alarm_Degraded_Mode_Guideline_v0.md",
@@ -317,17 +328,6 @@
     "90_System/Skills/HMI_Frontend_Design_Skill/examples/AARS_Project_Overview_HMI_Example.md",
     "90_System/Skills/HMI_Frontend_Design_Skill/templates/HMI_AI_Recommendation_Card_Template.md",
     "90_System/Skills/HMI_Frontend_Design_Skill/templates/HMI_Recovery_Path_Template.md",
-    "90_System/Skills/HMI_Frontend_Design_Skill/templates/HMI_Alarm_Object_Template.md",
-    "90_System/Skills/HMI_Frontend_Design_Skill/templates/HMI_Component_Spec_Template.md",
-    "90_System/Skills/HMI_Frontend_Design_Skill/templates/HMI_Page_Task_Model_Template.md",
-    "90_System/Skills/HMI_Frontend_Design_Skill/templates/HMI_Page_Review_Template.md",
-    "90_System/Skills/HMI_Frontend_Design_Skill/README.md",
-    "90_System/Skills/HMI_Frontend_Design_Skill/SKILL.md",
-    "90_System/Guides/HMI/02_HMI_Design_Principles_v0.md",
-    "90_System/Guides/HMI/04_HMI_Alarm_Degraded_Mode_Guideline_v0.md",
-    "90_System/Guides/HMI/03_HMI_Information_Architecture_Guideline_v0.md",
-    "90_System/Guides/HMI/06_HMI_Design_Review_Checklist_v0.md",
-    "90_System/Guides/HMI/05_HMI_Automation_AI_Interface_Guideline_v0.md",
-    "02_Knowledge/Human_Factors/01_HMI_Cross_Domain_Standards_Study_v0.md"
+    "90_System/Skills/HMI_Frontend_Design_Skill/templates/HMI_Alarm_Object_Template.md"
   ]
 }

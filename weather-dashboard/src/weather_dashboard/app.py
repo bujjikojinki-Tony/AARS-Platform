@@ -72,6 +72,7 @@ from weather_dashboard.settings import (
     VALIDATION_FRESHNESS_STATUS_JSON,
     VALIDATION_OUTPUT_DIR,
     ADVANCED_ANOMALY_OUTPUT_DIR,
+    OUTPUT_DIR,
     MARKET_ALERT_EVENTS_DIR,
     MARKET_ANOMALY_EVENTS_DIR,
     SHANGHAI_JOINED_HISTORY_JSON,
@@ -140,6 +141,11 @@ from weather_dashboard.ui.operator_focus_panel import (
     render_operator_focus_banner,
 )
 from weather_dashboard.ui.opportunity_board_panel import render_opportunity_board_panel
+from weather_dashboard.ui.pwb02_pages import (
+    render_pwb02_evidence_raw_page,
+    render_pwb02_pipeline_page,
+    render_pwb02_workstation_page,
+)
 from weather_dashboard.ui.operations_monitor_page import render_operations_monitor_page
 from weather_dashboard.ui.overview import render_overview
 from weather_dashboard.ui.operator_closure_panel import render_operator_closure_panel
@@ -150,6 +156,12 @@ from weather_dashboard.ui.probability_shadow_panel import (
 from weather_dashboard.ui.pipeline_sync_context import (
     build_pipeline_sync_context,
     render_pipeline_sync_context,
+)
+from weather_dashboard.ui.pwb01_pages import (
+    render_pwb01_command_page,
+    render_pwb01_history_page,
+    render_pwb01_opportunity_board_page,
+    render_pwb01_settings_page,
 )
 from weather_dashboard.ui.raw_json_panel import render_raw_json_panel
 from weather_dashboard.ui.r5_pages import (
@@ -172,6 +184,7 @@ from weather_dashboard.ui.rule_station_panel import render_rule_station_panel
 from weather_dashboard.ui.settings_pages import (
     render_alerts_rules_settings_page,
     render_data_sources_settings_page,
+    render_probability_governance_settings_page,
     render_system_settings_page,
 )
 from weather_dashboard.ui.signal_panel import render_signal_panel
@@ -1659,6 +1672,50 @@ watchlist_snapshots = _merge_watchlist_snapshots(
     st.session_state.get("market_watchlist_overrides", []),
 )
 
+
+RUNTIME_PROFILE_JSON = OUTPUT_DIR / "runtime_profile.json"
+
+
+def _load_runtime_profile() -> str:
+    current = st.session_state.get("dashboard_runtime_profile")
+    if current in {"weather_console", "pwb01", "pwb02"}:
+        return str(current)
+    try:
+        payload = json.loads(RUNTIME_PROFILE_JSON.read_text(encoding="utf-8"))
+    except Exception:
+        return "weather_console"
+    profile = str(payload.get("runtime_profile") or "weather_console")
+    return profile if profile in {"weather_console", "pwb01", "pwb02"} else "weather_console"
+
+
+def _persist_runtime_profile(profile: str) -> None:
+    normalized = profile if profile in {"weather_console", "pwb01", "pwb02"} else "weather_console"
+    st.session_state["dashboard_runtime_profile"] = normalized
+    try:
+        RUNTIME_PROFILE_JSON.parent.mkdir(parents=True, exist_ok=True)
+        RUNTIME_PROFILE_JSON.write_text(
+            json.dumps(
+                {
+                    "schema_version": "dashboard_runtime_profile.v1",
+                    "runtime_profile": normalized,
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                },
+                ensure_ascii=False,
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+    except Exception:
+        return
+
+
+persisted_runtime_profile = _load_runtime_profile()
+st.session_state.setdefault("dashboard_runtime_profile", persisted_runtime_profile)
+
+
+def _on_runtime_profile_change() -> None:
+    _persist_runtime_profile(str(st.session_state.get("dashboard_runtime_profile") or "weather_console"))
+
 if df is not None:
     sort_cols = available_sort_columns(df)
     pinned_market_id = st.session_state.get("pinned_market_override") or PINNED_MARKET_ID
@@ -1695,6 +1752,7 @@ if df is not None:
 
     with st.sidebar:
         active_dashboard_view = str(st.session_state.get("dashboard_active_view") or "operations_monitor")
+        runtime_profile = _load_runtime_profile()
 
         def _set_dashboard_view(view_id: str) -> None:
             if st.session_state.get("dashboard_active_view") != view_id:
@@ -1812,6 +1870,21 @@ if df is not None:
             """
         st.markdown(sidebar_nav_html, unsafe_allow_html=True)
         st.markdown("<div class='dash-nav__section'>Run</div>", unsafe_allow_html=True)
+        selected_runtime_profile = st.selectbox(
+            "Runtime Profile",
+            ["weather_console", "pwb01", "pwb02"],
+            index={"weather_console": 0, "pwb01": 1, "pwb02": 2}.get(runtime_profile, 0),
+            format_func=lambda value: (
+                "Weather Console"
+                if value == "weather_console"
+                else "PWB-01 Execution Core"
+                if value == "pwb01"
+                else "PWB-02 Weather Intelligence"
+            ),
+            key="dashboard_runtime_profile",
+            on_change=_on_runtime_profile_change,
+        )
+        runtime_profile = str(selected_runtime_profile or "weather_console")
         _render_sidebar_nav_button("Operations Monitor", "operations_monitor")
         _render_sidebar_nav_button("Monitoring Signals", "monitoring_signals")
         _render_sidebar_nav_button("Command", "command")
@@ -1827,6 +1900,7 @@ if df is not None:
         st.markdown("<div class='dash-nav__section'>Settings</div>", unsafe_allow_html=True)
         _render_sidebar_nav_button("Alerts & Rules", "alerts_rules")
         _render_sidebar_nav_button("Data & Sources", "data_sources")
+        _render_sidebar_nav_button("Probability Governance", "probability_governance")
         _render_sidebar_nav_button("System", "system")
         components.html(
             """
@@ -2670,6 +2744,31 @@ if df is not None:
         st.info(f"`{title}` is reserved in the left navigation and can now be selected. The full settings surface is the next implementation step.")
 
     def _render_selected_dashboard_view(view_id: str) -> None:
+        runtime_profile = str(st.session_state.get("dashboard_runtime_profile") or "weather_console")
+        if runtime_profile == "pwb01":
+            if view_id == "opportunity_board":
+                render_pwb01_opportunity_board_page()
+                return
+            if view_id == "command":
+                render_pwb01_command_page()
+                return
+            if view_id == "history":
+                render_pwb01_history_page()
+                return
+            if view_id in {"alerts_rules", "data_sources", "system"}:
+                render_pwb01_settings_page(section=view_id)
+                return
+        if runtime_profile == "pwb02":
+            if view_id == "evidence_raw":
+                render_pwb02_evidence_raw_page()
+                return
+            if view_id == "workstation":
+                render_pwb02_workstation_page()
+                return
+            if view_id == "pipeline":
+                render_pwb02_pipeline_page()
+                return
+
         if view_id == "operations_monitor":
             render_operations_monitor_page(
                 on_open_market=_open_market_from_operations_monitor,
@@ -3077,6 +3176,10 @@ if df is not None:
 
         if view_id == "data_sources":
             render_data_sources_settings_page()
+            return
+
+        if view_id == "probability_governance":
+            render_probability_governance_settings_page()
             return
 
         if view_id == "system":

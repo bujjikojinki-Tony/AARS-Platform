@@ -9,17 +9,35 @@ import re
 from typing import Any
 
 import pandas as pd
-import plotly.graph_objects as go
 import streamlit as st
+
+try:
+    import plotly.graph_objects as go
+except ModuleNotFoundError:  # pragma: no cover - exercised in lean local environments.
+    go = None
 
 from weather_dashboard.settings import OUTPUT_DIR, PAGE_CONTEXT_JSON
 from weather_dashboard.ui.action_policy import decide_action_visibility
+from weather_dashboard.ui.activation_authorization_review_panel import render_activation_authorization_review_panel
+from weather_dashboard.ui.activation_readiness_review_panel import render_activation_readiness_review_panel
+from weather_dashboard.ui.approval_window_review_panel import render_approval_window_review_panel
+from weather_dashboard.ui.calibration_memory_panel import render_calibration_memory_panel
+from weather_dashboard.ui.command_review_panel import render_command_review_panel
+from weather_dashboard.ui.execution_decision_review_panel import render_execution_decision_review_panel
+from weather_dashboard.ui.execution_queue_review_panel import render_execution_queue_review_panel
+from weather_dashboard.ui.deb_shadow_panel import render_deb_shadow_panel
+from weather_dashboard.ui.emos_shadow_panel import render_emos_shadow_panel
 from weather_dashboard.ui.compact_panel import (
     default_market_evidence_curve_legend_items,
     default_state_legend_items,
     render_chart_legend_card,
     render_legend_card,
 )
+from weather_dashboard.ui.pwb03_components import render_calibration_history_panel
+from weather_dashboard.ui.market_snapshot_archive_panel import render_market_snapshot_archive_panel
+from weather_dashboard.ui.outcome_resolver_panel import render_outcome_resolver_panel
+from weather_dashboard.ui.shadow_engine_evaluation_panel import render_shadow_engine_evaluation_panel
+from weather_dashboard.ui.weather_forecast_archive_panel import render_weather_forecast_archive_panel
 
 
 def build_command_context_view(
@@ -1544,6 +1562,35 @@ def render_r5_history_page(history_df: pd.DataFrame | None) -> None:
             _write_ui_action_audit("open_replay", page="history", detail={"selected_event": "market_anomaly_event.v2"})
             st.toast("Replay detail opened.", icon="🎞️")
 
+    st.divider()
+    render_calibration_history_panel()
+    st.divider()
+    render_market_snapshot_archive_panel()
+    st.divider()
+    render_weather_forecast_archive_panel()
+    st.divider()
+    render_outcome_resolver_panel()
+    st.divider()
+    render_calibration_memory_panel()
+    st.divider()
+    render_deb_shadow_panel()
+    st.divider()
+    render_emos_shadow_panel()
+    st.divider()
+    render_shadow_engine_evaluation_panel()
+    st.divider()
+    render_command_review_panel()
+    st.divider()
+    render_execution_decision_review_panel()
+    st.divider()
+    render_execution_queue_review_panel()
+    st.divider()
+    render_approval_window_review_panel()
+    st.divider()
+    render_activation_readiness_review_panel()
+    st.divider()
+    render_activation_authorization_review_panel()
+
 
 def render_r5_evidence_page(df: pd.DataFrame | None) -> None:
     _render_r5_theme()
@@ -1742,7 +1789,8 @@ def _render_r5_theme() -> None:
 
 
 def _panel(title: str, body: str) -> None:
-    st.html(f"<div class='r5-panel'>{f'<div class=\"r5-panel-title\">{escape(title)}</div>' if title else ''}{body}</div>")
+    title_html = f'<div class="r5-panel-title">{escape(title)}</div>' if title else ""
+    st.html(f"<div class='r5-panel'>{title_html}{body}</div>")
 
 
 def _render_live_tabs(labels: list[str], *, key: str) -> str:
@@ -1920,6 +1968,9 @@ def _gateway_row(label: str, value: str, tone: str) -> str:
 
 
 def _render_forecast_chart() -> None:
+    if go is None:
+        st.caption("Forecast chart unavailable because Plotly is not installed.")
+        return
     fig = go.Figure()
     days = [f"Apr {17+i}" for i in range(8)]
     series = {
@@ -1938,6 +1989,8 @@ def _render_forecast_chart() -> None:
 
 
 def _market_evidence_timeline_chart() -> go.Figure:
+    if go is None:
+        raise RuntimeError("Plotly is unavailable in this environment.")
     days = [f"Apr {17+i}" for i in range(8)]
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=days, y=[50, 54, 49, 62, 70, 78, 74, 82], name="Market probability", mode="lines+markers", line=dict(color="#2f9bff", width=3)))
@@ -1951,6 +2004,8 @@ def _market_evidence_timeline_chart() -> go.Figure:
 
 
 def _line_chart(names: list[str]) -> go.Figure:
+    if go is None:
+        raise RuntimeError("Plotly is unavailable in this environment.")
     fig = go.Figure()
     days = [f"Apr {17+i}" for i in range(8)]
     colors = ["#2f9bff", "#ff7a24", "#aa72ff", "#35d46f"]
@@ -1962,6 +2017,8 @@ def _line_chart(names: list[str]) -> go.Figure:
 
 
 def _bar_line_chart() -> go.Figure:
+    if go is None:
+        raise RuntimeError("Plotly is unavailable in this environment.")
     fig = go.Figure()
     days = [f"Apr {17+i}" for i in range(8)]
     fig.add_trace(go.Bar(x=days, y=[18, 36, 22, 34, 92, 48, 62, 39], name="Observed", marker_color="rgba(47,155,255,.65)"))
@@ -1971,6 +2028,8 @@ def _bar_line_chart() -> go.Figure:
 
 
 def _stacked_bar_chart() -> go.Figure:
+    if go is None:
+        raise RuntimeError("Plotly is unavailable in this environment.")
     fig = go.Figure()
     days = [f"Apr {17+i}" for i in range(8)]
     for name, color, vals in [
@@ -1985,18 +2044,24 @@ def _stacked_bar_chart() -> go.Figure:
 
 
 def _hist_chart() -> go.Figure:
+    if go is None:
+        raise RuntimeError("Plotly is unavailable in this environment.")
     fig = go.Figure(go.Bar(x=["0-20", "20-40", "40-60", "60-80", "80-100"], y=[5, 14, 28, 42, 39], marker_color="#2f9bff"))
     _style_fig(fig, height=245)
     return fig
 
 
 def _validation_line_chart() -> go.Figure:
+    if go is None:
+        raise RuntimeError("Plotly is unavailable in this environment.")
     fig = go.Figure(go.Scatter(x=[f"Apr {17+i}" for i in range(8)], y=[91, 92, 91, 93, 94, 94, 95, 95], mode="lines+markers", line=dict(color="#d64ff8", width=2)))
     _style_fig(fig, height=245)
     return fig
 
 
 def _style_fig(fig: go.Figure, *, height: int) -> None:
+    if go is None:
+        return
     fig.update_layout(
         height=height,
         margin=dict(l=28, r=14, t=10, b=28),

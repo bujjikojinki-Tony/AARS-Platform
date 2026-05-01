@@ -1,0 +1,235 @@
+from __future__ import annotations
+
+from datetime import datetime, timedelta, timezone
+from uuid import uuid4
+
+from backend.models.command_review import CommandReviewRecommendation
+from backend.models.command_review import CommandReviewStatus
+from backend.models.execution_decision_review import ExecutionApprovalStatus
+from backend.models.execution_decision_review import ExecutionDecisionReviewBundle
+from backend.models.execution_decision_review import ExecutionDecisionReviewRecommendation
+from backend.models.execution_decision_review import ExecutionDecisionReviewRecord
+from backend.models.execution_decision_review import ExecutionDecisionReviewStatus
+from backend.models.execution_decision_review import ExecutionDecisionReviewSummary
+from backend.models.execution_decision_review import ExecutionGateStatus
+from backend.models.enums import ExecutionMode
+from backend.models.enums import ExecutionStatus
+from backend.models.enums import RiskStatus
+
+
+class ExecutionDecisionReviewService:
+    """
+    Passive execution-decision review service.
+
+    Safety boundary:
+    - Does not call StrategyRunner.
+    - Does not call Simulator.
+    - Does not call execution.
+    - Does not call promotion gates.
+    - Does not call trading logic.
+    """
+
+    def __init__(self, repository):
+        self.repository = repository
+
+    def build_for_market(
+        self,
+        market_id: str,
+        *,
+        command_review_id: str | None = None,
+        shadow_evaluation_id: str | None = None,
+        raw_payload: dict | None = None,
+        metadata: dict | None = None,
+    ) -> ExecutionDecisionReviewRecord:
+        decision = self.repository.get_latest_execution_decision_for_market(market_id)
+        if not decision:
+            raise ValueError("latest execution decision not found")
+
+        candidate = self.repository.get_candidate(str(decision.get("candidate_id") or ""))
+        if not candidate:
+            raise ValueError("latest candidate not found")
+
+        command_review = self._latest_command_review_for_market(market_id)
+        shadow_eval = (
+            self.repository.get_latest_shadow_engine_evaluation_for_market(market_id)
+            if shadow_evaluation_id is None
+            else self.repository.get_shadow_engine_evaluation_by_id(shadow_evaluation_id)
+        )
+        outcome_resolution = self.repository.get_latest_outcome_resolution_for_market(market_id)
+        calibration_sample = self.repository.get_latest_calibration_sample_for_market(market_id)
+        snapshot = self.repository.get_latest_market_snapshot_archive_for_market(market_id)
+        weather_view = self.repository.get_latest_weather_view_archive_for_market(market_id)
+        weather_forecast = self.repository.get_latest_weather_forecast_archive_for_market(market_id)
+
+        execution_mode = str(decision.get("mode") or ExecutionMode.OBSERVE_ONLY.value)
+        execution_status = str(decision.get("execution_status") or ExecutionStatus.QUEUED.value)
+        risk_status = str(decision.get("risk_status") or RiskStatus.WARN.value)
+
+        context_presence = {
+            "decision": True,
+            "candidate": candidate is not None,
+            "command_review": command_review is not None,
+            "shadow_evaluation": shadow_eval is not None,
+            "snapshot": snapshot is not None,
+            "weather_view": weather_view is not None,
+            "weather_forecast": weather_forecast is not None,
+            "outcome_resolution": outcome_resolution is not None,
+            "calibration_sample": calibration_sample is not None,
+        }
+        complete_context = all(context_presence.values())
+
+        gate_status = self._derive_gate_status(
+            execution_mode=execution_mode,
+            execution_status=execution_status,
+            risk_status=risk_status,
+            complete_context=complete_context,
+        )
+        review_status = (
+            ExecutionDecisionReviewStatus.READY
+            if gate_status == ExecutionGateStatus.ALLOW
+            else ExecutionDecisionReviewStatus.PENDING
+        )
+        if execution_status == ExecutionStatus.FAILED.value or risk_status == RiskStatus.BLOCK.value:
+            review_status = ExecutionDecisionReviewStatus.BLOCKED
+
+        if command_review_id is None and isinstance(command_review, dict):
+            command_review_id = str(command_review.get("command_review_id") or "") or None
+
+        recommendation = self._derive_recommendation(
+            execution_mode=execution_mode,
+            gate_status=gate_status,
+            execution_status=execution_status,
+            risk_status=risk_status,
+        )
+
+        record = ExecutionDecisionReviewRecord(
+            execution_decision_review_id=f"edr_{uuid4().hex[:12]}",
+            market_id=market_id,
+            decision_id=str(decision.get("decision_id")),
+            candidate_id=str(decision.get("candidate_id")),
+            command_review_id=command_review_id,
+            shadow_evaluation_id=(
+                str(shadow_eval.get("shadow_evaluation_id"))
+                if isinstance(shadow_eval, dict) and shadow_eval.get("shadow_evaluation_id")
+                else None
+            ),
+            execution_mode=execution_mode,
+            action=str(decision.get("action") or "review"),
+            position_size=self._as_float(decision.get("position_size")),
+            expected_cost=self._as_float(decision.get("expected_cost")),
+            risk_status=risk_status,
+            execution_status=execution_status,
+            review_status=review_status,
+            approval_status=(
+                ExecutionApprovalStatus.NOT_REQUIRED
+                if execution_mode == ExecutionMode.OBSERVE_ONLY.value and gate_status == ExecutionGateStatus.ALLOW
+                else ExecutionApprovalStatus.PENDING
+            ),
+            gate_status=gate_status,
+            recommendation=recommendation,
+            approval_window_valid=gate_status == ExecutionGateStatus.ALLOW,
+            approval_valid_until=self._next_approval_window(),
+            raw_payload=raw_payload
+            or {
+                "context_presence": context_presence,
+                "decision": decision,
+                "candidate": candidate,
+                "command_review": command_review,
+                "shadow_evaluation": shadow_eval,
+                "snapshot": snapshot,
+                "weather_view": weather_view,
+                "weather_forecast": weather_forecast,
+                "outcome_resolution": outcome_resolution,
+                "calibration_sample": calibration_sample,
+            },
+            metadata=metadata or {"service": "ExecutionDecisionReviewService"},
+        )
+        self.repository.save_execution_decision_review_record(record)
+        return record
+
+    def build_all_eligible(self) -> list[ExecutionDecisionReviewRecord]:
+        records: list[ExecutionDecisionReviewRecord] = []
+        for market_id in self.repository.list_distinct_market_ids_for_execution_decision_review():
+            decision = self.repository.get_latest_execution_decision_for_market(market_id)
+            if not decision:
+                continue
+            if not self.repository.get_candidate(str(decision.get("candidate_id") or "")):
+                continue
+            try:
+                records.append(self.build_for_market(market_id))
+            except ValueError:
+                continue
+        return records
+
+    def list_reviews(
+        self,
+        limit: int = 100,
+        market_id: str | None = None,
+        review_status: str | None = None,
+        approval_status: str | None = None,
+        gate_status: str | None = None,
+        execution_status: str | None = None,
+        execution_mode: str | None = None,
+    ) -> list[dict]:
+        return self.repository.list_execution_decision_review_records(
+            limit=limit,
+            market_id=market_id,
+            review_status=review_status,
+            approval_status=approval_status,
+            gate_status=gate_status,
+            execution_status=execution_status,
+            execution_mode=execution_mode,
+        )
+
+    def get_market_bundle(self, market_id: str, limit: int = 100) -> ExecutionDecisionReviewBundle:
+        return self.repository.get_execution_decision_review_bundle(market_id, limit=limit)
+
+    def get_summary(self) -> ExecutionDecisionReviewSummary:
+        return self.repository.get_execution_decision_review_summary()
+
+    def _latest_command_review_for_market(self, market_id: str) -> dict | None:
+        return self.repository.get_latest_command_review_for_market(market_id)
+
+    def _derive_gate_status(
+        self,
+        *,
+        execution_mode: str,
+        execution_status: str,
+        risk_status: str,
+        complete_context: bool,
+    ) -> ExecutionGateStatus:
+        if execution_status == ExecutionStatus.FAILED.value or risk_status == RiskStatus.BLOCK.value:
+            return ExecutionGateStatus.BLOCKED
+        if execution_mode == ExecutionMode.LIVE_EXECUTE.value:
+            return ExecutionGateStatus.BLOCKED
+        if execution_mode in {ExecutionMode.SIMULATION.value, ExecutionMode.PAPER_TRADE.value}:
+            return ExecutionGateStatus.WARN
+        return ExecutionGateStatus.ALLOW if complete_context else ExecutionGateStatus.WARN
+
+    def _derive_recommendation(
+        self,
+        *,
+        execution_mode: str,
+        gate_status: ExecutionGateStatus,
+        execution_status: str,
+        risk_status: str,
+    ) -> ExecutionDecisionReviewRecommendation:
+        if execution_status == ExecutionStatus.FAILED.value or risk_status == RiskStatus.BLOCK.value:
+            return ExecutionDecisionReviewRecommendation.BLOCK
+        if execution_mode == ExecutionMode.LIVE_EXECUTE.value:
+            return ExecutionDecisionReviewRecommendation.REQUEST_APPROVAL
+        if execution_mode == ExecutionMode.OBSERVE_ONLY.value:
+            return ExecutionDecisionReviewRecommendation.OBSERVE_ONLY
+        if gate_status == ExecutionGateStatus.ALLOW:
+            return ExecutionDecisionReviewRecommendation.REVIEW_EXECUTION
+        return ExecutionDecisionReviewRecommendation.REVIEW_GATE
+
+    @staticmethod
+    def _as_float(value: object) -> float:
+        if value is None:
+            return 0.0
+        return float(value)
+
+    @staticmethod
+    def _next_approval_window() -> str:
+        return (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
