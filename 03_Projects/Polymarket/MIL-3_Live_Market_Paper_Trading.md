@@ -69,11 +69,21 @@ Acceptance:
 - BTC/ETH/SOL can be updated without credentials.
 - Adapter failure is explicit; stale data is never silently presented as live.
 
+Implementation status: **implemented in PR #2**.
+
+Current components:
+- `aars_market.adapters.fetch_binance_spot_history()` paginates public Binance spot klines with an explicit page safety limit.
+- `aars_market.storage.MarketStore` persists normalized candles in SQLite using `(symbol, timeframe, open_time)` as the idempotency key.
+- `MarketStore.is_fresh()` provides an explicit freshness gate.
+- `run_ingest.py` ingests BTCUSDT / ETHUSDT / SOLUSDT without credentials and always declares `PAPER_ONLY`.
+
 ### MIL-3.2 — Feature + State Engine
 Acceptance:
 - Features are reproducible from stored candles.
 - No look-ahead in feature generation.
 - Every state contains reason codes/evidence.
+
+Implementation status: **baseline implemented**.
 
 ### MIL-3.3 — Probability Engine
 Acceptance:
@@ -81,17 +91,25 @@ Acceptance:
 - Prior and evidence contributions are inspectable.
 - Calibration can be evaluated on historical walk-forward windows.
 
+Implementation status: **baseline priors implemented; walk-forward evaluation now available**.
+
+The current Bull/Base/Bear probabilities are hypotheses, not trained forecasts. `aars_market.replay` evaluates them chronologically and reports Brier score so calibration can later replace hand-authored priors.
+
 ### MIL-3.4 — Paper Portfolio
 Acceptance:
 - Long/flat/short simulation supported.
 - Net exposure, realized/unrealized P&L, fees, funding and slippage tracked separately.
 - Liquidation-risk approximation supported for leveraged shadow strategies.
 
+Status: **next implementation target**.
+
 ### MIL-3.5 — Replay + Comparative Validation
 Acceptance:
 - Same historical period can replay all baseline strategies.
 - Report includes return and risk metrics.
 - AARS is not accepted as alpha-producing unless it improves risk-adjusted results out-of-sample.
+
+Status: **forecast replay foundation implemented; strategy replay pending MIL-3.4 ledger**.
 
 ### MIL-3.6 — UI
 Minimum cards:
@@ -120,6 +138,18 @@ The initial policy intentionally prefers risk control over activity:
 - Historical replay: minimum 2 years where source data permits.
 - Walk-forward evaluation: chronological split only.
 - Shadow run: 30 days minimum before any discussion of live execution.
+
+## Operational sequence
+
+From `03_Projects/Polymarket/mil3`:
+
+```bash
+python run_ingest.py --db mil3_market.sqlite --days 120
+python run_replay.py --db mil3_market.sqlite --symbol SOLUSDT --interval 1h
+pytest -q
+```
+
+The first command touches only public market-data endpoints. The replay and tests are local/offline after data ingestion.
 
 ## Definition of Done
 
