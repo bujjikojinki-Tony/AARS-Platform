@@ -129,6 +129,24 @@ button { font: inherit; }
 .banner-code { padding: 5px 8px; color: #171006; background: var(--amber); font-weight: 800; }
 .degraded-banner span:last-child { color: #c6a86e; font-size: 11px; }
 
+.view-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(150px, 1fr)) minmax(160px, 0.8fr) minmax(180px, 1fr);
+  gap: 1px;
+  border-bottom: 1px solid var(--line-bright);
+  background: var(--line);
+}
+.view-controls label, .funding-status, .view-controls p {
+  margin: 0;
+  padding: 10px 16px;
+  background: #090d0c;
+}
+.view-controls label, .funding-status span { color: var(--muted); font-size: 9px; letter-spacing: 0.12em; }
+.view-controls select { width: 100%; margin-top: 6px; color: var(--paper); border: 0; background: transparent; font: 700 11px var(--mono); }
+.funding-status strong { display: block; margin-top: 7px; color: var(--cyan); font-size: 11px; }
+.view-controls p { display: flex; align-items: center; color: var(--muted); font-size: 10px; line-height: 1.4; }
+.archive-provenance { margin: 0; padding: 9px 15px; color: var(--muted); border-bottom: 1px solid var(--line); font-size: 9px; }
+
 .workspace {
   display: grid;
   grid-template-columns: 208px minmax(600px, 1fr) 290px;
@@ -324,6 +342,7 @@ tbody tr:last-child td { border-bottom: 0; }
   .status-cluster { grid-template-columns: 1fr 1fr; }
   .degraded-banner { grid-template-columns: 1fr; gap: 7px; }
   .degraded-banner { position: relative; top: auto; }
+  .view-controls { grid-template-columns: 1fr 1fr; }
   .workspace { grid-template-columns: 1fr; }
   .strategy-rail { border-right: 0; }
   .strategy-nav { display: grid; grid-template-columns: 1fr 1fr; }
@@ -341,6 +360,7 @@ tbody tr:last-child td { border-bottom: 0; }
 @media (max-width: 620px) {
   .status-cluster { grid-template-columns: 1fr; }
   .status-cell { border-bottom: 1px solid var(--line); }
+  .view-controls { grid-template-columns: 1fr; }
   .strategy-nav { grid-template-columns: 1fr; }
   .stage-heading { align-items: flex-start; flex-direction: column; }
   .review-disposition { border-left: 0; padding: 0; }

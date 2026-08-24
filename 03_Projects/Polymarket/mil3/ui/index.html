@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="AARS MIL-3.6 paper-only shadow strategy research console" />
-    <title>AARS MIL-3.6 | Shadow Strategy Console</title>
+    <meta name="description" content="AARS MIL-3.7 paper-only multi-asset research console" />
+    <title>AARS MIL-3.7 | Shadow Strategy Console</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -13,7 +13,7 @@
     <div class="shell">
       <header class="status-bar" aria-label="System status">
         <div class="brand-lockup">
-          <span class="brand-index">AARS // 03.6</span>
+          <span class="brand-index">AARS // 03.7</span>
           <strong>SHADOW STRATEGY CONSOLE</strong>
         </div>
         <div class="status-cluster">
@@ -40,6 +40,14 @@
         <span class="banner-code">DEGRADED VIEW</span>
         <strong id="degraded-reason">Fresh replay data is not confirmed.</strong>
         <span>Permitted: inspect last stable replay. Blocked: treat as current market state.</span>
+      </section>
+
+      <section class="view-controls" aria-label="Replay view selection">
+        <label>MARKET<select id="market-select" aria-label="Market"></select></label>
+        <label>REPLAY WINDOW<select id="window-select" aria-label="Replay window"></select></label>
+        <label>VIEW EVIDENCE<select id="archive-select" aria-label="Latest Stable View archive"><option value="">CURRENT REPLAY</option></select></label>
+        <div class="funding-status"><span>FUNDING HISTORY</span><strong id="funding-status">LOADING</strong></div>
+        <p id="view-status" role="status">Current replay view</p>
       </section>
 
       <main id="main-content" class="workspace">
@@ -147,6 +155,7 @@
             </div>
             <strong id="stable-status" class="stable-status">—</strong>
           </div>
+          <p id="archive-provenance" class="archive-provenance">Archive identity pending.</p>
           <div class="stable-grid">
             <div class="state-block">
               <span>MARKET STATE</span>

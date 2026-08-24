@@ -6,7 +6,7 @@ from statistics import fmean, pstdev
 from typing import Protocol, Sequence
 
 from .features import compute_features
-from .models import Candle, MarketState
+from .models import Candle, FundingRate, MarketState
 from .paper import PaperPortfolio
 from .policy import decide_target_exposure
 from .probability import estimate_outcome_probabilities
@@ -337,6 +337,7 @@ class ReplayEngine:
         fee_rate: float = 0.0005,
         slippage_rate: float = 0.0002,
         funding_rate_per_bar: float = 0.0,
+        funding_rates: Sequence[FundingRate] | None = None,
         maintenance_margin_rate: float = 0.005,
     ) -> None:
         if maintenance_margin_rate < 0:
@@ -345,6 +346,7 @@ class ReplayEngine:
         self.fee_rate = fee_rate
         self.slippage_rate = slippage_rate
         self.funding_rate_per_bar = funding_rate_per_bar
+        self.funding_rates = tuple(sorted(funding_rates or (), key=lambda item: item.funding_time))
         self.maintenance_margin_rate = maintenance_margin_rate
 
     def run(
@@ -383,6 +385,12 @@ class ReplayEngine:
         max_liquidation_risk = 0.0
         liquidation_events = 0
         last_mark = candles[warmup_bars - 1].close
+        replay_start = candles[warmup_bars - 1].open_time
+        funding_events = [
+            item for item in self.funding_rates
+            if item.symbol.upper() == candles[-1].symbol.upper() and item.funding_time >= replay_start
+        ]
+        funding_index = 0
 
         for index in range(warmup_bars - 1, len(candles)):
             candle = candles[index]
@@ -399,8 +407,13 @@ class ReplayEngine:
                 if action.category == "grid":
                     realized_grid_pnl += trade.realized_pnl_delta
 
-            if strategy.uses_funding and self.funding_rate_per_bar:
-                portfolio.apply_funding_rate(candle.close, self.funding_rate_per_bar)
+            if strategy.uses_funding:
+                while funding_index < len(funding_events) and funding_events[funding_index].funding_time <= candle.open_time:
+                    event = funding_events[funding_index]
+                    portfolio.apply_funding_rate(event.mark_price or candle.close, event.funding_rate)
+                    funding_index += 1
+                if not funding_events and self.funding_rate_per_bar:
+                    portfolio.apply_funding_rate(candle.close, self.funding_rate_per_bar)
 
             snapshot = portfolio.snapshot(
                 candle.close,
@@ -499,6 +512,7 @@ def compare_shadow_strategy_results(
     fee_rate: float = 0.0005,
     slippage_rate: float = 0.0002,
     funding_rate_per_bar: float = 0.0,
+    funding_rates: Sequence[FundingRate] | None = None,
     maintenance_margin_rate: float = 0.005,
 ) -> list[ReplayResult]:
     engine = ReplayEngine(
@@ -506,6 +520,7 @@ def compare_shadow_strategy_results(
         fee_rate=fee_rate,
         slippage_rate=slippage_rate,
         funding_rate_per_bar=funding_rate_per_bar,
+        funding_rates=funding_rates,
         maintenance_margin_rate=maintenance_margin_rate,
     )
     strategies = _shadow_strategies(
@@ -531,6 +546,7 @@ def compare_shadow_strategies(
     fee_rate: float = 0.0005,
     slippage_rate: float = 0.0002,
     funding_rate_per_bar: float = 0.0,
+    funding_rates: Sequence[FundingRate] | None = None,
     maintenance_margin_rate: float = 0.005,
 ) -> list[SimulationSummary]:
     results = compare_shadow_strategy_results(
@@ -545,6 +561,7 @@ def compare_shadow_strategies(
         fee_rate=fee_rate,
         slippage_rate=slippage_rate,
         funding_rate_per_bar=funding_rate_per_bar,
+        funding_rates=funding_rates,
         maintenance_margin_rate=maintenance_margin_rate,
     )
     return [result.summary for result in results]

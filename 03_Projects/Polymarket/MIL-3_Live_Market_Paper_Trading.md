@@ -163,6 +163,26 @@ The main view continuously exposes PAPER_ONLY authority, data trust, highest liq
 
 The HMI design and local run instructions are recorded in `mil3/ui/README.md`.
 
+### MIL-3.7 — Funding History, Replay Views and Read-Only API
+
+Status: **implemented in PR #2**.
+
+- `run_funding_ingest.py` ingests real Binance USD-M public funding history without credentials. Funding events retain exchange timestamps, rate, mark price and rate type in SQLite.
+- `ReplayEngine` applies funding only when the event timestamp has been reached. The legacy per-bar rate remains an explicit fallback and is ignored when timestamped history is present.
+- `DashboardService` selects BTCUSDT, ETHUSDT or SOLUSDT and a 30d/90d/180d/365d/all replay window from persisted data.
+- Explicitly archived dashboards are stored as immutable, content-addressed Latest Stable Views. Duplicate content resolves to the same archive identity.
+- `run_archive.py` is the explicit archive write path; dashboard GET requests do not mutate SQLite.
+- `run_api.py` serves the console and JSON endpoints on localhost. Only GET, HEAD and OPTIONS are allowed; POST, PUT, PATCH and DELETE return 405.
+- The console can switch market/window, inspect archive history, and preserves the last displayed stable view if a requested refresh fails.
+
+Read-only endpoints:
+
+- `/api/v1/health`
+- `/api/v1/markets`
+- `/api/v1/dashboard?symbol=SOLUSDT&interval=1h&window=90d`
+- `/api/v1/stable-views`
+- `/api/v1/stable-views/{view_id}`
+
 ## Initial decision policy
 
 The initial policy intentionally prefers risk control over activity:
@@ -186,6 +206,8 @@ From `03_Projects/Polymarket/mil3`:
 
 ```bash
 python run_ingest.py --db mil3_market.sqlite --days 120
+python run_funding_ingest.py --db mil3_market.sqlite --days 365
+python run_archive.py --db mil3_market.sqlite --symbol SOLUSDT --window 90d
 python run_replay.py --db mil3_market.sqlite --symbol SOLUSDT --interval 1h
 python run_compare.py \
   --db mil3_market.sqlite \
@@ -194,13 +216,12 @@ python run_compare.py \
   --futures-leverage 10 \
   --grid-spacing 0.01 \
   --grid-levels 5 \
-  --funding-rate-per-bar 0.00001 \
   --output-json ui/dashboard_payload.json
-python -m http.server 8765 --directory ui
-pytest -q
+python run_api.py --db mil3_market.sqlite --port 8765
+python -m pytest -q
 ```
 
-The first command touches only public market-data endpoints. The replay, four-strategy comparison and tests are local/offline after data ingestion. Every runner declares `execution_mode=PAPER_ONLY`.
+The first two commands touch only public market-data endpoints. Replay, comparison, archive and tests are local after ingestion. Every runner declares `execution_mode=PAPER_ONLY`; the local API adds no order route.
 
 ## MIL-3.5 verification
 

@@ -89,6 +89,10 @@ def test_static_console_exposes_hmi_safety_surfaces_without_order_control():
     assert "DEGRADED VIEW" in html
     assert "LATEST STABLE VIEW" in html
     assert "LIQUIDATION" in html
+    assert 'id="market-select"' in html
+    assert 'id="window-select"' in html
+    assert 'id="archive-select"' in html
+    assert "mil3.dashboard.v2" in javascript
     assert "Created By Deerflow" in html
     assert "mil3.dashboard.v1" in javascript
     assert "unsafe execution mode rejected" in javascript

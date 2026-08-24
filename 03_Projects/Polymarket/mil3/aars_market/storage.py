@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import sqlite3
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Iterable, Iterator
+from typing import Any, Iterable, Iterator
 
-from .models import Candle
+from .models import Candle, FundingRate
 
 
 _SCHEMA = """
@@ -42,6 +44,34 @@ CREATE TABLE IF NOT EXISTS ingestion_runs (
     status TEXT NOT NULL,
     error TEXT
 );
+
+CREATE TABLE IF NOT EXISTS funding_rates (
+    symbol TEXT NOT NULL,
+    funding_time TEXT NOT NULL,
+    funding_rate REAL NOT NULL,
+    mark_price REAL,
+    rate_type TEXT NOT NULL,
+    source TEXT NOT NULL,
+    ingested_at TEXT NOT NULL,
+    PRIMARY KEY (symbol, funding_time, rate_type)
+);
+
+CREATE INDEX IF NOT EXISTS idx_funding_symbol_time
+ON funding_rates(symbol, funding_time);
+
+CREATE TABLE IF NOT EXISTS latest_stable_views (
+    view_id TEXT PRIMARY KEY,
+    symbol TEXT NOT NULL,
+    timeframe TEXT NOT NULL,
+    replay_window TEXT NOT NULL,
+    as_of TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    schema_version TEXT NOT NULL,
+    payload_json TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_stable_views_market_created
+ON latest_stable_views(symbol, timeframe, created_at DESC);
 """
 
 
@@ -200,3 +230,155 @@ class MarketStore:
                 (symbol.upper(), timeframe),
             ).fetchone()
         return int(row["n"])
+
+    def list_markets(self) -> list[dict[str, object]]:
+        with self.connect() as conn:
+            rows = conn.execute(
+                """SELECT symbol, timeframe, COUNT(*) AS bars, MAX(open_time) AS latest
+                   FROM candles GROUP BY symbol, timeframe ORDER BY symbol, timeframe"""
+            ).fetchall()
+        return [
+            {
+                "symbol": row["symbol"],
+                "timeframe": row["timeframe"],
+                "bars": int(row["bars"]),
+                "latest": row["latest"],
+            }
+            for row in rows
+        ]
+
+    def upsert_funding_rates(self, rates: Iterable[FundingRate], source: str) -> int:
+        rows = list(rates)
+        if not rows:
+            return 0
+        now = _iso(datetime.now(timezone.utc))
+        payload = [
+            (
+                item.symbol.upper(),
+                _iso(item.funding_time),
+                item.funding_rate,
+                item.mark_price,
+                item.rate_type,
+                source,
+                now,
+            )
+            for item in rows
+        ]
+        with self.connect() as conn:
+            conn.executemany(
+                """INSERT INTO funding_rates(
+                       symbol, funding_time, funding_rate, mark_price, rate_type, source, ingested_at
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                   ON CONFLICT(symbol, funding_time, rate_type) DO UPDATE SET
+                       funding_rate=excluded.funding_rate,
+                       mark_price=excluded.mark_price,
+                       source=excluded.source,
+                       ingested_at=excluded.ingested_at""",
+                payload,
+            )
+        return len(rows)
+
+    def load_funding_rates(
+        self,
+        symbol: str,
+        start: datetime | None = None,
+        end: datetime | None = None,
+    ) -> list[FundingRate]:
+        where = ["symbol = ?"]
+        params: list[object] = [symbol.upper()]
+        if start is not None:
+            where.append("funding_time >= ?")
+            params.append(_iso(start))
+        if end is not None:
+            where.append("funding_time <= ?")
+            params.append(_iso(end))
+        with self.connect() as conn:
+            rows = conn.execute(
+                f"""SELECT symbol, funding_time, funding_rate, mark_price, rate_type
+                    FROM funding_rates WHERE {' AND '.join(where)}
+                    ORDER BY funding_time, rate_type""",
+                params,
+            ).fetchall()
+        return [
+            FundingRate(
+                symbol=row["symbol"],
+                funding_time=_parse(row["funding_time"]),
+                funding_rate=float(row["funding_rate"]),
+                mark_price=float(row["mark_price"]) if row["mark_price"] is not None else None,
+                rate_type=row["rate_type"],
+            )
+            for row in rows
+        ]
+
+    def count_funding_rates(self, symbol: str) -> int:
+        with self.connect() as conn:
+            row = conn.execute(
+                "SELECT COUNT(*) AS n FROM funding_rates WHERE symbol=?", (symbol.upper(),)
+            ).fetchone()
+        return int(row["n"])
+
+    def archive_latest_stable_view(
+        self,
+        payload: dict[str, Any],
+        *,
+        replay_window: str,
+        created_at: datetime | None = None,
+    ) -> str:
+        canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False)
+        identity_payload = dict(payload)
+        identity_payload.pop("generated_at", None)
+        identity = json.dumps(identity_payload, sort_keys=True, separators=(",", ":"), allow_nan=False)
+        view_id = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:24]
+        market = payload["market"]
+        stable = payload["latest_stable_view"]
+        created = created_at or datetime.now(timezone.utc)
+        with self.connect() as conn:
+            conn.execute(
+                """INSERT OR IGNORE INTO latest_stable_views(
+                       view_id, symbol, timeframe, replay_window, as_of, created_at,
+                       schema_version, payload_json
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    view_id,
+                    market["symbol"],
+                    market["timeframe"],
+                    replay_window,
+                    stable["as_of"],
+                    _iso(created),
+                    payload["schema_version"],
+                    canonical,
+                ),
+            )
+        return view_id
+
+    def list_latest_stable_views(
+        self, symbol: str | None = None, timeframe: str | None = None, limit: int = 20
+    ) -> list[dict[str, object]]:
+        if limit <= 0:
+            raise ValueError("limit must be positive")
+        where: list[str] = []
+        params: list[object] = []
+        if symbol:
+            where.append("symbol = ?")
+            params.append(symbol.upper())
+        if timeframe:
+            where.append("timeframe = ?")
+            params.append(timeframe)
+        sql = (
+            "SELECT view_id, symbol, timeframe, replay_window, as_of, created_at, "
+            "schema_version FROM latest_stable_views"
+        )
+        if where:
+            sql += " WHERE " + " AND ".join(where)
+        sql += " ORDER BY created_at DESC, view_id DESC LIMIT ?"
+        params.append(limit)
+        with self.connect() as conn:
+            rows = conn.execute(sql, params).fetchall()
+        return [dict(row) for row in rows]
+
+    def get_latest_stable_view(self, view_id: str) -> dict[str, Any] | None:
+        with self.connect() as conn:
+            row = conn.execute(
+                "SELECT payload_json FROM latest_stable_views WHERE view_id=?", (view_id,)
+            ).fetchone()
+        return json.loads(row["payload_json"]) if row is not None else None

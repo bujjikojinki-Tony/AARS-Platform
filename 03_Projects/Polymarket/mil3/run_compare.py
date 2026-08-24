@@ -58,8 +58,10 @@ def main() -> None:
     if len(candles) <= args.warmup:
         raise SystemExit(f"need > {args.warmup} candles; stored={len(candles)}")
 
+    funding_rates = store.load_funding_rates(args.symbol, candles[0].open_time, candles[-1].open_time)
     print("execution_mode=PAPER_ONLY")
     print(f"symbol={args.symbol.upper()} interval={args.interval} candles={len(candles)}")
+    print(f"funding_source={'BINANCE_USDM_PUBLIC_HISTORY' if funding_rates else 'PER_BAR_FALLBACK'} events={len(funding_rates)}")
     replay_results = compare_shadow_strategy_results(
         candles,
         initial_equity=args.initial_equity,
@@ -72,6 +74,7 @@ def main() -> None:
         fee_rate=args.fee_rate,
         slippage_rate=args.slippage_rate,
         funding_rate_per_bar=args.funding_rate_per_bar,
+        funding_rates=funding_rates,
         maintenance_margin_rate=args.maintenance_margin_rate,
     )
     summaries = [result.summary for result in replay_results]
@@ -105,10 +108,17 @@ def main() -> None:
             fee_rate=args.fee_rate,
             slippage_rate=args.slippage_rate,
             funding_rate_per_bar=args.funding_rate_per_bar,
+            funding_rates=funding_rates,
             maintenance_margin_rate=args.maintenance_margin_rate,
             data_fresh=store.is_fresh(args.symbol, args.interval),
             replay_results=replay_results,
         )
+        view_id = store.archive_latest_stable_view(payload, replay_window="all")
+        payload["latest_stable_view_archive"] = {
+            "view_id": view_id,
+            "immutable": True,
+            "archived_at": payload["generated_at"],
+        }
         target = write_dashboard_payload(args.output_json, payload)
         print(f"dashboard_payload={target}")
 

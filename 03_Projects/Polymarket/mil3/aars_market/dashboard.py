@@ -8,14 +8,14 @@ from pathlib import Path
 from typing import Any, Sequence
 
 from .features import compute_features
-from .models import Candle
+from .models import Candle, FundingRate
 from .policy import decide_target_exposure
 from .probability import estimate_outcome_probabilities
 from .simulation import EXECUTION_MODE, ReplayResult, compare_shadow_strategy_results
 from .state_engine import classify_market_state
 
 
-DASHBOARD_SCHEMA_VERSION = "mil3.dashboard.v1"
+DASHBOARD_SCHEMA_VERSION = "mil3.dashboard.v2"
 
 
 def _utc_iso(value: datetime) -> str:
@@ -80,6 +80,7 @@ def build_dashboard_payload(
     fee_rate: float = 0.0005,
     slippage_rate: float = 0.0002,
     funding_rate_per_bar: float = 0.0,
+    funding_rates: Sequence[FundingRate] | None = None,
     maintenance_margin_rate: float = 0.005,
     data_fresh: bool | None = None,
     source: str = "SQLite normalized candles",
@@ -102,6 +103,7 @@ def build_dashboard_payload(
         fee_rate=fee_rate,
         slippage_rate=slippage_rate,
         funding_rate_per_bar=funding_rate_per_bar,
+        funding_rates=funding_rates,
         maintenance_margin_rate=maintenance_margin_rate,
     )
     if not results:
@@ -179,6 +181,13 @@ def build_dashboard_payload(
             "degraded": degraded,
             "degraded_reason": None if not degraded else "Fresh replay data is not confirmed.",
         },
+        "funding": {
+            "source": "Binance USD-M public funding history" if funding_rates else "configured fallback",
+            "events": len(funding_rates or ()),
+            "first_event_at": _utc_iso(funding_rates[0].funding_time) if funding_rates else None,
+            "latest_event_at": _utc_iso(funding_rates[-1].funding_time) if funding_rates else None,
+            "lookahead_protection": "events apply only when funding_time <= replay candle time",
+        },
         "highest_risk": {
             "level": risk_level,
             "strategy": highest.summary.strategy,
@@ -208,6 +217,7 @@ def build_dashboard_payload(
             "fee_rate": fee_rate,
             "slippage_rate": slippage_rate,
             "funding_rate_per_bar": funding_rate_per_bar,
+            "funding_model": "timestamped_public_history" if funding_rates else "per_bar_fallback",
             "maintenance_margin_rate": maintenance_margin_rate,
             "intrabar_path_model": "green: prev-close/open/low/high/close; red: prev-close/open/high/low/close",
         },

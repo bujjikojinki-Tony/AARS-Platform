@@ -3,6 +3,7 @@ const state = {
   selectedStrategy: "AARS_DYNAMIC",
   chartMode: "equity",
   usingSample: false,
+  viewingArchive: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -52,6 +53,12 @@ function currentStrategy() {
   return state.payload.strategies.find((item) => item.id === state.selectedStrategy) ?? state.payload.strategies[0];
 }
 
+function validatePayload(payload) {
+  if (!["mil3.dashboard.v1", "mil3.dashboard.v2"].includes(payload.schema_version)) throw new Error("unsupported dashboard schema");
+  if (payload.execution_mode !== "PAPER_ONLY") throw new Error("unsafe execution mode rejected");
+  return payload;
+}
+
 function trendClass(value) {
   return Number(value) > 0 ? "positive" : Number(value) < 0 ? "negative" : "";
 }
@@ -73,6 +80,37 @@ function renderSystemStatus() {
   $("#source-line").textContent = `${payload.market.source} · ${payload.market.bars} bars · ${state.usingSample ? "DEMO FALLBACK" : "GENERATED PAYLOAD"}`;
   $("#market-context").textContent = `${payload.market.symbol} / ${payload.market.timeframe} · AS OF ${formatDate(payload.market.latest_candle_at)}`;
   $("#review-gate").textContent = payload.review_gate.disposition.replaceAll("_", " ");
+}
+
+function renderViewControls() {
+  const selection = state.payload.selection || {
+    symbol: state.payload.market.symbol,
+    timeframe: state.payload.market.timeframe,
+    replay_window: "90d",
+  };
+  const markets = state.payload.available_markets?.length
+    ? [...new Set(state.payload.available_markets.map((item) => item.symbol))]
+    : ["BTCUSDT", "ETHUSDT", "SOLUSDT"];
+  const windows = state.payload.available_windows || ["30d", "90d", "180d", "365d", "all"];
+  const marketSelect = $("#market-select");
+  const windowSelect = $("#window-select");
+  marketSelect.innerHTML = markets.map((symbol) => `<option value="${escapeHtml(symbol)}">${escapeHtml(symbol)}</option>`).join("");
+  windowSelect.innerHTML = windows.map((window) => `<option value="${escapeHtml(window)}">${escapeHtml(window.toUpperCase())}</option>`).join("");
+  marketSelect.value = selection.symbol;
+  windowSelect.value = selection.replay_window;
+  marketSelect.disabled = Boolean(state.viewingArchive);
+  windowSelect.disabled = Boolean(state.viewingArchive);
+  const funding = state.payload.funding;
+  $("#funding-status").textContent = funding
+    ? `${funding.events} EVENTS · ${funding.source}`
+    : "FALLBACK / NOT ARCHIVED";
+  const archive = state.payload.latest_stable_view_archive;
+  $("#archive-provenance").textContent = state.viewingArchive
+    ? `ARCHIVED EVIDENCE · ${state.viewingArchive.view_id} · created ${formatDate(state.viewingArchive.created_at)}`
+    : archive
+      ? `IMMUTABLE ARCHIVE · ${archive.view_id} · stored ${formatDate(archive.archived_at)}`
+      : "Current generated replay; no archive identity is present in this payload.";
+  $("#view-status").textContent = state.viewingArchive ? "Archived evidence view · controls locked" : "Current replay view · read-only controls";
 }
 
 function renderStrategyNav() {
@@ -271,20 +309,58 @@ function selectStrategy(id) {
 
 function render() {
   renderSystemStatus();
+  renderViewControls();
   renderStrategyNav();
   renderSelectedStrategy();
   renderRisk();
   renderLatestStableView();
 }
 
+async function requestDashboard() {
+  const symbol = $("#market-select").value || "SOLUSDT";
+  const window = $("#window-select").value || "90d";
+  const response = await fetch(`/api/v1/dashboard?symbol=${encodeURIComponent(symbol)}&interval=1h&window=${encodeURIComponent(window)}`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`dashboard request returned ${response.status}`);
+  state.payload = validatePayload(await response.json());
+  state.usingSample = false;
+  state.viewingArchive = null;
+  render();
+  await loadArchiveOptions();
+}
+
+async function loadArchiveOptions() {
+  const select = $("#archive-select");
+  const symbol = state.payload.market.symbol;
+  try {
+    const response = await fetch(`/api/v1/stable-views?symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(state.payload.market.timeframe)}`, { cache: "no-store" });
+    if (!response.ok) throw new Error(`archive request returned ${response.status}`);
+    const { stable_views } = await response.json();
+    select.innerHTML = '<option value="">CURRENT REPLAY</option>' + stable_views.map((view) =>
+      `<option value="${escapeHtml(view.view_id)}">${escapeHtml(view.replay_window.toUpperCase())} · ${escapeHtml(formatDate(view.as_of))}</option>`
+    ).join("");
+    select.value = state.viewingArchive?.view_id || "";
+  } catch (_error) {
+    select.innerHTML = '<option value="">CURRENT REPLAY · ARCHIVE API UNAVAILABLE</option>';
+  }
+}
+
+async function loadArchivedView(viewId) {
+  if (!viewId) return requestDashboard();
+  const response = await fetch(`/api/v1/stable-views/${encodeURIComponent(viewId)}`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`archive view returned ${response.status}`);
+  const metadata = [...$("#archive-select").options].find((item) => item.value === viewId)?.textContent || "ARCHIVE";
+  state.payload = validatePayload(await response.json());
+  state.viewingArchive = { view_id: viewId, created_at: state.payload.generated_at, label: metadata };
+  render();
+  $("#archive-select").value = viewId;
+}
+
 async function loadPayload() {
   try {
-    const response = await fetch("./dashboard_payload.json", { cache: "no-store" });
+    const endpoint = location.protocol === "file:" ? "./dashboard_payload.json" : "/api/v1/dashboard?symbol=SOLUSDT&interval=1h&window=90d";
+    const response = await fetch(endpoint, { cache: "no-store" });
     if (!response.ok) throw new Error(`payload request returned ${response.status}`);
-    const payload = await response.json();
-    if (payload.schema_version !== "mil3.dashboard.v1") throw new Error("unsupported dashboard schema");
-    if (payload.execution_mode !== "PAPER_ONLY") throw new Error("unsafe execution mode rejected");
-    state.payload = payload;
+    state.payload = validatePayload(await response.json());
   } catch (error) {
     state.payload = SAMPLE_PAYLOAD;
     state.usingSample = true;
@@ -294,6 +370,19 @@ async function loadPayload() {
     state.selectedStrategy = state.payload.strategies[0].id;
   }
   render();
+  await loadArchiveOptions();
+}
+
+$("#market-select").addEventListener("change", () => requestDashboard().catch(showSwitchFailure));
+$("#window-select").addEventListener("change", () => requestDashboard().catch(showSwitchFailure));
+$("#archive-select").addEventListener("change", (event) => loadArchivedView(event.target.value).catch(showSwitchFailure));
+
+function showSwitchFailure(error) {
+  renderViewControls();
+  $("#archive-select").value = state.viewingArchive?.view_id || "";
+  $("#degraded-banner").hidden = false;
+  $("#degraded-reason").textContent = `Requested view unavailable; preserving the last stable display. ${error.message}`;
+  $("#view-status").textContent = "Switch failed · previous stable view preserved";
 }
 
 $$('[data-chart]').forEach((button) => {

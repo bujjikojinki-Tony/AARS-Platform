@@ -1,4 +1,4 @@
-# MIL-3.6 Shadow Strategy Console HMI Design v0
+# MIL-3.7 Shadow Strategy Console HMI Design v1
 
 ## 1. Page Purpose
 
@@ -14,12 +14,13 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 2. Identify the highest current replay risk.
 3. Compare the four strategy summaries.
 4. Inspect equity/drawdown or liquidation/leverage traces.
-5. Review the Latest Stable View and its evidence.
-6. Resolve open risk objects before accepting a shadow strategy.
+5. Switch BTC/ETH/SOL and replay windows without changing execution authority.
+6. Review current or archived Latest Stable View evidence.
+7. Resolve open risk objects before accepting a shadow strategy.
 
 ## 4. Information Architecture
 
-- Top: PAPER_ONLY authority, freshness, highest risk and payload time.
+- Top: PAPER_ONLY authority, freshness, highest risk, payload time and read-only view selectors.
 - Left: four-strategy comparison set.
 - Center: selected strategy metrics, traces and common-ledger table.
 - Right: liquidation-risk priority and actionable risk queue.
@@ -43,10 +44,13 @@ The desktop layout follows a flight-recorder/control-desk pattern with a persist
 - `EvidenceTracePanel`
 - `PaperLedgerAttribution`
 - `ParameterProvenanceDrawer`
+- `MarketAndWindowSelector`
+- `StableViewArchiveSelector`
+- `FundingHistoryStatus`
 
 ## 7. Data Model
 
-The page consumes `mil3.dashboard.v1`. Required top-level fields are `execution_mode`, `market`, `highest_risk`, `latest_stable_view`, `parameters`, `strategies`, `alerts` and `review_gate`. The client rejects any execution mode other than `PAPER_ONLY`.
+The page consumes `mil3.dashboard.v2` and keeps display compatibility with v1 static payloads. V2 adds `selection`, `available_markets`, `available_windows`, `funding`, and `latest_stable_view_archive`. The client rejects any execution mode other than `PAPER_ONLY`.
 
 ## 8. Alarm and Risk Design
 
@@ -62,7 +66,7 @@ Missing, stale or unconfirmed data produces a prominent degraded banner. The scr
 
 ## 11. User Actions and Gates
 
-Available actions only change the inspected strategy or trace. There are no order, credential, live-mode or execution controls. The review gate is `DEFER` when freshness is degraded or a liquidation approximation is breached.
+Available actions only change the inspected market, replay window, archive, strategy or trace. There are no order, credential, live-mode or execution controls. A failed switch preserves the last displayed stable evidence and raises the degraded banner.
 
 ## 12. HMI Review Gate
 
@@ -84,16 +88,12 @@ Overall disposition: **Accept with Minor Issues for PAPER_ONLY research use**.
 From `03_Projects/Polymarket/mil3`:
 
 ```bash
-python run_compare.py \
-  --db mil3_market.sqlite \
-  --symbol SOLUSDT \
-  --interval 1h \
-  --futures-leverage 10 \
-  --output-json ui/dashboard_payload.json
-
-python -m http.server 8765 --directory ui
+python run_ingest.py --db mil3_market.sqlite --days 365
+python run_funding_ingest.py --db mil3_market.sqlite --days 365
+python run_archive.py --db mil3_market.sqlite --symbol SOLUSDT --window 90d
+python run_api.py --db mil3_market.sqlite --port 8765
 ```
 
-Open `http://127.0.0.1:8765/`. If `dashboard_payload.json` is absent or invalid, the console uses an explicit degraded demonstration payload.
+Open `http://127.0.0.1:8765/`. The server binds to localhost by default and exposes a GET/HEAD/OPTIONS-only API.
 
-For a no-server preview, open `ui/index.html` directly in a browser. Direct-file mode uses the degraded demonstration payload because browsers do not allow the page to fetch `dashboard_payload.json` from the local filesystem. Use the HTTP command above whenever real replay output is required.
+For a no-server preview, open `ui/index.html` directly. Direct-file mode uses the degraded demonstration payload; market/window/archive controls require the read-only local API.

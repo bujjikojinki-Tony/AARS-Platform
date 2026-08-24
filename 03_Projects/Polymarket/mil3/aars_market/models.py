@@ -28,6 +28,15 @@ class Candle:
 
 
 @dataclass(frozen=True)
+class FundingRate:
+    symbol: str
+    funding_time: datetime
+    funding_rate: float
+    mark_price: float | None = None
+    rate_type: str = "Regular"
+
+
+@dataclass(frozen=True)
 class FeatureSnapshot:
     symbol: str
     timeframe: str
