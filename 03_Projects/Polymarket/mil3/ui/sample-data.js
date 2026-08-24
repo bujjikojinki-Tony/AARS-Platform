@@ -66,7 +66,7 @@ const strategies = strategySeeds.map((seed, index) => {
   };
 });
 
-export const SAMPLE_PAYLOAD = {
+const SAMPLE_PAYLOAD = {
   schema_version: "mil3.dashboard.v1",
   generated_at: "2026-08-24T07:30:00+00:00",
   execution_mode: "PAPER_ONLY",

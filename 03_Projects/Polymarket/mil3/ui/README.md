@@ -95,3 +95,5 @@ python -m http.server 8765 --directory ui
 ```
 
 Open `http://127.0.0.1:8765/`. If `dashboard_payload.json` is absent or invalid, the console uses an explicit degraded demonstration payload.
+
+For a no-server preview, open `ui/index.html` directly in a browser. Direct-file mode uses the degraded demonstration payload because browsers do not allow the page to fetch `dashboard_payload.json` from the local filesystem. Use the HTTP command above whenever real replay output is required.

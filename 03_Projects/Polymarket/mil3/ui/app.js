@@ -1,5 +1,3 @@
-import { SAMPLE_PAYLOAD } from "./sample-data.js";
-
 const state = {
   payload: null,
   selectedStrategy: "AARS_DYNAMIC",
