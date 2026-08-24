@@ -72,6 +72,18 @@ CREATE TABLE IF NOT EXISTS latest_stable_views (
 
 CREATE INDEX IF NOT EXISTS idx_stable_views_market_created
 ON latest_stable_views(symbol, timeframe, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS ingestion_cycles (
+    cycle_id TEXT PRIMARY KEY,
+    started_at TEXT NOT NULL,
+    finished_at TEXT NOT NULL,
+    status TEXT NOT NULL,
+    execution_mode TEXT NOT NULL,
+    summary_json TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_ingestion_cycles_finished
+ON ingestion_cycles(finished_at DESC);
 """
 
 
@@ -316,6 +328,46 @@ class MarketStore:
                 "SELECT COUNT(*) AS n FROM funding_rates WHERE symbol=?", (symbol.upper(),)
             ).fetchone()
         return int(row["n"])
+
+    def latest_funding_time(self, symbol: str) -> datetime | None:
+        with self.connect() as conn:
+            row = conn.execute(
+                "SELECT MAX(funding_time) AS latest FROM funding_rates WHERE symbol=?",
+                (symbol.upper(),),
+            ).fetchone()
+        if row is None or row["latest"] is None:
+            return None
+        return _parse(row["latest"])
+
+    def record_ingestion_cycle(self, summary: dict[str, Any]) -> str:
+        canonical = json.dumps(summary, sort_keys=True, separators=(",", ":"), allow_nan=False)
+        cycle_id = hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:24]
+        with self.connect() as conn:
+            conn.execute(
+                """INSERT OR IGNORE INTO ingestion_cycles(
+                       cycle_id, started_at, finished_at, status, execution_mode, summary_json
+                   ) VALUES (?, ?, ?, ?, ?, ?)""",
+                (
+                    cycle_id,
+                    summary["started_at"],
+                    summary["finished_at"],
+                    summary["status"],
+                    summary["execution_mode"],
+                    canonical,
+                ),
+            )
+        return cycle_id
+
+    def list_ingestion_cycles(self, limit: int = 20) -> list[dict[str, Any]]:
+        if limit <= 0:
+            raise ValueError("limit must be positive")
+        with self.connect() as conn:
+            rows = conn.execute(
+                """SELECT cycle_id, summary_json FROM ingestion_cycles
+                   ORDER BY finished_at DESC, cycle_id DESC LIMIT ?""",
+                (limit,),
+            ).fetchall()
+        return [{"cycle_id": row["cycle_id"], **json.loads(row["summary_json"])} for row in rows]
 
     def archive_latest_stable_view(
         self,

@@ -183,6 +183,24 @@ Read-only endpoints:
 - `/api/v1/stable-views`
 - `/api/v1/stable-views/{view_id}`
 
+### MIL-3.8 — Incremental Operations, Coverage and Portfolio Risk
+
+Status: **implemented on `mil-3-live-market-paper-trading`**.
+
+- `IncrementalIngestor` starts from the latest persisted candle/funding timestamp with a configurable overlap. Existing idempotent upserts repair late revisions without duplicate history.
+- `run_scheduler.py` provides a local, interruptible polling loop. `--max-cycles` bounds acceptance runs; the default `0` runs until the user stops it. It does not install a daemon or background service.
+- Every cycle persists a PAPER_ONLY audit summary with per-symbol candle/funding success, cursor window, fetched/upserted count and sanitized error text.
+- Funding coverage evaluates the replay interval against the expected 8-hour cadence and reports observed events, estimated gaps, coverage ratio, largest gap and leading/internal/trailing gap evidence. Missing or gapped history adds `FUNDING_COVERAGE_GAP` and defers the review gate.
+- Cross-asset portfolio aggregation aligns full-resolution BTC/ETH/SOL replay traces for a selected shadow strategy. It reports portfolio equity, drawdown, net/gross exposure, effective leverage, minimum margin buffer, maximum liquidation risk and degraded assets.
+- Portfolio capital uses independent equal-weight asset buckets. It deliberately makes no claim of exchange-level cross-margin or collateral netting.
+- Stable View diff compares immutable archive evidence semantically. Generation timestamps and chart traces are excluded; state, probability, exposure, funding coverage, risk, strategy metrics and review disposition remain auditable changes.
+
+Additional read-only endpoints:
+
+- `/api/v1/ingestion-cycles`
+- `/api/v1/portfolio?symbols=BTCUSDT,ETHUSDT,SOLUSDT&interval=1h&window=90d&strategy=AARS_DYNAMIC`
+- `/api/v1/stable-view-diff?before={view_id}&after={view_id}`
+
 ## Initial decision policy
 
 The initial policy intentionally prefers risk control over activity:
@@ -207,6 +225,7 @@ From `03_Projects/Polymarket/mil3`:
 ```bash
 python run_ingest.py --db mil3_market.sqlite --days 120
 python run_funding_ingest.py --db mil3_market.sqlite --days 365
+python run_scheduler.py --db mil3_market.sqlite --poll-seconds 3600 --max-cycles 1
 python run_archive.py --db mil3_market.sqlite --symbol SOLUSDT --window 90d
 python run_replay.py --db mil3_market.sqlite --symbol SOLUSDT --interval 1h
 python run_compare.py \
@@ -221,7 +240,7 @@ python run_api.py --db mil3_market.sqlite --port 8765
 python -m pytest -q
 ```
 
-The first two commands touch only public market-data endpoints. Replay, comparison, archive and tests are local after ingestion. Every runner declares `execution_mode=PAPER_ONLY`; the local API adds no order route.
+The ingestion and scheduler commands touch only public market-data endpoints. Replay, comparison, portfolio aggregation, archive diff and tests are local after ingestion. Every runner declares `execution_mode=PAPER_ONLY`; the local API adds no order route and GET requests do not mutate SQLite.
 
 ## MIL-3.5 verification
 

@@ -102,7 +102,7 @@ function renderViewControls() {
   windowSelect.disabled = Boolean(state.viewingArchive);
   const funding = state.payload.funding;
   $("#funding-status").textContent = funding
-    ? `${funding.events} EVENTS · ${funding.source}`
+    ? `${funding.events} EVENTS · ${funding.coverage?.status || "UNCHECKED"}`
     : "FALLBACK / NOT ARCHIVED";
   const archive = state.payload.latest_stable_view_archive;
   $("#archive-provenance").textContent = state.viewingArchive
@@ -305,6 +305,11 @@ function selectStrategy(id) {
   state.selectedStrategy = id;
   renderStrategyNav();
   renderSelectedStrategy();
+  if (state.viewingArchive) {
+    renderPortfolioUnavailable(new Error("Archived single-asset evidence selected; current portfolio aggregation is intentionally withheld."));
+  } else {
+    loadPortfolio().catch(renderPortfolioUnavailable);
+  }
 }
 
 function render() {
@@ -325,11 +330,13 @@ async function requestDashboard() {
   state.usingSample = false;
   state.viewingArchive = null;
   render();
-  await loadArchiveOptions();
+  await Promise.all([loadArchiveOptions(), loadPortfolio().catch(renderPortfolioUnavailable)]);
 }
 
 async function loadArchiveOptions() {
   const select = $("#archive-select");
+  const beforeSelect = $("#diff-before");
+  const afterSelect = $("#diff-after");
   const symbol = state.payload.market.symbol;
   try {
     const response = await fetch(`/api/v1/stable-views?symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(state.payload.market.timeframe)}`, { cache: "no-store" });
@@ -339,9 +346,77 @@ async function loadArchiveOptions() {
       `<option value="${escapeHtml(view.view_id)}">${escapeHtml(view.replay_window.toUpperCase())} · ${escapeHtml(formatDate(view.as_of))}</option>`
     ).join("");
     select.value = state.viewingArchive?.view_id || "";
+    const diffOptions = '<option value="">SELECT ARCHIVE</option>' + stable_views.map((view) =>
+      `<option value="${escapeHtml(view.view_id)}">${escapeHtml(view.replay_window.toUpperCase())} · ${escapeHtml(formatDate(view.as_of))}</option>`
+    ).join("");
+    beforeSelect.innerHTML = diffOptions;
+    afterSelect.innerHTML = diffOptions;
+    if (stable_views.length >= 2) {
+      beforeSelect.value = stable_views[1].view_id;
+      afterSelect.value = stable_views[0].view_id;
+      await loadStableDiff();
+    }
   } catch (_error) {
     select.innerHTML = '<option value="">CURRENT REPLAY · ARCHIVE API UNAVAILABLE</option>';
+    beforeSelect.innerHTML = '<option value="">ARCHIVE API UNAVAILABLE</option>';
+    afterSelect.innerHTML = '<option value="">ARCHIVE API UNAVAILABLE</option>';
   }
+}
+
+async function loadPortfolio() {
+  const window = state.payload.selection?.replay_window || "90d";
+  const response = await fetch(`/api/v1/portfolio?symbols=BTCUSDT,ETHUSDT,SOLUSDT&interval=1h&window=${encodeURIComponent(window)}&strategy=${encodeURIComponent(state.selectedStrategy)}`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`portfolio request returned ${response.status}`);
+  const payload = await response.json();
+  if (payload.execution_mode !== "PAPER_ONLY") throw new Error("unsafe portfolio mode rejected");
+  const summary = payload.summary;
+  const status = $("#portfolio-status");
+  status.textContent = summary.degraded ? "DEGRADED" : "MONITORING";
+  status.dataset.status = summary.degraded ? "DEGRADED" : "STABLE";
+  const metrics = [
+    ["TOTAL RETURN", formatPercent(summary.total_return, 1, true)],
+    ["MAX DRAWDOWN", formatPercent(summary.max_drawdown)],
+    ["NET EXPOSURE", `${formatNumber(summary.final_net_exposure)}×`],
+    ["GROSS EXPOSURE", `${formatNumber(summary.final_gross_exposure)}×`],
+    ["EFFECTIVE LEVERAGE", `${formatNumber(summary.final_effective_leverage)}×`],
+    ["MAX LIQ. RISK", formatPercent(summary.max_liquidation_risk)],
+  ];
+  $("#portfolio-metrics").innerHTML = metrics.map(([label, value]) =>
+    `<div><span>${label}</span><strong>${value}</strong></div>`
+  ).join("");
+  $("#portfolio-assets").innerHTML = payload.assets.map((asset) => `
+    <div class="portfolio-asset">
+      <span>${escapeHtml(asset.symbol)} · ${formatPercent(asset.weight)}</span>
+      <strong>${formatNumber(asset.final_net_exposure)}× NET</strong>
+      <span>${escapeHtml(asset.funding_coverage_status)} FUNDING · ${formatPercent(asset.max_liquidation_risk)} LIQ.</span>
+    </div>`).join("");
+}
+
+function renderPortfolioUnavailable(error) {
+  const status = $("#portfolio-status");
+  status.textContent = "UNAVAILABLE";
+  status.dataset.status = "DEGRADED";
+  $("#portfolio-metrics").innerHTML = `<div><span>RECOVERY</span><strong class="warning">RUN LOCAL API</strong></div>`;
+  $("#portfolio-assets").innerHTML = `<div class="portfolio-asset"><span>${escapeHtml(error.message)}</span></div>`;
+}
+
+async function loadStableDiff() {
+  const before = $("#diff-before").value;
+  const after = $("#diff-after").value;
+  if (!before || !after) {
+    $("#diff-summary").textContent = "Select two archived views from the same market.";
+    $("#diff-list").replaceChildren();
+    return;
+  }
+  const response = await fetch(`/api/v1/stable-view-diff?before=${encodeURIComponent(before)}&after=${encodeURIComponent(after)}`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`diff request returned ${response.status}`);
+  const payload = await response.json();
+  $("#diff-summary").textContent = `${payload.summary.status} · ${payload.summary.changed_fields} changed fields · ${payload.summary.material_changes} material`;
+  $("#diff-list").innerHTML = payload.changes.length ? payload.changes.slice(0, 60).map((change) => `
+    <div class="diff-change" data-severity="${escapeHtml(change.severity)}">
+      <strong>${escapeHtml(change.severity)} · ${escapeHtml(change.path)}</strong>
+      <span>${escapeHtml(change.before)} → ${escapeHtml(change.after)}</span>
+    </div>`).join("") : '<div class="diff-summary">No semantic changes.</div>';
 }
 
 async function loadArchivedView(viewId) {
@@ -353,6 +428,7 @@ async function loadArchivedView(viewId) {
   state.viewingArchive = { view_id: viewId, created_at: state.payload.generated_at, label: metadata };
   render();
   $("#archive-select").value = viewId;
+  renderPortfolioUnavailable(new Error("Archived single-asset evidence selected; current portfolio aggregation is intentionally withheld."));
 }
 
 async function loadPayload() {
@@ -370,12 +446,14 @@ async function loadPayload() {
     state.selectedStrategy = state.payload.strategies[0].id;
   }
   render();
-  await loadArchiveOptions();
+  await Promise.all([loadArchiveOptions(), loadPortfolio().catch(renderPortfolioUnavailable)]);
 }
 
 $("#market-select").addEventListener("change", () => requestDashboard().catch(showSwitchFailure));
 $("#window-select").addEventListener("change", () => requestDashboard().catch(showSwitchFailure));
 $("#archive-select").addEventListener("change", (event) => loadArchivedView(event.target.value).catch(showSwitchFailure));
+$("#diff-before").addEventListener("change", () => loadStableDiff().catch(showSwitchFailure));
+$("#diff-after").addEventListener("change", () => loadStableDiff().catch(showSwitchFailure));
 
 function showSwitchFailure(error) {
   renderViewControls();

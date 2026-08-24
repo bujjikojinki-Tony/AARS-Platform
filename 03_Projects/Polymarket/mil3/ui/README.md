@@ -1,4 +1,4 @@
-# MIL-3.7 Shadow Strategy Console HMI Design v1
+# MIL-3.8 Shadow Strategy Console HMI Design v2
 
 ## 1. Page Purpose
 
@@ -16,7 +16,9 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 4. Inspect equity/drawdown or liquidation/leverage traces.
 5. Switch BTC/ETH/SOL and replay windows without changing execution authority.
 6. Review current or archived Latest Stable View evidence.
-7. Resolve open risk objects before accepting a shadow strategy.
+7. Review combined BTC/ETH/SOL exposure and the asset driving highest risk.
+8. Compare two Stable View archives for semantic change.
+9. Resolve open risk objects before accepting a shadow strategy.
 
 ## 4. Information Architecture
 
@@ -24,7 +26,7 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 - Left: four-strategy comparison set.
 - Center: selected strategy metrics, traces and common-ledger table.
 - Right: liquidation-risk priority and actionable risk queue.
-- Lower deck: Latest Stable View, evidence, P&L attribution and replay assumptions.
+- Lower deck: Latest Stable View, P&L attribution, cross-asset portfolio risk and Stable View differences.
 
 ## 5. Layout Design
 
@@ -47,14 +49,17 @@ The desktop layout follows a flight-recorder/control-desk pattern with a persist
 - `MarketAndWindowSelector`
 - `StableViewArchiveSelector`
 - `FundingHistoryStatus`
+- `FundingCoverageAlert`
+- `CrossAssetPortfolioRiskPanel`
+- `StableViewDiffPanel`
 
 ## 7. Data Model
 
-The page consumes `mil3.dashboard.v2` and keeps display compatibility with v1 static payloads. V2 adds `selection`, `available_markets`, `available_windows`, `funding`, and `latest_stable_view_archive`. The client rejects any execution mode other than `PAPER_ONLY`.
+The page consumes `mil3.dashboard.v2`, `mil3.portfolio.v1` and `mil3.stable-view-diff.v1`, while keeping display compatibility with v1 static dashboard payloads. The client rejects any execution mode other than `PAPER_ONLY`.
 
 ## 8. Alarm and Risk Design
 
-Risk items expose severity, object, trigger, impact, recommended next step, status and closure condition. Highest liquidation risk is always in the main view. Severity uses both text and color. Maintenance-margin breaches force a critical risk object and prevent an acceptance disposition.
+Risk items expose severity, object, trigger, impact, recommended next step, status and closure condition. Highest liquidation risk remains in the main view. Funding gaps explicitly warn that futures costs may be understated. Portfolio degradation names affected assets and never implies cross-margin netting.
 
 ## 9. Automation / AI Design
 
@@ -66,7 +71,7 @@ Missing, stale or unconfirmed data produces a prominent degraded banner. The scr
 
 ## 11. User Actions and Gates
 
-Available actions only change the inspected market, replay window, archive, strategy or trace. There are no order, credential, live-mode or execution controls. A failed switch preserves the last displayed stable evidence and raises the degraded banner.
+Available actions only change the inspected market, replay window, archive, strategy, trace or diff baseline. There are no order, credential, live-mode or execution controls. A failed switch preserves the last displayed stable evidence and raises the degraded banner.
 
 ## 12. HMI Review Gate
 
@@ -90,6 +95,7 @@ From `03_Projects/Polymarket/mil3`:
 ```bash
 python run_ingest.py --db mil3_market.sqlite --days 365
 python run_funding_ingest.py --db mil3_market.sqlite --days 365
+python run_scheduler.py --db mil3_market.sqlite --poll-seconds 3600 --max-cycles 1
 python run_archive.py --db mil3_market.sqlite --symbol SOLUSDT --window 90d
 python run_api.py --db mil3_market.sqlite --port 8765
 ```

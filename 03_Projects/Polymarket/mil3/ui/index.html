@@ -194,6 +194,34 @@
             <dl id="parameter-list"></dl>
           </details>
         </article>
+
+        <article class="portfolio-card" aria-labelledby="portfolio-title">
+          <div class="panel-header">
+            <div>
+              <span class="panel-index">CROSS-ASSET RISK · EQUAL CAPITAL BUCKETS</span>
+              <h2 id="portfolio-title">BTC / ETH / SOL portfolio</h2>
+            </div>
+            <strong id="portfolio-status" class="stable-status">LOADING</strong>
+          </div>
+          <div id="portfolio-metrics" class="portfolio-metrics"></div>
+          <div id="portfolio-assets" class="portfolio-assets"></div>
+          <p class="model-boundary">No exchange margin netting · PAPER_ONLY aggregation</p>
+        </article>
+
+        <article class="diff-card" aria-labelledby="diff-title">
+          <div class="panel-header">
+            <div>
+              <span class="panel-index">AUDIT EVIDENCE · SEMANTIC CHANGE</span>
+              <h2 id="diff-title">Stable View difference</h2>
+            </div>
+          </div>
+          <div class="diff-controls">
+            <label>BEFORE<select id="diff-before" aria-label="Stable View before"><option value="">SELECT ARCHIVE</option></select></label>
+            <label>AFTER<select id="diff-after" aria-label="Stable View after"><option value="">SELECT ARCHIVE</option></select></label>
+          </div>
+          <div id="diff-summary" class="diff-summary">Select two archived views from the same market.</div>
+          <div id="diff-list" class="diff-list"></div>
+        </article>
       </section>
 
       <footer class="footer-bar">

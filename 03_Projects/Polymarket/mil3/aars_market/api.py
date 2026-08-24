@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
-from .service import DashboardRequest, DashboardService
+from .service import DashboardRequest, DashboardService, PortfolioRequest
 
 
 READ_ONLY_METHODS = "GET, HEAD, OPTIONS"
@@ -45,6 +45,11 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
                 }
             if parsed.path == "/api/v1/markets":
                 return HTTPStatus.OK, {"markets": service.markets()}
+            if parsed.path == "/api/v1/ingestion-cycles":
+                limit = int(query.get("limit", ["20"])[0])
+                return HTTPStatus.OK, {
+                    "ingestion_cycles": service.store.list_ingestion_cycles(limit)
+                }
             if parsed.path == "/api/v1/dashboard":
                 request = DashboardRequest(
                     symbol=query.get("symbol", ["SOLUSDT"])[0],
@@ -52,6 +57,25 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
                     replay_window=query.get("window", ["90d"])[0],
                 )
                 return HTTPStatus.OK, service.build(request, archive=False)
+            if parsed.path == "/api/v1/portfolio":
+                symbols = tuple(
+                    item.strip().upper()
+                    for item in query.get("symbols", ["BTCUSDT,ETHUSDT,SOLUSDT"])[0].split(",")
+                    if item.strip()
+                )
+                request = PortfolioRequest(
+                    symbols=symbols,
+                    timeframe=query.get("interval", ["1h"])[0],
+                    replay_window=query.get("window", ["90d"])[0],
+                    strategy=query.get("strategy", ["AARS_DYNAMIC"])[0],
+                )
+                return HTTPStatus.OK, service.build_portfolio(request)
+            if parsed.path == "/api/v1/stable-view-diff":
+                before = query.get("before", [""])[0]
+                after = query.get("after", [""])[0]
+                if not before or not after:
+                    raise ValueError("before and after view ids are required")
+                return HTTPStatus.OK, service.compare_views(before, after)
             if parsed.path == "/api/v1/stable-views":
                 limit = int(query.get("limit", ["20"])[0])
                 views = service.store.list_latest_stable_views(

@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from aars_market.dashboard import DASHBOARD_SCHEMA_VERSION, build_dashboard_payload, write_dashboard_payload
-from aars_market.models import Candle
+from aars_market.models import Candle, FundingRate
 from aars_market.storage import MarketStore
 
 
@@ -63,9 +63,15 @@ def test_dashboard_payload_contract_is_deterministic_and_paper_only():
 
 
 def test_dashboard_payload_writes_strict_json(tmp_path: Path):
+    candles = _candles()
+    funding = [
+        FundingRate("SOLUSDT", candles[index].open_time, 0.0001, candles[index].close)
+        for index in range(119, len(candles), 8)
+    ]
     payload = build_dashboard_payload(
-        _candles(),
+        candles,
         warmup_bars=120,
+        funding_rates=funding,
         data_fresh=True,
         generated_at=datetime(2026, 8, 24, tzinfo=timezone.utc),
     )

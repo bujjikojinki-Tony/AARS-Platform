@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Sequence
 
+from .coverage import analyze_funding_coverage
 from .features import compute_features
 from .models import Candle, FundingRate
 from .policy import decide_target_exposure
@@ -109,6 +110,13 @@ def build_dashboard_payload(
     if not results:
         raise ValueError("replay_results must not be empty")
 
+    funding_coverage = analyze_funding_coverage(
+        funding_rates or (),
+        candles[warmup_bars - 1].open_time,
+        candles[-1].open_time,
+        required=True,
+    )
+
     latest_features = compute_features(candles)
     assessment = classify_market_state(latest_features)
     probabilities = estimate_outcome_probabilities(assessment, horizon_bars=24)
@@ -123,10 +131,20 @@ def build_dashboard_payload(
     liquidation_events = sum(item.summary.liquidation_events for item in results)
     risk_level = _risk_level(highest_risk, liquidation_events)
     freshness_status = "CURRENT" if data_fresh is True else "STALE" if data_fresh is False else "UNKNOWN"
-    degraded = data_fresh is not True
+    funding_degraded = funding_coverage.status != "COMPLETE"
+    degraded = data_fresh is not True or funding_degraded
 
     alerts: list[dict[str, Any]] = []
     if degraded:
+        degraded_reasons: list[str] = []
+        if data_fresh is not True:
+            degraded_reasons.append("fresh replay data is not confirmed")
+        if funding_degraded:
+            degraded_reasons.append(f"funding coverage is {funding_coverage.status}")
+    else:
+        degraded_reasons = []
+
+    if data_fresh is not True:
         alerts.append(
             {
                 "id": "DATA_FRESHNESS",
@@ -137,6 +155,23 @@ def build_dashboard_payload(
                 "recommended_action": "Refresh public candles, regenerate the payload, then review Latest Stable View.",
                 "status": "OPEN",
                 "closure_condition": "Freshness gate returns CURRENT.",
+            }
+        )
+    if funding_degraded:
+        alerts.append(
+            {
+                "id": "FUNDING_COVERAGE_GAP",
+                "severity": "HIGH" if funding_coverage.status == "MISSING" or funding_coverage.coverage_ratio < 0.90 else "ELEVATED",
+                "object": candles[-1].symbol,
+                "trigger": (
+                    f"funding coverage {funding_coverage.status}; "
+                    f"observed={funding_coverage.observed_events}, "
+                    f"estimated_missing={funding_coverage.estimated_missing_events}"
+                ),
+                "impact": "Futures and tactical-short replay costs may be understated or mistimed.",
+                "recommended_action": "Run incremental funding ingestion and close all detected cadence gaps.",
+                "status": "OPEN",
+                "closure_condition": "Funding coverage returns COMPLETE for the replay interval.",
             }
         )
     if liquidation_events:
@@ -179,7 +214,7 @@ def build_dashboard_payload(
             "latest_candle_at": _utc_iso(candles[-1].open_time),
             "freshness_status": freshness_status,
             "degraded": degraded,
-            "degraded_reason": None if not degraded else "Fresh replay data is not confirmed.",
+            "degraded_reason": None if not degraded else "; ".join(degraded_reasons).capitalize() + ".",
         },
         "funding": {
             "source": "Binance USD-M public funding history" if funding_rates else "configured fallback",
@@ -187,6 +222,7 @@ def build_dashboard_payload(
             "first_event_at": _utc_iso(funding_rates[0].funding_time) if funding_rates else None,
             "latest_event_at": _utc_iso(funding_rates[-1].funding_time) if funding_rates else None,
             "lookahead_protection": "events apply only when funding_time <= replay candle time",
+            "coverage": funding_coverage.as_dict(),
         },
         "highest_risk": {
             "level": risk_level,

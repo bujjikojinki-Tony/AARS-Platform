@@ -5,6 +5,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from .dashboard import build_dashboard_payload
+from .portfolio import build_portfolio_payload
+from .stable_diff import compare_stable_views
 from .storage import MarketStore
 
 
@@ -25,6 +27,14 @@ class DashboardRequest:
     replay_window: str = "90d"
 
 
+@dataclass(frozen=True)
+class PortfolioRequest:
+    symbols: tuple[str, ...] = DEFAULT_SYMBOLS
+    timeframe: str = "1h"
+    replay_window: str = "90d"
+    strategy: str = "AARS_DYNAMIC"
+
+
 class DashboardService:
     """Orchestration over persisted market data and PAPER_ONLY shadow replay."""
 
@@ -41,6 +51,7 @@ class DashboardService:
         *,
         now: datetime | None = None,
         archive: bool = True,
+        max_trace_points: int = 240,
     ) -> dict[str, Any]:
         symbol = request.symbol.upper()
         if symbol not in DEFAULT_SYMBOLS:
@@ -71,6 +82,7 @@ class DashboardService:
             data_fresh=self.store.is_fresh(symbol, request.timeframe, now=current),
             source="SQLite normalized Binance public market data",
             generated_at=current,
+            max_trace_points=max_trace_points,
         )
         payload["selection"] = {
             "symbol": symbol,
@@ -91,3 +103,60 @@ class DashboardService:
         else:
             payload["latest_stable_view_archive"] = None
         return payload
+
+    def build_portfolio(
+        self,
+        request: PortfolioRequest,
+        *,
+        now: datetime | None = None,
+    ) -> dict[str, Any]:
+        current = now or datetime.now(timezone.utc)
+        symbols = tuple(symbol.upper() for symbol in request.symbols)
+        if not symbols:
+            raise ValueError("portfolio symbols must not be empty")
+        if len(set(symbols)) != len(symbols):
+            raise ValueError("portfolio symbols must be unique")
+        payloads = [
+            self.build(
+                DashboardRequest(symbol, request.timeframe, request.replay_window),
+                now=current,
+                archive=False,
+                max_trace_points=1_000_000,
+            )
+            for symbol in symbols
+        ]
+        payload = build_portfolio_payload(
+            payloads,
+            strategy_id=request.strategy,
+            generated_at=current,
+        )
+        payload["selection"] = {
+            "symbols": list(symbols),
+            "timeframe": request.timeframe,
+            "replay_window": request.replay_window,
+        }
+        return payload
+
+    def compare_views(self, before_id: str, after_id: str) -> dict[str, Any]:
+        before = self.store.get_latest_stable_view(before_id)
+        after = self.store.get_latest_stable_view(after_id)
+        if before is None:
+            raise ValueError(f"stable view not found: {before_id}")
+        if after is None:
+            raise ValueError(f"stable view not found: {after_id}")
+        before_market = before.get("market", {})
+        after_market = after.get("market", {})
+        if (
+            before_market.get("symbol"),
+            before_market.get("timeframe"),
+        ) != (
+            after_market.get("symbol"),
+            after_market.get("timeframe"),
+        ):
+            raise ValueError("stable views must use the same symbol and timeframe")
+        return compare_stable_views(
+            before,
+            after,
+            before_id=before_id,
+            after_id=after_id,
+        )
