@@ -3,16 +3,22 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from aars_market.simulation import simulate_aars_dynamic, simulate_buy_hold
+from aars_market.simulation import SimulationSummary, compare_shadow_strategies
 from aars_market.storage import MarketStore
 
 
-def _print(summary) -> None:
+def _print(summary: SimulationSummary) -> None:
+    profit_factor = "inf" if summary.profit_factor == float("inf") else f"{summary.profit_factor:.2f}"
     print(
-        f"{summary.strategy:12s} return={summary.total_return:+.2%} "
-        f"max_dd={summary.max_drawdown:.2%} sharpe≈{summary.sharpe_approx:.2f} "
-        f"fees={summary.fees:.2f} turnover={summary.turnover_notional:.2f} "
-        f"final_exposure={summary.final_net_exposure:+.2f}"
+        f"{summary.strategy:23s} "
+        f"return={summary.total_return:+.2%} max_dd={summary.max_drawdown:.2%} "
+        f"sharpe={summary.sharpe_approx:+.2f} sortino={summary.sortino:+.2f} "
+        f"profit_factor={profit_factor} turnover={summary.turnover_notional:.2f} "
+        f"fees={summary.fees:.2f} slippage={summary.slippage:.2f} funding={summary.funding:+.2f} "
+        f"grid_realized={summary.realized_grid_pnl:+.2f} inventory_unrealized={summary.inventory_unrealized_pnl:+.2f} "
+        f"net_exposure={summary.final_net_exposure:+.2f} max_leverage={summary.max_effective_leverage:.2f}x "
+        f"min_margin_buffer={summary.min_margin_buffer_pct:.2%} "
+        f"liquidation_risk={summary.max_liquidation_risk:.2%} liquidation_events={summary.liquidation_events}"
     )
 
 
@@ -23,7 +29,22 @@ def main() -> None:
     parser.add_argument("--interval", default="1h")
     parser.add_argument("--initial-equity", type=float, default=1000.0)
     parser.add_argument("--warmup", type=int, default=120)
-    parser.add_argument("--max-exposure", type=float, default=1.0)
+    parser.add_argument(
+        "--aars-max-exposure",
+        "--max-exposure",
+        dest="aars_max_exposure",
+        type=float,
+        default=1.0,
+        help="AARS signed exposure cap; --max-exposure remains as a compatibility alias",
+    )
+    parser.add_argument("--futures-leverage", type=float, default=10.0)
+    parser.add_argument("--grid-spacing", type=float, default=0.01)
+    parser.add_argument("--grid-levels", type=int, default=5)
+    parser.add_argument("--fee-rate", type=float, default=0.0005)
+    parser.add_argument("--slippage-rate", type=float, default=0.0002)
+    parser.add_argument("--funding-rate-per-bar", type=float, default=0.0)
+    parser.add_argument("--maintenance-margin-rate", type=float, default=0.005)
+    parser.add_argument("--no-tactical-hedge", action="store_true")
     args = parser.parse_args()
 
     store = MarketStore(Path(args.db))
@@ -34,20 +55,24 @@ def main() -> None:
 
     print("execution_mode=PAPER_ONLY")
     print(f"symbol={args.symbol.upper()} interval={args.interval} candles={len(candles)}")
-    buy_hold = simulate_buy_hold(
+    summaries = compare_shadow_strategies(
         candles,
         initial_equity=args.initial_equity,
         warmup_bars=args.warmup,
+        futures_leverage=args.futures_leverage,
+        aars_max_abs_exposure=args.aars_max_exposure,
+        grid_spacing_pct=args.grid_spacing,
+        grid_levels=args.grid_levels,
+        tactical_hedge=not args.no_tactical_hedge,
+        fee_rate=args.fee_rate,
+        slippage_rate=args.slippage_rate,
+        funding_rate_per_bar=args.funding_rate_per_bar,
+        maintenance_margin_rate=args.maintenance_margin_rate,
     )
-    aars = simulate_aars_dynamic(
-        candles,
-        initial_equity=args.initial_equity,
-        warmup_bars=args.warmup,
-        max_abs_exposure=args.max_exposure,
-    )
-    _print(buy_hold)
-    _print(aars)
+    for summary in summaries:
+        _print(summary)
 
+    buy_hold, _, futures_grid, aars = summaries
     if aars.max_drawdown < buy_hold.max_drawdown:
         print("risk_result=AARS_LOWER_DRAWDOWN")
     else:
@@ -56,6 +81,10 @@ def main() -> None:
         print("risk_adjusted_result=AARS_BETTER")
     else:
         print("risk_adjusted_result=AARS_NOT_BETTER")
+    if futures_grid.liquidation_events:
+        print("futures_risk_result=LIQUIDATION_APPROXIMATION_BREACHED")
+    else:
+        print("futures_risk_result=NO_APPROXIMATED_LIQUIDATION_BREACH")
 
 
 if __name__ == "__main__":

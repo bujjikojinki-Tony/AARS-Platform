@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from aars_market.models import MarketState, MarketStateAssessment, OutcomeProbabilities
 from aars_market.paper import PaperPortfolio
 from aars_market.policy import decide_target_exposure
@@ -52,3 +54,20 @@ def test_policy_is_bounded_and_directionally_consistent():
 
     assert 0 < long_decision.target_exposure <= 0.5
     assert -0.5 <= short_decision.target_exposure < 0
+
+
+def test_slippage_and_liquidation_risk_are_explicit():
+    p = PaperPortfolio(1000.0, fee_rate=0.001, slippage_rate=0.002)
+    trade = p.rebalance_to_exposure(10.0, 100.0, max_leverage=10.0)
+
+    assert trade is not None
+    assert trade.execution_price == 100.2
+    assert trade.slippage_cost == pytest.approx(20.0)
+    assert trade.fee == pytest.approx(10.02)
+
+    snap = p.snapshot(100.0, maintenance_margin_rate=0.005)
+    assert snap.slippage_cost == pytest.approx(20.0)
+    assert snap.effective_leverage > 10.0  # costs reduce equity after the target sizing decision
+    assert 0 < snap.margin_buffer_pct < 0.10
+    assert 0 < snap.liquidation_risk < 1.0
+    assert not snap.liquidation_breached

@@ -4,6 +4,15 @@ from .models import Candle, FeatureSnapshot, MarketStateAssessment, OutcomeProba
 from .features import compute_features
 from .state_engine import classify_market_state
 from .probability import estimate_outcome_probabilities
+from .simulation import (
+    EXECUTION_MODE,
+    AarsDynamicStrategy,
+    BuyAndHoldStrategy,
+    LeveragedFuturesLongGridStrategy,
+    ReplayEngine,
+    SpotGridStrategy,
+    compare_shadow_strategies,
+)
 
 __all__ = [
     "Candle",
@@ -13,4 +22,11 @@ __all__ = [
     "compute_features",
     "classify_market_state",
     "estimate_outcome_probabilities",
+    "EXECUTION_MODE",
+    "ReplayEngine",
+    "BuyAndHoldStrategy",
+    "SpotGridStrategy",
+    "LeveragedFuturesLongGridStrategy",
+    "AarsDynamicStrategy",
+    "compare_shadow_strategies",
 ]

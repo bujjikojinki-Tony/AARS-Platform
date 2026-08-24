@@ -101,7 +101,9 @@ Acceptance:
 - Net exposure, realized/unrealized P&L, fees, funding and slippage tracked separately.
 - Liquidation-risk approximation supported for leveraged shadow strategies.
 
-Status: **next implementation target**.
+Status: **implemented in PR #2**.
+
+`aars_market.paper.PaperPortfolio` is the sole execution ledger. It supports signed long/flat/short inventory and exposes realized P&L, inventory unrealized P&L, fees, modeled slippage cost, funding, net exposure, effective leverage, margin buffer and maintenance-margin-based liquidation risk. It has no exchange client or order-submission interface.
 
 ### MIL-3.5 — Replay + Comparative Validation
 Acceptance:
@@ -109,7 +111,38 @@ Acceptance:
 - Report includes return and risk metrics.
 - AARS is not accepted as alpha-producing unless it improves risk-adjusted results out-of-sample.
 
-Status: **forecast replay foundation implemented; strategy replay pending MIL-3.4 ledger**.
+Status: **implemented in PR #2**.
+
+All four shadow strategies now run through `aars_market.simulation.ReplayEngine`:
+
+1. `BUY_HOLD` — one-time 1x spot entry.
+2. `SPOT_GRID` — long-only symmetric grid bounded to 0–1x.
+3. `FUTURES_LONG_GRID_10X` — parameterized leveraged long grid (10x default) with funding, maintenance margin and an optional state-aware tactical hedge.
+4. `AARS_DYNAMIC` — evidence-driven Long / Flat / Tactical Short exposure.
+
+Every strategy uses the same fill, fee, slippage, funding, equity and risk calculations. The comparison reports Total Return, Max Drawdown, Sharpe, Sortino, Profit Factor, Turnover, Fees, Slippage, Funding, realized grid P&L, inventory unrealized P&L, Net Exposure, Effective Leverage, Margin Buffer and Liquidation Risk.
+
+### Deterministic replay conventions
+
+- The replay starts at `warmup_bars - 1`; all feature/state inputs are limited to candles at or before the current bar.
+- Grid levels are anchored to the first replay close and remain fixed for that run.
+- Because OHLC candles do not contain tick order, intrabar crossings use one documented deterministic path: green/doji candle `previous close -> open -> low -> high -> close`; red candle `previous close -> open -> high -> low -> close`.
+- A crossed grid level maps to a bounded target exposure. Reductions realize grid P&L; surviving inventory remains marked as unrealized P&L.
+- Positive funding means longs pay and shorts receive. `--funding-rate-per-bar` is explicit and defaults to zero when no historical funding series is supplied.
+- Liquidation Risk is an approximation, not an exchange liquidation engine. For an open position, margin buffer is `equity / absolute notional`; the risk score is `min(1, maintenance margin rate / margin buffer)`. A breach is recorded when margin buffer is at or below maintenance margin.
+- Profit Factor uses gross positive equity changes divided by the absolute gross negative equity changes, so the definition is identical for inventory and state-driven strategies.
+- Slippage is already embedded in execution price and therefore in P&L. The separate Slippage field is attribution only and is not deducted a second time.
+- 10x is a stress-test parameter, not a recommendation. Fees and slippage can push effective leverage slightly above the requested target after a fill, which is intentionally visible in the report.
+
+### Tactical hedge rule
+
+The futures long grid remains long-only during normal grid operation. When enabled, its transparent state overlay:
+
+- moves to flat in `DISTRIBUTION`;
+- moves to a bounded paper short hedge in `BREAKDOWN` (20% of the configured leverage cap by default);
+- returns to the last grid target after the bearish state clears.
+
+`AARS_DYNAMIC` independently supports tactical short exposure through its existing state/probability policy. Neither path can submit a live order.
 
 ### MIL-3.6 — UI
 Minimum cards:
@@ -146,10 +179,24 @@ From `03_Projects/Polymarket/mil3`:
 ```bash
 python run_ingest.py --db mil3_market.sqlite --days 120
 python run_replay.py --db mil3_market.sqlite --symbol SOLUSDT --interval 1h
+python run_compare.py \
+  --db mil3_market.sqlite \
+  --symbol SOLUSDT \
+  --interval 1h \
+  --futures-leverage 10 \
+  --grid-spacing 0.01 \
+  --grid-levels 5 \
+  --funding-rate-per-bar 0.00001
 pytest -q
 ```
 
-The first command touches only public market-data endpoints. The replay and tests are local/offline after data ingestion.
+The first command touches only public market-data endpoints. The replay, four-strategy comparison and tests are local/offline after data ingestion. Every runner declares `execution_mode=PAPER_ONLY`.
+
+## MIL-3.5 verification
+
+- Deterministic tests cover ledger realization, long-to-short crossing, funding direction, explicit slippage, leverage/margin/liquidation approximation, four-strategy comparison, separated grid/inventory P&L, parameterized 10x futures simulation and Tactical Hedge activation.
+- Acceptance command: `python -m pytest -q` from `03_Projects/Polymarket/mil3`.
+- Live-order guard: MIL-3 contains only public market-data adapters and paper accounting. No authenticated trading adapter, credential field or order endpoint is introduced.
 
 ## Definition of Done
 

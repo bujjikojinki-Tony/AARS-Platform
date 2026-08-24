@@ -4,6 +4,17 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
+class PaperTrade:
+    requested_price: float
+    execution_price: float
+    delta_qty: float
+    notional: float
+    fee: float
+    slippage_cost: float
+    realized_pnl_delta: float
+
+
+@dataclass(frozen=True)
 class PaperSnapshot:
     mark_price: float
     position_qty: float
@@ -11,11 +22,15 @@ class PaperSnapshot:
     realized_pnl: float
     unrealized_pnl: float
     fees: float
+    slippage_cost: float
     funding: float
     equity: float
     net_exposure: float
     effective_leverage: float
     margin_buffer_pct: float
+    liquidation_distance_pct: float
+    liquidation_risk: float
+    liquidation_breached: bool
     max_drawdown: float
 
 
@@ -45,6 +60,7 @@ class PaperPortfolio:
         self.avg_entry: float | None = None
         self.realized_pnl = 0.0
         self.fees = 0.0
+        self.slippage_cost = 0.0
         self.funding = 0.0
         self.peak_equity = float(initial_equity)
         self.max_drawdown = 0.0
@@ -58,11 +74,16 @@ class PaperPortfolio:
             return price * (1.0 - self.slippage_rate)
         return price
 
-    def trade(self, delta_qty: float, price: float) -> None:
+    def trade(self, delta_qty: float, price: float) -> PaperTrade | None:
         if delta_qty == 0:
-            return
+            return None
         execution_price = self._execution_price(price, delta_qty)
-        self.fees += abs(delta_qty) * execution_price * self.fee_rate
+        notional = abs(delta_qty) * execution_price
+        fee = notional * self.fee_rate
+        slippage_cost = abs(delta_qty) * abs(execution_price - price)
+        realized_before = self.realized_pnl
+        self.fees += fee
+        self.slippage_cost += slippage_cost
 
         old_qty = self.position_qty
         new_qty = old_qty + delta_qty
@@ -72,7 +93,15 @@ class PaperPortfolio:
             added_notional = abs(delta_qty) * execution_price
             self.position_qty = new_qty
             self.avg_entry = (old_notional + added_notional) / abs(new_qty)
-            return
+            return PaperTrade(
+                requested_price=price,
+                execution_price=execution_price,
+                delta_qty=delta_qty,
+                notional=notional,
+                fee=fee,
+                slippage_cost=slippage_cost,
+                realized_pnl_delta=0.0,
+            )
 
         # Opposite-side trade closes some or all of the old position first.
         close_qty = min(abs(old_qty), abs(delta_qty))
@@ -89,6 +118,15 @@ class PaperPortfolio:
         else:
             # Position crossed through zero; residual starts at this execution.
             self.avg_entry = execution_price
+        return PaperTrade(
+            requested_price=price,
+            execution_price=execution_price,
+            delta_qty=delta_qty,
+            notional=notional,
+            fee=fee,
+            slippage_cost=slippage_cost,
+            realized_pnl_delta=self.realized_pnl - realized_before,
+        )
 
     def apply_funding_rate(self, mark_price: float, funding_rate: float) -> float:
         """Apply one funding event; positive rate means longs pay shorts."""
@@ -107,11 +145,16 @@ class PaperPortfolio:
     def equity(self, mark_price: float) -> float:
         return self.initial_equity + self.realized_pnl + self.unrealized_pnl(mark_price) - self.fees - self.funding
 
-    def rebalance_to_exposure(self, target_exposure: float, mark_price: float, max_leverage: float = 1.0) -> float:
+    def rebalance_to_exposure(
+        self,
+        target_exposure: float,
+        mark_price: float,
+        max_leverage: float = 1.0,
+    ) -> PaperTrade | None:
         """Trade toward a signed target notional/equity ratio.
 
         target_exposure=+0.5 means +50% notional long; -0.5 means 50% short.
-        Exposure is clipped to max_leverage. Returns executed delta quantity.
+        Exposure is clipped to max_leverage. Returns the paper fill record.
         """
         if max_leverage <= 0:
             raise ValueError("max_leverage must be positive")
@@ -122,16 +165,25 @@ class PaperPortfolio:
         target_notional = target * current_equity
         target_qty = target_notional / mark_price
         delta_qty = target_qty - self.position_qty
-        self.trade(delta_qty, mark_price)
-        return delta_qty
+        return self.trade(delta_qty, mark_price)
 
-    def snapshot(self, mark_price: float) -> PaperSnapshot:
+    def snapshot(self, mark_price: float, *, maintenance_margin_rate: float = 0.005) -> PaperSnapshot:
+        if maintenance_margin_rate < 0:
+            raise ValueError("maintenance_margin_rate must be non-negative")
         unrealized = self.unrealized_pnl(mark_price)
         equity = self.equity(mark_price)
         notional = self.position_qty * mark_price
         net_exposure = notional / equity if equity > 0 else 0.0
         leverage = abs(notional) / equity if equity > 0 else float("inf")
         margin_buffer = 1.0 / leverage if leverage > 0 and leverage != float("inf") else (0.0 if leverage == float("inf") else 1.0)
+        if leverage == 0:
+            liquidation_distance = 1.0
+            liquidation_risk = 0.0
+            liquidation_breached = False
+        else:
+            liquidation_distance = max(0.0, margin_buffer - maintenance_margin_rate)
+            liquidation_risk = min(1.0, maintenance_margin_rate / margin_buffer) if margin_buffer > 0 else 1.0
+            liquidation_breached = margin_buffer <= maintenance_margin_rate
 
         if equity > self.peak_equity:
             self.peak_equity = equity
@@ -145,10 +197,14 @@ class PaperPortfolio:
             realized_pnl=self.realized_pnl,
             unrealized_pnl=unrealized,
             fees=self.fees,
+            slippage_cost=self.slippage_cost,
             funding=self.funding,
             equity=equity,
             net_exposure=net_exposure,
             effective_leverage=leverage,
             margin_buffer_pct=margin_buffer,
+            liquidation_distance_pct=liquidation_distance,
+            liquidation_risk=liquidation_risk,
+            liquidation_breached=liquidation_breached,
             max_drawdown=self.max_drawdown,
         )
