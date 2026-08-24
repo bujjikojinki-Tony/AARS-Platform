@@ -3,7 +3,8 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from aars_market.simulation import SimulationSummary, compare_shadow_strategies
+from aars_market.dashboard import build_dashboard_payload, write_dashboard_payload
+from aars_market.simulation import SimulationSummary, compare_shadow_strategy_results
 from aars_market.storage import MarketStore
 
 
@@ -45,6 +46,10 @@ def main() -> None:
     parser.add_argument("--funding-rate-per-bar", type=float, default=0.0)
     parser.add_argument("--maintenance-margin-rate", type=float, default=0.005)
     parser.add_argument("--no-tactical-hedge", action="store_true")
+    parser.add_argument(
+        "--output-json",
+        help="write the MIL-3.6 dashboard payload to this path",
+    )
     args = parser.parse_args()
 
     store = MarketStore(Path(args.db))
@@ -55,7 +60,7 @@ def main() -> None:
 
     print("execution_mode=PAPER_ONLY")
     print(f"symbol={args.symbol.upper()} interval={args.interval} candles={len(candles)}")
-    summaries = compare_shadow_strategies(
+    replay_results = compare_shadow_strategy_results(
         candles,
         initial_equity=args.initial_equity,
         warmup_bars=args.warmup,
@@ -69,6 +74,7 @@ def main() -> None:
         funding_rate_per_bar=args.funding_rate_per_bar,
         maintenance_margin_rate=args.maintenance_margin_rate,
     )
+    summaries = [result.summary for result in replay_results]
     for summary in summaries:
         _print(summary)
 
@@ -85,6 +91,26 @@ def main() -> None:
         print("futures_risk_result=LIQUIDATION_APPROXIMATION_BREACHED")
     else:
         print("futures_risk_result=NO_APPROXIMATED_LIQUIDATION_BREACH")
+
+    if args.output_json:
+        payload = build_dashboard_payload(
+            candles,
+            initial_equity=args.initial_equity,
+            warmup_bars=args.warmup,
+            futures_leverage=args.futures_leverage,
+            aars_max_abs_exposure=args.aars_max_exposure,
+            grid_spacing_pct=args.grid_spacing,
+            grid_levels=args.grid_levels,
+            tactical_hedge=not args.no_tactical_hedge,
+            fee_rate=args.fee_rate,
+            slippage_rate=args.slippage_rate,
+            funding_rate_per_bar=args.funding_rate_per_bar,
+            maintenance_margin_rate=args.maintenance_margin_rate,
+            data_fresh=store.is_fresh(args.symbol, args.interval),
+            replay_results=replay_results,
+        )
+        target = write_dashboard_payload(args.output_json, payload)
+        print(f"dashboard_payload={target}")
 
 
 if __name__ == "__main__":

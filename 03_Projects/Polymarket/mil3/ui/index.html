@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="AARS MIL-3.6 paper-only shadow strategy research console" />
+    <title>AARS MIL-3.6 | Shadow Strategy Console</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to strategy analysis</a>
+    <div class="noise" aria-hidden="true"></div>
+    <div class="shell">
+      <header class="status-bar" aria-label="System status">
+        <div class="brand-lockup">
+          <span class="brand-index">AARS // 03.6</span>
+          <strong>SHADOW STRATEGY CONSOLE</strong>
+        </div>
+        <div class="status-cluster">
+          <div class="status-cell">
+            <span>EXECUTION AUTHORITY</span>
+            <strong class="mode-pill">● PAPER_ONLY</strong>
+          </div>
+          <div class="status-cell">
+            <span>DATA TRUST</span>
+            <strong id="freshness-status">LOADING</strong>
+          </div>
+          <div class="status-cell risk-status">
+            <span>HIGHEST RISK</span>
+            <strong id="highest-risk-status">ASSESSING</strong>
+          </div>
+          <div class="status-cell clock-cell">
+            <span>PAYLOAD GENERATED</span>
+            <time id="generated-at">—</time>
+          </div>
+        </div>
+      </header>
+
+      <section id="degraded-banner" class="degraded-banner" role="alert" hidden>
+        <span class="banner-code">DEGRADED VIEW</span>
+        <strong id="degraded-reason">Fresh replay data is not confirmed.</strong>
+        <span>Permitted: inspect last stable replay. Blocked: treat as current market state.</span>
+      </section>
+
+      <main id="main-content" class="workspace">
+        <aside class="strategy-rail" aria-label="Shadow strategies">
+          <div class="rail-heading">
+            <span>COMPARISON SET</span>
+            <strong>04 SHADOWS</strong>
+          </div>
+          <nav id="strategy-nav" class="strategy-nav"></nav>
+          <div class="rail-note">
+            <span>CONTROL BOUNDARY</span>
+            <p>Research surface only. No order connector is present.</p>
+          </div>
+        </aside>
+
+        <section class="center-stage" aria-label="Selected strategy situation">
+          <div class="stage-heading">
+            <div>
+              <span class="eyebrow" id="market-context">—</span>
+              <h1 id="strategy-title">Loading replay…</h1>
+            </div>
+            <div class="review-disposition">
+              <span>REVIEW GATE</span>
+              <strong id="review-gate">—</strong>
+            </div>
+          </div>
+
+          <section id="metric-strip" class="metric-strip" aria-label="Selected strategy metrics"></section>
+
+          <section class="chart-panel" aria-labelledby="chart-title">
+            <div class="panel-header">
+              <div>
+                <span class="panel-index">01 / REPLAY TRACE</span>
+                <h2 id="chart-title">Equity and drawdown</h2>
+              </div>
+              <div class="chart-toggle" role="group" aria-label="Chart metric">
+                <button class="active" type="button" data-chart="equity">EQUITY</button>
+                <button type="button" data-chart="risk">RISK</button>
+              </div>
+            </div>
+            <div id="trace-chart" class="trace-chart" role="img" aria-label="Selected strategy replay trace"></div>
+            <div id="chart-legend" class="chart-legend"></div>
+          </section>
+
+          <section class="comparison-panel" aria-labelledby="comparison-title">
+            <div class="panel-header">
+              <div>
+                <span class="panel-index">02 / COMMON LEDGER</span>
+                <h2 id="comparison-title">Four-strategy comparison</h2>
+              </div>
+              <span class="panel-note">Same bars · same costs · same risk model</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Strategy</th>
+                    <th scope="col">Return</th>
+                    <th scope="col">Max DD</th>
+                    <th scope="col">Sharpe</th>
+                    <th scope="col">Sortino</th>
+                    <th scope="col">Profit Factor</th>
+                    <th scope="col">Max Lev.</th>
+                    <th scope="col">Liq. Risk</th>
+                  </tr>
+                </thead>
+                <tbody id="comparison-body"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <aside class="risk-rail" aria-label="Risk and alerts">
+          <section class="risk-hero">
+            <span class="panel-index">LIVE RISK PRIORITY</span>
+            <div class="risk-dial" id="risk-dial">
+              <div>
+                <strong id="risk-value">—</strong>
+                <span>LIQUIDATION<br />APPROX.</span>
+              </div>
+            </div>
+            <h2 id="risk-strategy">—</h2>
+            <p id="risk-margin">—</p>
+          </section>
+
+          <section class="alert-section" aria-labelledby="alert-title">
+            <div class="panel-header compact">
+              <div>
+                <span class="panel-index">ACTION OBJECTS</span>
+                <h2 id="alert-title">Risk queue</h2>
+              </div>
+              <span id="alert-count" class="count-badge">0</span>
+            </div>
+            <div id="alert-list" class="alert-list"></div>
+          </section>
+        </aside>
+      </main>
+
+      <section class="lower-deck">
+        <article class="stable-view" aria-labelledby="stable-title">
+          <div class="panel-header">
+            <div>
+              <span class="panel-index">LATEST STABLE VIEW · NOT RAW TICK</span>
+              <h2 id="stable-title">Market interpretation</h2>
+            </div>
+            <strong id="stable-status" class="stable-status">—</strong>
+          </div>
+          <div class="stable-grid">
+            <div class="state-block">
+              <span>MARKET STATE</span>
+              <strong id="market-state">—</strong>
+              <p id="stable-as-of">—</p>
+            </div>
+            <div class="probability-block" id="probability-block"></div>
+            <div class="recommendation-block">
+              <span>AARS RECOMMENDED EXPOSURE</span>
+              <strong id="recommended-exposure">—</strong>
+              <p id="decision-reason">—</p>
+            </div>
+          </div>
+          <div class="evidence-grid">
+            <div>
+              <span class="evidence-title">SUPPORTING EVIDENCE</span>
+              <ul id="evidence-list"></ul>
+            </div>
+            <div>
+              <span class="evidence-title counter">COUNTER EVIDENCE</span>
+              <ul id="counter-evidence-list"></ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="accounting-card" aria-labelledby="accounting-title">
+          <div class="panel-header">
+            <div>
+              <span class="panel-index">P&amp;L ATTRIBUTION</span>
+              <h2 id="accounting-title">Paper ledger</h2>
+            </div>
+          </div>
+          <div id="accounting-grid" class="accounting-grid"></div>
+          <details class="parameter-drawer">
+            <summary>Replay parameters &amp; deterministic assumptions</summary>
+            <dl id="parameter-list"></dl>
+          </details>
+        </article>
+      </section>
+
+      <footer class="footer-bar">
+        <span id="source-line">Waiting for payload…</span>
+        <span>NO LIVE EXECUTION · NO ORDER ROUTE · AUDITABLE REPLAY</span>
+        <a href="https://deerflow.tech" target="_blank" rel="noreferrer">Created By Deerflow ↗</a>
+      </footer>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

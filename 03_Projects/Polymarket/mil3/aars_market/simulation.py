@@ -71,6 +71,25 @@ class SimulationSummary:
         return asdict(self)
 
 
+@dataclass(frozen=True)
+class ReplayTracePoint:
+    index: int
+    as_of: str
+    mark_price: float
+    equity: float
+    drawdown: float
+    net_exposure: float
+    effective_leverage: float
+    margin_buffer_pct: float
+    liquidation_risk: float
+
+
+@dataclass(frozen=True)
+class ReplayResult:
+    summary: SimulationSummary
+    trace: tuple[ReplayTracePoint, ...]
+
+
 def _periods_per_year(timeframe: str) -> int:
     unit = timeframe[-1:].lower()
     try:
@@ -335,6 +354,15 @@ class ReplayEngine:
         *,
         warmup_bars: int = 120,
     ) -> SimulationSummary:
+        return self.run_detailed(candles, strategy, warmup_bars=warmup_bars).summary
+
+    def run_detailed(
+        self,
+        candles: Sequence[Candle],
+        strategy: ShadowStrategy,
+        *,
+        warmup_bars: int = 120,
+    ) -> ReplayResult:
         if len(candles) <= warmup_bars:
             raise ValueError("insufficient candles for simulation")
         if warmup_bars < 60:
@@ -346,6 +374,7 @@ class ReplayEngine:
         )
         strategy.reset()
         equities: list[float] = [self.initial_equity]
+        trace: list[ReplayTracePoint] = []
         turnover = 0.0
         realized_grid_pnl = 0.0
         max_abs_exposure = 0.0
@@ -378,6 +407,19 @@ class ReplayEngine:
                 maintenance_margin_rate=self.maintenance_margin_rate,
             )
             equities.append(snapshot.equity)
+            trace.append(
+                ReplayTracePoint(
+                    index=index,
+                    as_of=candle.open_time.isoformat(),
+                    mark_price=candle.close,
+                    equity=snapshot.equity,
+                    drawdown=snapshot.max_drawdown,
+                    net_exposure=snapshot.net_exposure,
+                    effective_leverage=snapshot.effective_leverage,
+                    margin_buffer_pct=snapshot.margin_buffer_pct,
+                    liquidation_risk=snapshot.liquidation_risk,
+                )
+            )
             max_abs_exposure = max(max_abs_exposure, abs(snapshot.net_exposure))
             max_leverage = max(max_leverage, snapshot.effective_leverage)
             if snapshot.position_qty:
@@ -392,7 +434,7 @@ class ReplayEngine:
             maintenance_margin_rate=self.maintenance_margin_rate,
         )
         periods = _periods_per_year(candles[-1].timeframe)
-        return SimulationSummary(
+        summary = SimulationSummary(
             strategy=strategy.name,
             execution_mode=EXECUTION_MODE,
             symbol=candles[-1].symbol,
@@ -420,6 +462,60 @@ class ReplayEngine:
             max_liquidation_risk=max_liquidation_risk,
             liquidation_events=liquidation_events,
         )
+        return ReplayResult(summary=summary, trace=tuple(trace))
+
+
+def _shadow_strategies(
+    *,
+    futures_leverage: float = 10.0,
+    aars_max_abs_exposure: float = 1.0,
+    grid_spacing_pct: float = 0.01,
+    grid_levels: int = 5,
+    tactical_hedge: bool = True,
+) -> list[ShadowStrategy]:
+    return [
+        BuyAndHoldStrategy(),
+        SpotGridStrategy(spacing_pct=grid_spacing_pct, levels=grid_levels),
+        LeveragedFuturesLongGridStrategy(
+            max_leverage=futures_leverage,
+            spacing_pct=grid_spacing_pct,
+            levels=grid_levels,
+            tactical_hedge=tactical_hedge,
+        ),
+        AarsDynamicStrategy(max_abs_exposure=aars_max_abs_exposure),
+    ]
+
+
+def compare_shadow_strategy_results(
+    candles: Sequence[Candle],
+    *,
+    initial_equity: float = 1000.0,
+    warmup_bars: int = 120,
+    futures_leverage: float = 10.0,
+    aars_max_abs_exposure: float = 1.0,
+    grid_spacing_pct: float = 0.01,
+    grid_levels: int = 5,
+    tactical_hedge: bool = True,
+    fee_rate: float = 0.0005,
+    slippage_rate: float = 0.0002,
+    funding_rate_per_bar: float = 0.0,
+    maintenance_margin_rate: float = 0.005,
+) -> list[ReplayResult]:
+    engine = ReplayEngine(
+        initial_equity=initial_equity,
+        fee_rate=fee_rate,
+        slippage_rate=slippage_rate,
+        funding_rate_per_bar=funding_rate_per_bar,
+        maintenance_margin_rate=maintenance_margin_rate,
+    )
+    strategies = _shadow_strategies(
+        futures_leverage=futures_leverage,
+        aars_max_abs_exposure=aars_max_abs_exposure,
+        grid_spacing_pct=grid_spacing_pct,
+        grid_levels=grid_levels,
+        tactical_hedge=tactical_hedge,
+    )
+    return [engine.run_detailed(candles, strategy, warmup_bars=warmup_bars) for strategy in strategies]
 
 
 def compare_shadow_strategies(
@@ -437,25 +533,21 @@ def compare_shadow_strategies(
     funding_rate_per_bar: float = 0.0,
     maintenance_margin_rate: float = 0.005,
 ) -> list[SimulationSummary]:
-    engine = ReplayEngine(
+    results = compare_shadow_strategy_results(
+        candles,
         initial_equity=initial_equity,
+        warmup_bars=warmup_bars,
+        futures_leverage=futures_leverage,
+        aars_max_abs_exposure=aars_max_abs_exposure,
+        grid_spacing_pct=grid_spacing_pct,
+        grid_levels=grid_levels,
+        tactical_hedge=tactical_hedge,
         fee_rate=fee_rate,
         slippage_rate=slippage_rate,
         funding_rate_per_bar=funding_rate_per_bar,
         maintenance_margin_rate=maintenance_margin_rate,
     )
-    strategies: list[ShadowStrategy] = [
-        BuyAndHoldStrategy(),
-        SpotGridStrategy(spacing_pct=grid_spacing_pct, levels=grid_levels),
-        LeveragedFuturesLongGridStrategy(
-            max_leverage=futures_leverage,
-            spacing_pct=grid_spacing_pct,
-            levels=grid_levels,
-            tactical_hedge=tactical_hedge,
-        ),
-        AarsDynamicStrategy(max_abs_exposure=aars_max_abs_exposure),
-    ]
-    return [engine.run(candles, strategy, warmup_bars=warmup_bars) for strategy in strategies]
+    return [result.summary for result in results]
 
 
 def simulate_aars_dynamic(

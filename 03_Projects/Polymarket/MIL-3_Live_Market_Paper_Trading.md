@@ -155,6 +155,14 @@ Minimum cards:
 - Recommended Action
 - Latest Stable View / data freshness
 
+Status: **baseline implemented in PR #2**.
+
+`mil3/ui/index.html` is a dependency-light, read-only research console consuming the versioned `mil3.dashboard.v1` payload. `run_compare.py --output-json ui/dashboard_payload.json` exports the payload from the same replay results printed by the CLI, including downsampled equity, drawdown, exposure, leverage, margin-buffer and liquidation-risk traces.
+
+The main view continuously exposes PAPER_ONLY authority, data trust, highest liquidation risk, degraded conditions and Latest Stable View. It supports strategy selection and Equity/Risk trace inspection only; there are no order, credential or live-mode controls. Missing or invalid payloads fall back to an explicitly degraded deterministic demonstration dataset.
+
+The HMI design and local run instructions are recorded in `mil3/ui/README.md`.
+
 ## Initial decision policy
 
 The initial policy intentionally prefers risk control over activity:
@@ -186,7 +194,9 @@ python run_compare.py \
   --futures-leverage 10 \
   --grid-spacing 0.01 \
   --grid-levels 5 \
-  --funding-rate-per-bar 0.00001
+  --funding-rate-per-bar 0.00001 \
+  --output-json ui/dashboard_payload.json
+python -m http.server 8765 --directory ui
 pytest -q
 ```
 
