@@ -215,6 +215,19 @@ Additional read-only endpoint:
 
 - `/api/v1/funding-cadence?symbol=SOLUSDT`
 
+### MIL-3.10 — Mac mini Long-Running Operations
+
+Status: **implemented on `mil-3-live-market-paper-trading`**.
+
+- `run_macos_service.py` renders, installs, inspects and uninstalls four narrowly scoped user LaunchAgents for scheduler, localhost API, health and daily maintenance.
+- The scheduler remains the only market-data writer. The operational health command opens SQLite read-only, verifies database integrity, checks the latest ingestion-cycle status/age and evaluates BTC/ETH/SOL candle freshness.
+- `run_backup.py` uses SQLite's online backup API, verifies the completed copy, reports SHA-256 evidence and prunes only scoped backups after the configured retention period.
+- Daily maintenance bounds LaunchAgent text logs with copy-and-truncate rotation. Uninstall removes only AARS property lists and preserves the database, logs and backups.
+- Generated service definitions use resolved absolute paths and force the API to `127.0.0.1`; no public bind or execution route is added.
+- User LaunchAgents resume after the FileVault user logs in following a reboot. A privileged LaunchDaemon and automatic-login exception are intentionally out of scope.
+
+The installation, health, backup, upgrade and restore procedures are documented in `mil3/MAC_MINI_OPERATIONS.md`.
+
 ## Initial decision policy
 
 The initial policy intentionally prefers risk control over activity:
@@ -251,6 +264,7 @@ python run_compare.py \
   --grid-levels 5 \
   --output-json ui/dashboard_payload.json
 python run_api.py --db mil3_market.sqlite --port 8765
+python run_healthcheck.py --db mil3_market.sqlite
 python -m pytest -q
 ```
 
@@ -262,6 +276,7 @@ The ingestion and scheduler commands touch only public market-data endpoints. Re
 - Acceptance command: `python -m pytest -q` from `03_Projects/Polymarket/mil3`.
 - Live-order guard: MIL-3 contains only public market-data adapters and paper accounting. No authenticated trading adapter, credential field or order endpoint is introduced.
 - MIL-3.9 deterministic tests cover 4-hour adjustment decoding, complete snapshot materialization, failed-snapshot behavior, idempotent cadence storage, piecewise coverage gaps, explicit fallback provenance and the read-only cadence API.
+- MIL-3.10 deterministic tests cover read-only health behavior, missing/stale/partial failure modes, consistent online backup, scoped retention, bounded log rotation, absolute launchd definitions, localhost-only API binding and data-preserving uninstall.
 
 ## Definition of Done
 

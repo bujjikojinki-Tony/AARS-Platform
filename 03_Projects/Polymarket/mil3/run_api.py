@@ -9,7 +9,7 @@ from aars_market.storage import MarketStore
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="AARS MIL-3.9 PAPER_ONLY read-only local API")
+    parser = argparse.ArgumentParser(description="AARS MIL-3.10 PAPER_ONLY read-only local API")
     parser.add_argument("--db", default="mil3_market.sqlite")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)

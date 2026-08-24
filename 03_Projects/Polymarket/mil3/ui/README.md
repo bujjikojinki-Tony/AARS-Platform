@@ -1,4 +1,4 @@
-# MIL-3.9 Shadow Strategy Console HMI Design v2
+# MIL-3.10 Shadow Strategy Console HMI Design v2
 
 ## 1. Page Purpose
 
@@ -105,3 +105,5 @@ python run_api.py --db mil3_market.sqlite --port 8765
 Open `http://127.0.0.1:8765/`. The server binds to localhost by default and exposes a GET/HEAD/OPTIONS-only API.
 
 For a no-server preview, open `ui/index.html` directly. Direct-file mode uses the degraded demonstration payload; market/window/archive controls require the read-only local API.
+
+For personal long-running Mac mini installation, health, backup, upgrade and restore procedures, see `../MAC_MINI_OPERATIONS.md`.

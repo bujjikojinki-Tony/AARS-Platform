@@ -10,7 +10,7 @@ from aars_market.storage import MarketStore
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="AARS MIL-3.8 incremental public-data scheduler")
+    parser = argparse.ArgumentParser(description="AARS MIL-3.10 incremental public-data scheduler")
     parser.add_argument("--db", default="mil3_market.sqlite")
     parser.add_argument("--interval", default="1h")
     parser.add_argument("--poll-seconds", type=float, default=3600.0)
