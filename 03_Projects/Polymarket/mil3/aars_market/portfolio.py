@@ -84,6 +84,10 @@ def build_portfolio_payload(
                 "weight": normalized[symbol],
                 "freshness_status": payload["market"]["freshness_status"],
                 "funding_coverage_status": payload["funding"]["coverage"]["status"],
+                "funding_cadence_hours": payload["funding"]["coverage"].get("cadence_hours", 8),
+                "funding_cadence_source": payload["funding"]["coverage"].get(
+                    "cadence_source", "DEFAULT_8H_FALLBACK"
+                ),
                 "total_return": summary["total_return"],
                 "final_net_exposure": summary["final_net_exposure"],
                 "max_effective_leverage": summary["max_effective_leverage"],

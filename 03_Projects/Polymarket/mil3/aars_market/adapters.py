@@ -5,11 +5,12 @@ from datetime import datetime, timezone
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from .models import Candle, FundingRate
+from .models import Candle, FundingCadenceObservation, FundingRate
 
 
 BINANCE_SPOT_KLINES = "https://api.binance.com/api/v3/klines"
 BINANCE_USDM_FUNDING = "https://fapi.binance.com/fapi/v1/fundingRate"
+BINANCE_USDM_FUNDING_INFO = "https://fapi.binance.com/fapi/v1/fundingInfo"
 
 
 def _to_ms(value: datetime) -> int:
@@ -71,6 +72,50 @@ def _request_funding(params: dict[str, object], timeout: float) -> list[dict[str
     if not isinstance(payload, list):
         raise RuntimeError("unexpected Binance funding response")
     return payload
+
+
+def _decode_funding_info(
+    payload: list[dict[str, object]],
+    observed_at: datetime,
+) -> list[FundingCadenceObservation]:
+    return [
+        FundingCadenceObservation(
+            symbol=str(row["symbol"]).upper(),
+            observed_at=observed_at,
+            interval_hours=int(row["fundingIntervalHours"]),
+            adjusted_rate_cap=float(row["adjustedFundingRateCap"]),
+            adjusted_rate_floor=float(row["adjustedFundingRateFloor"]),
+            disclaimer=bool(row.get("disclaimer", False)),
+            source_status="ADJUSTED",
+        )
+        for row in payload
+    ]
+
+
+def _request_funding_info(timeout: float) -> list[dict[str, object]]:
+    request = Request(
+        BINANCE_USDM_FUNDING_INFO,
+        headers={"User-Agent": "AARS-MIL3/0.4"},
+    )
+    with urlopen(request, timeout=timeout) as response:  # nosec B310: fixed HTTPS endpoint
+        payload = json.load(response)
+    if not isinstance(payload, list):
+        raise RuntimeError("unexpected Binance fundingInfo response")
+    return payload
+
+
+def fetch_binance_funding_info(
+    *,
+    observed_at: datetime | None = None,
+    timeout: float = 10.0,
+) -> list[FundingCadenceObservation]:
+    """Fetch the public current funding-adjustment snapshot without authentication."""
+    observed = observed_at or datetime.now(timezone.utc)
+    if observed.tzinfo is None:
+        observed = observed.replace(tzinfo=timezone.utc)
+    observed = observed.astimezone(timezone.utc)
+    payload = _request_funding_info(timeout)
+    return _decode_funding_info(payload, observed)
 
 
 def fetch_binance_spot_candles(

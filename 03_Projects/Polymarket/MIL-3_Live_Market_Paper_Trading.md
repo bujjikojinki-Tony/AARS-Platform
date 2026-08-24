@@ -201,6 +201,20 @@ Additional read-only endpoints:
 - `/api/v1/portfolio?symbols=BTCUSDT,ETHUSDT,SOLUSDT&interval=1h&window=90d&strategy=AARS_DYNAMIC`
 - `/api/v1/stable-view-diff?before={view_id}&after={view_id}`
 
+### MIL-3.9 — Dynamic Binance Funding Cadence
+
+Status: **implemented on `mil-3-live-market-paper-trading`**.
+
+- Scheduled and one-shot funding ingestion query Binance USD-M public `fundingInfo` once per snapshot. Adjusted symbols persist `fundingIntervalHours`, rate cap/floor and disclaimer; a successfully returned snapshot records omitted configured symbols as explicit `DEFAULT_ABSENT` 8-hour observations.
+- A failed `fundingInfo` request never invents default observations. The audit cycle records the failure separately while candle and funding-history ingestion may continue.
+- Cadence observations are timestamped locally because Binance exposes the current adjustment snapshot without an effective-from timestamp or historical cadence series. Replay coverage applies a piecewise schedule only from the first locally observed timestamp; earlier periods disclose `DEFAULT_8H_FALLBACK` provenance.
+- Funding-gap detection uses cadence-equivalent units. For example, an 8-hour separation under an observed 4-hour schedule is two expected intervals and identifies one missing event.
+- Dashboard, portfolio evidence and the console distinguish replay-window cadence from the current effective snapshot so a temporary adjustment is visible without rewriting older replay assumptions.
+
+Additional read-only endpoint:
+
+- `/api/v1/funding-cadence?symbol=SOLUSDT`
+
 ## Initial decision policy
 
 The initial policy intentionally prefers risk control over activity:
@@ -240,13 +254,14 @@ python run_api.py --db mil3_market.sqlite --port 8765
 python -m pytest -q
 ```
 
-The ingestion and scheduler commands touch only public market-data endpoints. Replay, comparison, portfolio aggregation, archive diff and tests are local after ingestion. Every runner declares `execution_mode=PAPER_ONLY`; the local API adds no order route and GET requests do not mutate SQLite.
+The ingestion and scheduler commands touch only public market-data endpoints. Replay, comparison, portfolio aggregation, archive diff and tests are local after ingestion. Every runner declares `execution_mode=PAPER_ONLY`; the local API adds no order route and GET requests do not mutate SQLite. Binance `fundingInfo` is a current adjustment snapshot, so preserving locally observed cadence history is required for auditable replay rather than retroactively applying today's interval.
 
 ## MIL-3.5 verification
 
 - Deterministic tests cover ledger realization, long-to-short crossing, funding direction, explicit slippage, leverage/margin/liquidation approximation, four-strategy comparison, separated grid/inventory P&L, parameterized 10x futures simulation and Tactical Hedge activation.
 - Acceptance command: `python -m pytest -q` from `03_Projects/Polymarket/mil3`.
 - Live-order guard: MIL-3 contains only public market-data adapters and paper accounting. No authenticated trading adapter, credential field or order endpoint is introduced.
+- MIL-3.9 deterministic tests cover 4-hour adjustment decoding, complete snapshot materialization, failed-snapshot behavior, idempotent cadence storage, piecewise coverage gaps, explicit fallback provenance and the read-only cadence API.
 
 ## Definition of Done
 

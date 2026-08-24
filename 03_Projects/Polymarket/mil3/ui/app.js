@@ -102,7 +102,7 @@ function renderViewControls() {
   windowSelect.disabled = Boolean(state.viewingArchive);
   const funding = state.payload.funding;
   $("#funding-status").textContent = funding
-    ? `${funding.events} EVENTS · ${funding.coverage?.status || "UNCHECKED"}`
+    ? `${funding.events} EVENTS · ${funding.coverage?.status || "UNCHECKED"} · ${funding.coverage?.cadence_hours || 8}H ${funding.coverage?.cadence_source || "FALLBACK"}`
     : "FALLBACK / NOT ARCHIVED";
   const archive = state.payload.latest_stable_view_archive;
   $("#archive-provenance").textContent = state.viewingArchive
@@ -330,7 +330,11 @@ async function requestDashboard() {
   state.usingSample = false;
   state.viewingArchive = null;
   render();
-  await Promise.all([loadArchiveOptions(), loadPortfolio().catch(renderPortfolioUnavailable)]);
+  await Promise.all([
+    loadArchiveOptions(),
+    loadPortfolio().catch(renderPortfolioUnavailable),
+    loadCurrentCadence(),
+  ]);
 }
 
 async function loadArchiveOptions() {
@@ -388,8 +392,24 @@ async function loadPortfolio() {
     <div class="portfolio-asset">
       <span>${escapeHtml(asset.symbol)} · ${formatPercent(asset.weight)}</span>
       <strong>${formatNumber(asset.final_net_exposure)}× NET</strong>
-      <span>${escapeHtml(asset.funding_coverage_status)} FUNDING · ${formatPercent(asset.max_liquidation_risk)} LIQ.</span>
+      <span>${escapeHtml(asset.funding_coverage_status)} · ${escapeHtml(asset.funding_cadence_hours)}H ${escapeHtml(asset.funding_cadence_source)} · ${formatPercent(asset.max_liquidation_risk)} LIQ.</span>
     </div>`).join("");
+}
+
+async function loadCurrentCadence() {
+  if (state.viewingArchive) return;
+  try {
+    const symbol = state.payload.market.symbol;
+    const response = await fetch(`/api/v1/funding-cadence?symbol=${encodeURIComponent(symbol)}`, { cache: "no-store" });
+    if (!response.ok) throw new Error(`cadence request returned ${response.status}`);
+    const payload = await response.json();
+    if (payload.execution_mode !== "PAPER_ONLY") throw new Error("unsafe cadence mode rejected");
+    const current = payload.current;
+    const replay = state.payload.funding?.coverage;
+    $("#funding-status").textContent = `CURRENT ${current.interval_hours}H ${current.source_status} · REPLAY ${replay?.cadence_hours || 8}H ${replay?.cadence_source || "FALLBACK"}`;
+  } catch (_error) {
+    // The dashboard replay provenance remains visible when the current snapshot API is unavailable.
+  }
 }
 
 function renderPortfolioUnavailable(error) {
@@ -446,7 +466,11 @@ async function loadPayload() {
     state.selectedStrategy = state.payload.strategies[0].id;
   }
   render();
-  await Promise.all([loadArchiveOptions(), loadPortfolio().catch(renderPortfolioUnavailable)]);
+  await Promise.all([
+    loadArchiveOptions(),
+    loadPortfolio().catch(renderPortfolioUnavailable),
+    loadCurrentCadence(),
+  ]);
 }
 
 $("#market-select").addEventListener("change", () => requestDashboard().catch(showSwitchFailure));

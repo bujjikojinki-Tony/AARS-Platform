@@ -1,4 +1,4 @@
-# MIL-3.8 Shadow Strategy Console HMI Design v2
+# MIL-3.9 Shadow Strategy Console HMI Design v2
 
 ## 1. Page Purpose
 
@@ -19,6 +19,7 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 7. Review combined BTC/ETH/SOL exposure and the asset driving highest risk.
 8. Compare two Stable View archives for semantic change.
 9. Resolve open risk objects before accepting a shadow strategy.
+10. Distinguish the cadence used by the replay from Binance's latest observed funding cadence.
 
 ## 4. Information Architecture
 
@@ -52,14 +53,15 @@ The desktop layout follows a flight-recorder/control-desk pattern with a persist
 - `FundingCoverageAlert`
 - `CrossAssetPortfolioRiskPanel`
 - `StableViewDiffPanel`
+- `FundingCadenceProvenance`
 
 ## 7. Data Model
 
-The page consumes `mil3.dashboard.v2`, `mil3.portfolio.v1` and `mil3.stable-view-diff.v1`, while keeping display compatibility with v1 static dashboard payloads. The client rejects any execution mode other than `PAPER_ONLY`.
+The page consumes `mil3.dashboard.v2`, `mil3.portfolio.v1`, `mil3.stable-view-diff.v1` and `mil3.funding-cadence.v1`, while keeping display compatibility with v1 static dashboard payloads. The client rejects any execution mode other than `PAPER_ONLY`.
 
 ## 8. Alarm and Risk Design
 
-Risk items expose severity, object, trigger, impact, recommended next step, status and closure condition. Highest liquidation risk remains in the main view. Funding gaps explicitly warn that futures costs may be understated. Portfolio degradation names affected assets and never implies cross-margin netting.
+Risk items expose severity, object, trigger, impact, recommended next step, status and closure condition. Highest liquidation risk remains in the main view. Funding gaps explicitly warn that futures costs may be understated and state the effective cadence/provenance. Current Binance cadence and replay cadence remain visibly distinct. Portfolio degradation names affected assets and never implies cross-margin netting.
 
 ## 9. Automation / AI Design
 

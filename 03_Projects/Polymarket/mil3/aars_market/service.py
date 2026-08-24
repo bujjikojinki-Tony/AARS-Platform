@@ -45,6 +45,39 @@ class DashboardService:
     def markets(self) -> list[dict[str, object]]:
         return self.store.list_markets()
 
+    def funding_cadence(self, symbol: str) -> dict[str, Any]:
+        normalized = symbol.upper()
+        if normalized not in DEFAULT_SYMBOLS:
+            raise ValueError(f"unsupported symbol: {normalized}")
+        observations = self.store.load_funding_cadence_observations(normalized)
+        history = [
+            {
+                "symbol": item.symbol,
+                "observed_at": item.observed_at.astimezone(timezone.utc).isoformat(),
+                "interval_hours": item.interval_hours,
+                "adjusted_rate_cap": item.adjusted_rate_cap,
+                "adjusted_rate_floor": item.adjusted_rate_floor,
+                "disclaimer": item.disclaimer,
+                "source_status": item.source_status,
+            }
+            for item in observations
+        ]
+        current = history[-1] if history else {
+            "symbol": normalized,
+            "observed_at": None,
+            "interval_hours": 8,
+            "adjusted_rate_cap": None,
+            "adjusted_rate_floor": None,
+            "disclaimer": False,
+            "source_status": "DEFAULT_8H_FALLBACK",
+        }
+        return {
+            "schema_version": "mil3.funding-cadence.v1",
+            "execution_mode": "PAPER_ONLY",
+            "current": current,
+            "observations": history,
+        }
+
     def build(
         self,
         request: DashboardRequest,
@@ -75,10 +108,17 @@ class DashboardService:
             start=candles[0].open_time,
             end=candles[-1].open_time,
         )
+        cadence_observations = self.store.load_funding_cadence_observations(
+            symbol,
+            start=candles[self.warmup_bars - 1].open_time,
+            end=candles[-1].open_time,
+            include_previous=True,
+        )
         payload = build_dashboard_payload(
             candles,
             warmup_bars=self.warmup_bars,
             funding_rates=funding,
+            funding_cadence_observations=cadence_observations,
             data_fresh=self.store.is_fresh(symbol, request.timeframe, now=current),
             source="SQLite normalized Binance public market data",
             generated_at=current,

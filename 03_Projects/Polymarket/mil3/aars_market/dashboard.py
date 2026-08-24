@@ -9,7 +9,7 @@ from typing import Any, Sequence
 
 from .coverage import analyze_funding_coverage
 from .features import compute_features
-from .models import Candle, FundingRate
+from .models import Candle, FundingCadenceObservation, FundingRate
 from .policy import decide_target_exposure
 from .probability import estimate_outcome_probabilities
 from .simulation import EXECUTION_MODE, ReplayResult, compare_shadow_strategy_results
@@ -82,6 +82,7 @@ def build_dashboard_payload(
     slippage_rate: float = 0.0002,
     funding_rate_per_bar: float = 0.0,
     funding_rates: Sequence[FundingRate] | None = None,
+    funding_cadence_observations: Sequence[FundingCadenceObservation] = (),
     maintenance_margin_rate: float = 0.005,
     data_fresh: bool | None = None,
     source: str = "SQLite normalized candles",
@@ -114,6 +115,7 @@ def build_dashboard_payload(
         funding_rates or (),
         candles[warmup_bars - 1].open_time,
         candles[-1].open_time,
+        cadence_observations=funding_cadence_observations,
         required=True,
     )
 
@@ -165,6 +167,8 @@ def build_dashboard_payload(
                 "object": candles[-1].symbol,
                 "trigger": (
                     f"funding coverage {funding_coverage.status}; "
+                    f"cadence={funding_coverage.cadence_hours:g}h "
+                    f"({funding_coverage.cadence_source}); "
                     f"observed={funding_coverage.observed_events}, "
                     f"estimated_missing={funding_coverage.estimated_missing_events}"
                 ),
@@ -223,6 +227,9 @@ def build_dashboard_payload(
             "latest_event_at": _utc_iso(funding_rates[-1].funding_time) if funding_rates else None,
             "lookahead_protection": "events apply only when funding_time <= replay candle time",
             "coverage": funding_coverage.as_dict(),
+            "cadence_source": funding_coverage.cadence_source,
+            "cadence_hours": funding_coverage.cadence_hours,
+            "cadence_observed_at": funding_coverage.cadence_observed_at,
         },
         "highest_risk": {
             "level": risk_level,

@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable, Iterator
 
-from .models import Candle, FundingRate
+from .models import Candle, FundingCadenceObservation, FundingRate
 
 
 _SCHEMA = """
@@ -58,6 +58,22 @@ CREATE TABLE IF NOT EXISTS funding_rates (
 
 CREATE INDEX IF NOT EXISTS idx_funding_symbol_time
 ON funding_rates(symbol, funding_time);
+
+CREATE TABLE IF NOT EXISTS funding_cadence_observations (
+    symbol TEXT NOT NULL,
+    observed_at TEXT NOT NULL,
+    interval_hours INTEGER NOT NULL,
+    adjusted_rate_cap REAL,
+    adjusted_rate_floor REAL,
+    disclaimer INTEGER NOT NULL,
+    source_status TEXT NOT NULL,
+    source TEXT NOT NULL,
+    ingested_at TEXT NOT NULL,
+    PRIMARY KEY (symbol, observed_at)
+);
+
+CREATE INDEX IF NOT EXISTS idx_funding_cadence_symbol_time
+ON funding_cadence_observations(symbol, observed_at);
 
 CREATE TABLE IF NOT EXISTS latest_stable_views (
     view_id TEXT PRIMARY KEY,
@@ -338,6 +354,105 @@ class MarketStore:
         if row is None or row["latest"] is None:
             return None
         return _parse(row["latest"])
+
+    def upsert_funding_cadence_observations(
+        self,
+        observations: Iterable[FundingCadenceObservation],
+        source: str,
+    ) -> int:
+        rows = list(observations)
+        if not rows:
+            return 0
+        now = _iso(datetime.now(timezone.utc))
+        payload = [
+            (
+                item.symbol.upper(),
+                _iso(item.observed_at),
+                item.interval_hours,
+                item.adjusted_rate_cap,
+                item.adjusted_rate_floor,
+                int(item.disclaimer),
+                item.source_status,
+                source,
+                now,
+            )
+            for item in rows
+        ]
+        with self.connect() as conn:
+            conn.executemany(
+                """INSERT INTO funding_cadence_observations(
+                       symbol, observed_at, interval_hours, adjusted_rate_cap,
+                       adjusted_rate_floor, disclaimer, source_status, source, ingested_at
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                   ON CONFLICT(symbol, observed_at) DO UPDATE SET
+                       interval_hours=excluded.interval_hours,
+                       adjusted_rate_cap=excluded.adjusted_rate_cap,
+                       adjusted_rate_floor=excluded.adjusted_rate_floor,
+                       disclaimer=excluded.disclaimer,
+                       source_status=excluded.source_status,
+                       source=excluded.source,
+                       ingested_at=excluded.ingested_at""",
+                payload,
+            )
+        return len(rows)
+
+    def load_funding_cadence_observations(
+        self,
+        symbol: str,
+        start: datetime | None = None,
+        end: datetime | None = None,
+        *,
+        include_previous: bool = False,
+    ) -> list[FundingCadenceObservation]:
+        where = ["symbol = ?"]
+        params: list[object] = [symbol.upper()]
+        if start is not None:
+            where.append("observed_at >= ?")
+            params.append(_iso(start))
+        if end is not None:
+            where.append("observed_at <= ?")
+            params.append(_iso(end))
+        with self.connect() as conn:
+            rows = list(
+                conn.execute(
+                    f"""SELECT symbol, observed_at, interval_hours, adjusted_rate_cap,
+                               adjusted_rate_floor, disclaimer, source_status
+                        FROM funding_cadence_observations
+                        WHERE {' AND '.join(where)} ORDER BY observed_at""",
+                    params,
+                ).fetchall()
+            )
+            if include_previous and start is not None:
+                previous = conn.execute(
+                    """SELECT symbol, observed_at, interval_hours, adjusted_rate_cap,
+                              adjusted_rate_floor, disclaimer, source_status
+                       FROM funding_cadence_observations
+                       WHERE symbol=? AND observed_at < ?
+                       ORDER BY observed_at DESC LIMIT 1""",
+                    (symbol.upper(), _iso(start)),
+                ).fetchone()
+                if previous is not None:
+                    rows.insert(0, previous)
+        return [
+            FundingCadenceObservation(
+                symbol=row["symbol"],
+                observed_at=_parse(row["observed_at"]),
+                interval_hours=int(row["interval_hours"]),
+                adjusted_rate_cap=(
+                    float(row["adjusted_rate_cap"])
+                    if row["adjusted_rate_cap"] is not None
+                    else None
+                ),
+                adjusted_rate_floor=(
+                    float(row["adjusted_rate_floor"])
+                    if row["adjusted_rate_floor"] is not None
+                    else None
+                ),
+                disclaimer=bool(row["disclaimer"]),
+                source_status=row["source_status"],
+            )
+            for row in rows
+        ]
 
     def record_ingestion_cycle(self, summary: dict[str, Any]) -> str:
         canonical = json.dumps(summary, sort_keys=True, separators=(",", ":"), allow_nan=False)

@@ -56,6 +56,7 @@ def test_incremental_ingestion_overlaps_cursors_and_audits_partial_failure(tmp_p
         funding_overlap=timedelta(hours=8),
         candle_fetcher=candles,
         funding_fetcher=funding,
+        funding_info_fetcher=lambda **_kwargs: [],
     ).run_cycle(now=START + timedelta(hours=12))
 
     assert starts == {"candles": START + timedelta(hours=8), "funding": START}
@@ -63,6 +64,9 @@ def test_incremental_ingestion_overlaps_cursors_and_audits_partial_failure(tmp_p
     assert summary["status"] == "PARTIAL"
     assert store.count_candles("SOLUSDT", "1h") == 2
     assert store.count_funding_rates("SOLUSDT") == 1
+    cadence = store.load_funding_cadence_observations("SOLUSDT")
+    assert cadence[0].interval_hours == 8
+    assert cadence[0].source_status == "DEFAULT_ABSENT"
     assert store.list_ingestion_cycles()[0]["cycle_id"] == summary["cycle_id"]
 
 

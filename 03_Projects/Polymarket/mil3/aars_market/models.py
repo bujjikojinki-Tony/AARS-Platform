@@ -37,6 +37,21 @@ class FundingRate:
 
 
 @dataclass(frozen=True)
+class FundingCadenceObservation:
+    symbol: str
+    observed_at: datetime
+    interval_hours: int
+    adjusted_rate_cap: float | None = None
+    adjusted_rate_floor: float | None = None
+    disclaimer: bool = False
+    source_status: str = "ADJUSTED"
+
+    def __post_init__(self) -> None:
+        if self.interval_hours <= 0:
+            raise ValueError("funding interval_hours must be positive")
+
+
+@dataclass(frozen=True)
 class FeatureSnapshot:
     symbol: str
     timeframe: str

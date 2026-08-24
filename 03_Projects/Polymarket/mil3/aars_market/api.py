@@ -45,6 +45,9 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
                 }
             if parsed.path == "/api/v1/markets":
                 return HTTPStatus.OK, {"markets": service.markets()}
+            if parsed.path == "/api/v1/funding-cadence":
+                symbol = query.get("symbol", ["SOLUSDT"])[0]
+                return HTTPStatus.OK, service.funding_cadence(symbol)
             if parsed.path == "/api/v1/ingestion-cycles":
                 limit = int(query.get("limit", ["20"])[0])
                 return HTTPStatus.OK, {
