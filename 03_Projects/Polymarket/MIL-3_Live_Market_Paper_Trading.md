@@ -228,6 +228,19 @@ Status: **implemented on `mil-3-live-market-paper-trading`**.
 
 The installation, health, backup, upgrade and restore procedures are documented in `mil3/MAC_MINI_OPERATIONS.md`.
 
+### MIL-3.11 — Strategy Robustness Validation
+
+Status: **implemented on `mil-3-live-market-paper-trading`**.
+
+- `run_validate.py` provides deterministic chronological walk-forward validation for AARS Dynamic, Spot Grid and Futures Long Grid parameter grids.
+- Every fold separates indicator warmup, scored training bars and the immediately following scored test bars. Parameter ranking and selection use training results only; test data never feeds back into selection.
+- The selected candidate and Buy & Hold share the existing ReplayEngine/PaperPortfolio accounting on the same test interval, retaining fees, slippage, funding, drawdown, turnover, exposure, leverage, margin buffer and liquidation-risk evidence.
+- Reports expose training rankings, parameter sensitivity, selection stability, train/test score decay, descriptive test regimes and explicit overfitting/risk warnings.
+- Multi-asset mode runs the same experiment for BTCUSDT, ETHUSDT and SOLUSDT and preserves every per-asset report. Its aggregate is a comparison of evidence, not a cross-margin portfolio simulation.
+- HIGH warnings—including insufficient folds, material score decay, baseline underperformance or liquidation approximation breaches—force `DEFER`. Every report keeps `live_execution_allowed=false`.
+
+The fold contract, ranking score, warnings and commands are documented in `mil3/ROBUSTNESS_VALIDATION.md`.
+
 ## Initial decision policy
 
 The initial policy intentionally prefers risk control over activity:
@@ -265,6 +278,11 @@ python run_compare.py \
   --output-json ui/dashboard_payload.json
 python run_api.py --db mil3_market.sqlite --port 8765
 python run_healthcheck.py --db mil3_market.sqlite
+python run_validate.py \
+  --db mil3_market.sqlite \
+  --symbols BTCUSDT ETHUSDT SOLUSDT \
+  --strategy AARS_DYNAMIC \
+  --output-json validation-multi-asset.json
 python -m pytest -q
 ```
 
@@ -277,6 +295,7 @@ The ingestion and scheduler commands touch only public market-data endpoints. Re
 - Live-order guard: MIL-3 contains only public market-data adapters and paper accounting. No authenticated trading adapter, credential field or order endpoint is introduced.
 - MIL-3.9 deterministic tests cover 4-hour adjustment decoding, complete snapshot materialization, failed-snapshot behavior, idempotent cadence storage, piecewise coverage gaps, explicit fallback provenance and the read-only cadence API.
 - MIL-3.10 deterministic tests cover read-only health behavior, missing/stale/partial failure modes, consistent online backup, scoped retention, bounded log rotation, absolute launchd definitions, localhost-only API binding and data-preserving uninstall.
+- MIL-3.11 deterministic tests cover parameter-grid caps, chronological fold boundaries, training-only selection, strict finite JSON, common-ledger evidence, multi-asset aggregation and CLI report generation.
 
 ## Definition of Done
 
