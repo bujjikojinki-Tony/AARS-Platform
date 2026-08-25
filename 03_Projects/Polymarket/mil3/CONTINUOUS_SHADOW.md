@@ -88,6 +88,18 @@ The stability response shows, in chronological order:
 All API methods other than GET, HEAD, and OPTIONS remain rejected. Reading the
 history or stability view never archives or modifies a snapshot.
 
+## MIL-3.13 local console
+
+The localhost console now includes a task-centered Continuous Shadow Evidence
+workspace. It shows the Latest Stable Snapshot, Review Gate, history trust,
+safe next step, return/liquidation-risk drift, recurring warning memory, daily
+parameter changes and human-readable per-asset snapshot evidence.
+
+The UI performs only GET requests. Changing the validation-strategy filter,
+refreshing the evidence or selecting a snapshot never creates an archive. If
+the API is unavailable, the workspace displays a degraded recovery state and
+does not fabricate sample daily history.
+
 ## Review interpretation
 
 The combined daily review is `DEFER` when either validation is deferred or the

@@ -4,6 +4,8 @@ const state = {
   chartMode: "equity",
   usingSample: false,
   viewingArchive: null,
+  shadowStability: null,
+  selectedShadowSnapshot: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -56,6 +58,13 @@ function currentStrategy() {
 function validatePayload(payload) {
   if (!["mil3.dashboard.v1", "mil3.dashboard.v2"].includes(payload.schema_version)) throw new Error("unsupported dashboard schema");
   if (payload.execution_mode !== "PAPER_ONLY") throw new Error("unsafe execution mode rejected");
+  return payload;
+}
+
+function validateShadowPayload(payload, schema) {
+  if (payload.schema_version !== schema) throw new Error(`unsupported ${schema} schema`);
+  if (payload.execution_mode !== "PAPER_ONLY") throw new Error("unsafe shadow execution mode rejected");
+  if (payload.review_gate?.live_execution_allowed !== false) throw new Error("shadow evidence did not deny live execution");
   return payload;
 }
 
@@ -451,6 +460,223 @@ async function loadArchivedView(viewId) {
   renderPortfolioUnavailable(new Error("Archived single-asset evidence selected; current portfolio aggregation is intentionally withheld."));
 }
 
+const shadowRecovery = {
+  FUNDING_HISTORY_FALLBACK: "Ingest timestamped funding history before relying on futures cost evidence.",
+  PARAMETER_INSTABILITY: "Keep observing; do not promote a parameter while selection continues to change.",
+  TRAIN_TEST_SCORE_DECAY: "Review out-of-sample folds and reduce confidence in the training result.",
+  BASELINE_UNDERPERFORMANCE: "Compare against Buy & Hold before accepting further shadow research.",
+  LIQUIDATION_APPROXIMATION_BREACH: "Reduce leverage or grid inventory before the next review.",
+  INSUFFICIENT_FOLDS: "Extend the stored history to create more chronological test folds.",
+  NO_PARAMETER_SENSITIVITY: "Validate more than one bounded candidate before drawing a stability conclusion.",
+  OVERLAPPING_TEST_WINDOWS: "Use non-overlapping test windows for independent fold evidence.",
+};
+
+function renderShadowMetrics(payload) {
+  const latest = payload.points.at(-1);
+  const metrics = [
+    ["DAILY SNAPSHOTS", payload.snapshot_count, "immutable evidence rows"],
+    ["CONSECUTIVE READY", payload.summary.consecutive_ready_snapshots, "latest uninterrupted run"],
+    ["PARAMETER CHANGES", payload.summary.parameter_change_events, "daily transition events"],
+    ["VALIDATION RETURN", latest ? formatPercent(latest.mean_validation_test_return, 1, true) : "—", "mean out-of-sample"],
+    ["PORTFOLIO DRAWDOWN", latest ? formatPercent(latest.portfolio.max_drawdown) : "—", "latest archived replay"],
+    ["LIQUIDATION RISK", latest ? formatPercent(latest.portfolio.max_liquidation_risk) : "—", "approximation only"],
+  ];
+  $("#shadow-metrics").innerHTML = metrics.map(([label, value, note]) => `
+    <div><span>${label}</span><strong>${escapeHtml(value)}</strong><small>${note}</small></div>`).join("");
+}
+
+function renderShadowTrend(points) {
+  const target = $("#shadow-trend");
+  if (!points.length) {
+    target.innerHTML = '<p class="shadow-empty">No archived daily evidence yet. Run the explicit PAPER_ONLY daily snapshot command.</p>';
+    target.setAttribute("aria-label", "No continuous shadow evidence is archived");
+    return;
+  }
+  const width = 900;
+  const height = 220;
+  const padding = 28;
+  const returns = points.map((point) => Number(point.portfolio.total_return) * 100);
+  const risks = points.map((point) => Number(point.portfolio.max_liquidation_risk) * 100);
+  const returnMin = Math.min(...returns, 0);
+  const returnMax = Math.max(...returns, 0.001);
+  const riskMax = Math.max(...risks, 0.001);
+  const returnPoints = linePoints(returns, width, height, padding, returnMin, returnMax);
+  const riskPoints = linePoints(risks, width, height, padding, 0, riskMax);
+  const circles = (values, min, max, className) => values.map((value, index) => {
+    const [x, y] = linePoints(values, width, height, padding, min, max).split(" ")[index].split(",");
+    return `<circle class="${className}" cx="${x}" cy="${y}" r="3" />`;
+  }).join("");
+  target.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true">
+      ${[0.25, 0.5, 0.75].map((position) => `<line class="chart-grid" x1="${padding}" x2="${width - padding}" y1="${height * position}" y2="${height * position}" />`).join("")}
+      <polyline class="chart-line-primary" points="${returnPoints}" />
+      <polyline class="chart-line-secondary" points="${riskPoints}" />
+      ${circles(returns, returnMin, returnMax, "shadow-point-primary")}
+      ${circles(risks, 0, riskMax, "shadow-point-secondary")}
+      <text class="chart-axis" x="${padding}" y="15">RETURN ${formatPercent(returnMax / 100, 1, true)}</text>
+      <text class="chart-axis" x="${width - padding}" y="15" text-anchor="end">RISK ${formatPercent(riskMax / 100)}</text>
+      <text class="chart-axis" x="${padding}" y="${height - 5}">${escapeHtml(formatDate(points[0].as_of))}</text>
+      <text class="chart-axis" x="${width - padding}" y="${height - 5}" text-anchor="end">${escapeHtml(formatDate(points.at(-1).as_of))}</text>
+    </svg>`;
+  target.setAttribute("aria-label", `${points.length} archived daily snapshots; latest portfolio return ${formatPercent(points.at(-1).portfolio.total_return)} and liquidation risk ${formatPercent(points.at(-1).portfolio.max_liquidation_risk)}`);
+}
+
+function renderShadowWarnings(payload) {
+  const entries = Object.entries(payload.summary.recurring_warning_counts)
+    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]));
+  $("#shadow-warning-count").textContent = entries.length;
+  $("#shadow-warning-list").innerHTML = entries.length ? entries.map(([code, count]) => `
+    <article class="shadow-warning-item">
+      <div><strong>${escapeHtml(code.replaceAll("_", " "))}</strong><span>${count} / ${payload.snapshot_count} snapshots</span></div>
+      <p>${escapeHtml(shadowRecovery[code] || "Review the affected fold evidence before changing the monitored strategy.")}</p>
+    </article>`).join("") : '<p class="shadow-empty">No recurring validation warnings are recorded.</p>';
+}
+
+function renderShadowTimeline(payload) {
+  const transitions = new Map(payload.transitions.map((item) => [item.to_snapshot_id, item]));
+  const target = $("#shadow-timeline");
+  if (!payload.points.length) {
+    target.innerHTML = '<p class="shadow-empty">No immutable daily snapshots are available.</p>';
+    return;
+  }
+  target.innerHTML = [...payload.points].reverse().map((point, index) => {
+    const transition = transitions.get(point.snapshot_id);
+    const changes = transition?.candidate_changes?.length || 0;
+    const added = transition?.warnings_added?.length || 0;
+    const reviewChanged = Boolean(transition?.review_transition);
+    return `<button class="snapshot-row${index === 0 ? " active" : ""}" type="button" data-shadow-snapshot="${escapeHtml(point.snapshot_id)}">
+      <span class="snapshot-marker" data-status="${point.review_disposition === "DEFER" ? "DEFER" : "READY"}"></span>
+      <span>
+        <strong>${escapeHtml(formatDate(point.as_of))}</strong>
+        <small>${escapeHtml(point.review_disposition.replaceAll("_", " "))} · ${changes} parameter change${changes === 1 ? "" : "s"} · ${added} warning${added === 1 ? "" : "s"} added${reviewChanged ? " · GATE CHANGED" : ""}</small>
+      </span>
+      <span class="snapshot-return ${trendClass(point.portfolio.total_return)}">${formatPercent(point.portfolio.total_return, 1, true)}</span>
+    </button>`;
+  }).join("");
+  $$('[data-shadow-snapshot]').forEach((button) => button.addEventListener("click", () => {
+    $$('[data-shadow-snapshot]').forEach((item) => item.classList.toggle("active", item === button));
+    loadShadowSnapshot(button.dataset.shadowSnapshot).catch(renderShadowDetailUnavailable);
+  }));
+}
+
+function renderShadowStability(payload) {
+  state.shadowStability = payload;
+  const latest = payload.points.at(-1);
+  const historyInsufficient = payload.summary.history_warnings.includes("INSUFFICIENT_DAILY_HISTORY");
+  const gate = latest?.review_disposition || "DEFER";
+  const gateElement = $("#shadow-review-gate");
+  gateElement.textContent = gate.replaceAll("_", " ");
+  gateElement.className = gate === "DEFER" ? "warning" : "positive";
+  $("#shadow-as-of").textContent = latest ? formatDate(latest.as_of) : "NO SNAPSHOT";
+  $("#shadow-history-trust").textContent = historyInsufficient ? `${payload.snapshot_count} / 7 · INSUFFICIENT` : `${payload.snapshot_count} SNAPSHOTS · OBSERVED`;
+  $("#shadow-history-trust").className = historyInsufficient ? "warning" : "positive";
+  $("#shadow-state-banner").dataset.status = gate === "DEFER" || historyInsufficient ? "DEGRADED" : "STABLE";
+  $("#shadow-next-step").textContent = !latest
+    ? "Run the explicit daily PAPER_ONLY archive command; this screen never creates snapshots."
+    : gate === "DEFER"
+      ? "Review recurring warnings and risk drift. Do not promote parameters while the gate is deferred."
+      : historyInsufficient
+        ? "Continue daily observation until at least seven immutable snapshots exist."
+        : "Continue monitoring; READY_FOR_SHADOW_REVIEW is not live-trading authority.";
+  renderShadowMetrics(payload);
+  renderShadowTrend(payload.points);
+  renderShadowWarnings(payload);
+  renderShadowTimeline(payload);
+}
+
+function validationMarkets(snapshot) {
+  return snapshot.validation.markets || [snapshot.validation];
+}
+
+function renderShadowSnapshot(snapshotId, snapshot) {
+  state.selectedShadowSnapshot = snapshotId;
+  $("#shadow-detail-id").textContent = snapshotId;
+  const assets = validationMarkets(snapshot).map((market) => {
+    const latestFold = market.folds?.at(-1);
+    const warnings = market.warnings?.map((item) => item.code) || [];
+    return `<article class="shadow-asset-card">
+      <span>${escapeHtml(market.market.symbol)} · LATEST TRAIN-SELECTED CANDIDATE</span>
+      <strong>${escapeHtml(latestFold?.selected_candidate?.candidate_id || "NO COMPLETE FOLD")}</strong>
+      <dl>
+        <dt>OUT-OF-SAMPLE RETURN</dt><dd>${formatPercent(market.aggregate.mean_test_return, 1, true)}</dd>
+        <dt>SELECTION STABILITY</dt><dd>${formatPercent(market.aggregate.selection_stability)}</dd>
+        <dt>WARNINGS</dt><dd>${warnings.length ? escapeHtml(warnings.join(", ")) : "NONE"}</dd>
+      </dl>
+    </article>`;
+  }).join("");
+  const portfolio = snapshot.portfolio.summary;
+  const reasons = snapshot.review_gate.reasons?.length ? snapshot.review_gate.reasons.join(", ") : "No deferral reason recorded";
+  $("#shadow-detail").innerHTML = `
+    <div class="shadow-detail-provenance">
+      <span>SYNC EVIDENCE ${escapeHtml(formatDate(snapshot.as_of))}</span>
+      <span>VALIDATION ${escapeHtml(snapshot.configuration.validation_strategy)}</span>
+      <span>MONITORED PORTFOLIO ${escapeHtml(snapshot.configuration.portfolio_strategy)} · FIXED DEFAULTS</span>
+      <span>LIVE EXECUTION DISALLOWED</span>
+    </div>
+    <div class="shadow-asset-grid">${assets}</div>
+    <div class="shadow-portfolio-evidence">
+      <div><span>PORTFOLIO RETURN</span><strong class="${trendClass(portfolio.total_return)}">${formatPercent(portfolio.total_return, 1, true)}</strong></div>
+      <div><span>MAX DRAWDOWN</span><strong>${formatPercent(portfolio.max_drawdown)}</strong></div>
+      <div><span>NET / GROSS EXPOSURE</span><strong>${formatNumber(portfolio.final_net_exposure)}× / ${formatNumber(portfolio.final_gross_exposure)}×</strong></div>
+      <div><span>MARGIN BUFFER</span><strong>${formatPercent(portfolio.min_margin_buffer_pct)}</strong></div>
+      <div><span>LIQUIDATION RISK</span><strong>${formatPercent(portfolio.max_liquidation_risk)}</strong></div>
+      <div><span>REVIEW REASON</span><strong>${escapeHtml(reasons)}</strong></div>
+    </div>`;
+}
+
+function renderShadowDetailUnavailable(error) {
+  $("#shadow-detail-id").textContent = "UNAVAILABLE";
+  $("#shadow-detail").innerHTML = `<p class="shadow-empty">Snapshot detail unavailable. The last stability view remains visible. ${escapeHtml(error.message)}</p>`;
+}
+
+function renderShadowUnavailable(error) {
+  state.shadowStability = null;
+  $("#shadow-state-banner").dataset.status = "DEGRADED";
+  $("#shadow-as-of").textContent = "NO LOCAL API EVIDENCE";
+  $("#shadow-review-gate").textContent = "DEFER";
+  $("#shadow-review-gate").className = "warning";
+  $("#shadow-history-trust").textContent = "UNAVAILABLE";
+  $("#shadow-history-trust").className = "warning";
+  $("#shadow-next-step").textContent = "Start the read-only local API and run the explicit daily archive command. No sample daily evidence is fabricated.";
+  $("#shadow-metrics").innerHTML = '<div><span>RECOVERY</span><strong class="warning">LOCAL API REQUIRED</strong><small>PAPER_ONLY evidence remains preserved</small></div>';
+  $("#shadow-trend").innerHTML = '<p class="shadow-empty">Continuous shadow history is unavailable.</p>';
+  $("#shadow-warning-count").textContent = "0";
+  $("#shadow-warning-list").innerHTML = `<p class="shadow-empty">${escapeHtml(error.message)}</p>`;
+  $("#shadow-timeline").innerHTML = '<p class="shadow-empty">No snapshot timeline loaded.</p>';
+  renderShadowDetailUnavailable(error);
+}
+
+async function loadShadowSnapshot(snapshotId) {
+  const response = await fetch(`/api/v1/shadow-snapshots/${encodeURIComponent(snapshotId)}`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`snapshot detail returned ${response.status}`);
+  const snapshot = validateShadowPayload(await response.json(), "mil3.shadow-daily.v1");
+  renderShadowSnapshot(snapshotId, snapshot);
+}
+
+async function loadShadowEvidence() {
+  const strategy = $("#shadow-strategy").value;
+  $("#shadow-refresh").disabled = true;
+  $("#shadow-refresh").textContent = "READING EVIDENCE…";
+  try {
+    const [indexResponse, stabilityResponse] = await Promise.all([
+      fetch(`/api/v1/shadow-snapshots?limit=90&strategy=${encodeURIComponent(strategy)}`, { cache: "no-store" }),
+      fetch(`/api/v1/shadow-stability?limit=90&strategy=${encodeURIComponent(strategy)}`, { cache: "no-store" }),
+    ]);
+    if (!indexResponse.ok) throw new Error(`snapshot index returned ${indexResponse.status}`);
+    if (!stabilityResponse.ok) throw new Error(`stability view returned ${stabilityResponse.status}`);
+    const index = await indexResponse.json();
+    if (index.execution_mode !== "PAPER_ONLY" || index.read_only !== true) throw new Error("unsafe snapshot index rejected");
+    const stability = validateShadowPayload(await stabilityResponse.json(), "mil3.shadow-stability.v1");
+    renderShadowStability(stability);
+    const latestId = stability.points.at(-1)?.snapshot_id || index.shadow_snapshots[0]?.snapshot_id;
+    if (latestId) await loadShadowSnapshot(latestId);
+    else renderShadowDetailUnavailable(new Error("archive the first daily snapshot to populate evidence"));
+  } finally {
+    $("#shadow-refresh").disabled = false;
+    $("#shadow-refresh").textContent = "REFRESH READ-ONLY VIEW";
+  }
+}
+
 async function loadPayload() {
   try {
     const endpoint = location.protocol === "file:" ? "./dashboard_payload.json" : "/api/v1/dashboard?symbol=SOLUSDT&interval=1h&window=90d";
@@ -470,6 +696,7 @@ async function loadPayload() {
     loadArchiveOptions(),
     loadPortfolio().catch(renderPortfolioUnavailable),
     loadCurrentCadence(),
+    loadShadowEvidence().catch(renderShadowUnavailable),
   ]);
 }
 
@@ -478,6 +705,8 @@ $("#window-select").addEventListener("change", () => requestDashboard().catch(sh
 $("#archive-select").addEventListener("change", (event) => loadArchivedView(event.target.value).catch(showSwitchFailure));
 $("#diff-before").addEventListener("change", () => loadStableDiff().catch(showSwitchFailure));
 $("#diff-after").addEventListener("change", () => loadStableDiff().catch(showSwitchFailure));
+$("#shadow-strategy").addEventListener("change", () => loadShadowEvidence().catch(renderShadowUnavailable));
+$("#shadow-refresh").addEventListener("click", () => loadShadowEvidence().catch(renderShadowUnavailable));
 
 function showSwitchFailure(error) {
   renderViewControls();

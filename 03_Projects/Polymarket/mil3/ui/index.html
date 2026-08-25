@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="AARS MIL-3.7 paper-only multi-asset research console" />
-    <title>AARS MIL-3.7 | Shadow Strategy Console</title>
+    <meta name="description" content="AARS MIL-3.13 paper-only continuous shadow evidence console" />
+    <title>AARS MIL-3.13 | Continuous Shadow Console</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -13,7 +13,7 @@
     <div class="shell">
       <header class="status-bar" aria-label="System status">
         <div class="brand-lockup">
-          <span class="brand-index">AARS // 03.7</span>
+          <span class="brand-index">AARS // 03.13</span>
           <strong>SHADOW STRATEGY CONSOLE</strong>
         </div>
         <div class="status-cluster">
@@ -221,6 +221,96 @@
           </div>
           <div id="diff-summary" class="diff-summary">Select two archived views from the same market.</div>
           <div id="diff-list" class="diff-list"></div>
+        </article>
+      </section>
+
+      <section class="shadow-workspace" aria-labelledby="shadow-title">
+        <div class="shadow-heading">
+          <div>
+            <span class="panel-index">MIL-3.13 · CONTINUOUS SHADOW EVIDENCE</span>
+            <h2 id="shadow-title">Is the strategy staying stable?</h2>
+            <p>Daily PAPER_ONLY validation, parameter changes, recurring warnings, and portfolio risk—kept separate from raw market ticks.</p>
+          </div>
+          <div class="shadow-controls" aria-label="Continuous shadow evidence controls">
+            <label>
+              VALIDATION STRATEGY
+              <select id="shadow-strategy" aria-label="Continuous shadow validation strategy">
+                <option value="AARS_DYNAMIC">AARS DYNAMIC</option>
+                <option value="SPOT_GRID">SPOT GRID</option>
+                <option value="FUTURES_LONG_GRID">FUTURES LONG GRID</option>
+              </select>
+            </label>
+            <button id="shadow-refresh" type="button">REFRESH READ-ONLY VIEW</button>
+          </div>
+        </div>
+
+        <div id="shadow-state-banner" class="shadow-state-banner" role="status">
+          <div>
+            <span>LATEST STABLE SNAPSHOT</span>
+            <strong id="shadow-as-of">LOADING</strong>
+          </div>
+          <div>
+            <span>REVIEW GATE</span>
+            <strong id="shadow-review-gate">ASSESSING</strong>
+          </div>
+          <div>
+            <span>HISTORY TRUST</span>
+            <strong id="shadow-history-trust">CHECKING</strong>
+          </div>
+          <p id="shadow-next-step">Loading immutable daily evidence. No archive is being created.</p>
+        </div>
+
+        <div id="shadow-metrics" class="shadow-metrics" aria-label="Continuous shadow summary metrics"></div>
+
+        <div class="shadow-grid">
+          <article class="shadow-trend-card" aria-labelledby="shadow-trend-title">
+            <div class="panel-header">
+              <div>
+                <span class="panel-index">01 / STABILITY TRACE</span>
+                <h2 id="shadow-trend-title">Return and liquidation-risk drift</h2>
+              </div>
+              <span class="panel-note">Archived daily evidence only</span>
+            </div>
+            <div id="shadow-trend" class="shadow-trend" role="img" aria-label="Continuous shadow evidence trend"></div>
+            <div class="chart-legend">
+              <span class="legend-key">PORTFOLIO RETURN</span>
+              <span class="legend-key secondary">LIQUIDATION RISK</span>
+            </div>
+          </article>
+
+          <article class="shadow-warning-card" aria-labelledby="shadow-warning-title">
+            <div class="panel-header compact">
+              <div>
+                <span class="panel-index">02 / RECURRING CONDITIONS</span>
+                <h2 id="shadow-warning-title">Warning memory</h2>
+              </div>
+              <span id="shadow-warning-count" class="count-badge">0</span>
+            </div>
+            <div id="shadow-warning-list" class="shadow-warning-list"></div>
+          </article>
+
+          <article class="shadow-timeline-card" aria-labelledby="shadow-timeline-title">
+            <div class="panel-header compact">
+              <div>
+                <span class="panel-index">03 / DAILY CHANGE LOG</span>
+                <h2 id="shadow-timeline-title">Snapshot timeline</h2>
+              </div>
+            </div>
+            <div id="shadow-timeline" class="shadow-timeline"></div>
+          </article>
+        </div>
+
+        <article class="shadow-detail-card" aria-labelledby="shadow-detail-title">
+          <div class="panel-header">
+            <div>
+              <span class="panel-index">SELECTED IMMUTABLE EVIDENCE · NOT RAW JSON</span>
+              <h2 id="shadow-detail-title">Snapshot evidence</h2>
+            </div>
+            <strong id="shadow-detail-id" class="snapshot-id">NO SNAPSHOT</strong>
+          </div>
+          <div id="shadow-detail" class="shadow-detail">
+            <p class="shadow-empty">Waiting for the read-only local API.</p>
+          </div>
         </article>
       </section>
 

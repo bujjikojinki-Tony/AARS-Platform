@@ -1,8 +1,8 @@
-# MIL-3.10 Shadow Strategy Console HMI Design v2
+# MIL-3.13 Continuous Shadow Console HMI Design v3
 
 ## 1. Page Purpose
 
-Provide one read-only surface for deciding whether a PAPER_ONLY shadow strategy deserves further research. It must not be interpreted as a trading terminal.
+Provide one read-only surface for deciding whether a PAPER_ONLY shadow strategy deserves further research and whether its evidence remains stable across daily validation cycles. It must not be interpreted as a trading terminal.
 
 ## 2. User Role and Scenario
 
@@ -20,6 +20,9 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 8. Compare two Stable View archives for semantic change.
 9. Resolve open risk objects before accepting a shadow strategy.
 10. Distinguish the cadence used by the replay from Binance's latest observed funding cadence.
+11. Confirm the latest immutable daily shadow snapshot and synchronized evidence time.
+12. Review parameter churn, recurring warnings, return/risk drift and Review Gate transitions.
+13. Drill into per-asset train-selected candidates without exposing raw JSON as the primary view.
 
 ## 4. Information Architecture
 
@@ -28,6 +31,7 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 - Center: selected strategy metrics, traces and common-ledger table.
 - Right: liquidation-risk priority and actionable risk queue.
 - Lower deck: Latest Stable View, P&L attribution, cross-asset portfolio risk and Stable View differences.
+- Continuous-shadow deck: Latest Stable Snapshot, history trust, safe next step, stability trace, warning memory, daily change log and selected immutable evidence.
 
 ## 5. Layout Design
 
@@ -54,26 +58,34 @@ The desktop layout follows a flight-recorder/control-desk pattern with a persist
 - `CrossAssetPortfolioRiskPanel`
 - `StableViewDiffPanel`
 - `FundingCadenceProvenance`
+- `LatestStableSnapshotBanner`
+- `ShadowHistoryTrustIndicator`
+- `ShadowStabilityTrace`
+- `RecurringWarningMemory`
+- `DailySnapshotTimeline`
+- `PerAssetCandidateEvidence`
 
 ## 7. Data Model
 
-The page consumes `mil3.dashboard.v2`, `mil3.portfolio.v1`, `mil3.stable-view-diff.v1` and `mil3.funding-cadence.v1`, while keeping display compatibility with v1 static dashboard payloads. The client rejects any execution mode other than `PAPER_ONLY`.
+The page consumes `mil3.dashboard.v2`, `mil3.portfolio.v1`, `mil3.stable-view-diff.v1`, `mil3.funding-cadence.v1`, `mil3.shadow-daily-index.v1`, `mil3.shadow-daily.v1` and `mil3.shadow-stability.v1`, while keeping display compatibility with v1 static dashboard payloads. The client rejects any execution mode other than `PAPER_ONLY`; shadow evidence is also rejected unless it explicitly sets `live_execution_allowed` to `false`.
 
 ## 8. Alarm and Risk Design
 
 Risk items expose severity, object, trigger, impact, recommended next step, status and closure condition. Highest liquidation risk remains in the main view. Funding gaps explicitly warn that futures costs may be understated and state the effective cadence/provenance. Current Binance cadence and replay cadence remain visibly distinct. Portfolio degradation names affected assets and never implies cross-margin netting.
 
+Recurring validation warnings are treated as evidence objects. Each shows its recurrence count and a specific review or recovery instruction. Parameter churn, insufficient daily history, DEFER transitions and liquidation-risk drift remain visible in the main continuous-shadow deck.
+
 ## 9. Automation / AI Design
 
-AARS output is presented as a recommendation with state, confidence, Bull/Base/Bear probabilities, supporting evidence, counter evidence and the transparent decision reason. It has no execution authority or action control.
+AARS output is presented as a recommendation with state, confidence, Bull/Base/Bear probabilities, supporting evidence, counter evidence and the transparent decision reason. Daily snapshot detail separately identifies the train-selected validation candidate and the fixed monitored portfolio policy so research selection is never presented as automatic promotion. It has no execution authority or action control.
 
 ## 10. Degraded Mode and Recovery
 
-Missing, stale or unconfirmed data produces a prominent degraded banner. The screen states what remains permitted (inspect stable replay), what is blocked (treating the view as current) and how to recover (refresh candles and regenerate the payload). The embedded demonstration payload is always degraded.
+Missing, stale or unconfirmed data produces a prominent degraded banner. The screen states what remains permitted (inspect stable replay), what is blocked (treating the view as current) and how to recover (refresh candles and regenerate the payload). The embedded strategy demonstration payload is always degraded. Continuous-shadow sample history is never fabricated: direct-file or unavailable-API mode instead shows the explicit local recovery path.
 
 ## 11. User Actions and Gates
 
-Available actions only change the inspected market, replay window, archive, strategy, trace or diff baseline. There are no order, credential, live-mode or execution controls. A failed switch preserves the last displayed stable evidence and raises the degraded banner.
+Available actions only change the inspected market, replay window, archive, strategy, trace, diff baseline, validation-strategy filter or immutable snapshot detail. Refresh reads evidence but does not archive it. There are no order, credential, live-mode, approval or execution controls. A failed switch preserves the last displayed stable evidence and raises the degraded banner.
 
 ## 12. HMI Review Gate
 
@@ -86,7 +98,7 @@ Available actions only change the inspected market, replay window, archive, stra
 - G7 Data Trust: Accept
 - G8 Automation Transparency: Accept
 - G9 Recovery: Accept
-- G10 Evidence: Accept with Minor Issues; formal usability validation remains future work
+- G10 Evidence: Accept with Minor Issues; immutable snapshot IDs and per-asset fold evidence are visible, while formal usability validation remains future work
 
 Overall disposition: **Accept with Minor Issues for PAPER_ONLY research use**.
 
@@ -99,6 +111,7 @@ python run_ingest.py --db mil3_market.sqlite --days 365
 python run_funding_ingest.py --db mil3_market.sqlite --days 365
 python run_scheduler.py --db mil3_market.sqlite --poll-seconds 3600 --max-cycles 1
 python run_archive.py --db mil3_market.sqlite --symbol SOLUSDT --window 90d
+python run_shadow_daily.py --db mil3_market.sqlite --validation-strategy AARS_DYNAMIC
 python run_api.py --db mil3_market.sqlite --port 8765
 ```
 
