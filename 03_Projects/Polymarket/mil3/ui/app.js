@@ -6,6 +6,7 @@ const state = {
   viewingArchive: null,
   shadowStability: null,
   selectedShadowSnapshot: null,
+  promotionGovernance: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -65,6 +66,16 @@ function validateShadowPayload(payload, schema) {
   if (payload.schema_version !== schema) throw new Error(`unsupported ${schema} schema`);
   if (payload.execution_mode !== "PAPER_ONLY") throw new Error("unsafe shadow execution mode rejected");
   if (payload.review_gate?.live_execution_allowed !== false) throw new Error("shadow evidence did not deny live execution");
+  return payload;
+}
+
+function validatePromotionGovernance(payload) {
+  if (payload.schema_version !== "mil3.promotion-governance.v1") throw new Error("unsupported promotion governance schema");
+  if (payload.execution_mode !== "PAPER_ONLY") throw new Error("unsafe governance execution mode rejected");
+  if (payload.decision?.automatic_strategy_change_allowed !== false) throw new Error("automatic strategy change was not locked");
+  if (payload.decision?.live_execution_allowed !== false || payload.review_gate?.live_execution_allowed !== false) {
+    throw new Error("governance evidence did not deny live execution");
+  }
   return payload;
 }
 
@@ -584,6 +595,75 @@ function renderShadowStability(payload) {
   renderShadowTimeline(payload);
 }
 
+const countGovernanceChecks = new Set([
+  "MINIMUM_DAILY_HISTORY",
+  "CONSECUTIVE_READY_REVIEWS",
+  "LIQUIDATION_EVENTS",
+]);
+
+function formatGovernanceObserved(check) {
+  if (check.observed === null || check.observed === undefined) return "NOT AVAILABLE";
+  if (typeof check.observed === "object") {
+    const entries = Object.entries(check.observed.by_code || {});
+    return entries.length
+      ? entries.map(([code, value]) => `${code.replaceAll("_", " ")} ${formatPercent(value)}`).join(" · ")
+      : "NONE RECORDED";
+  }
+  if (countGovernanceChecks.has(check.id)) return String(check.observed);
+  if (typeof check.observed === "number") return formatPercent(check.observed);
+  return String(check.observed).replaceAll("_", " ");
+}
+
+function renderPromotionGovernance(payload) {
+  state.promotionGovernance = payload;
+  const disposition = payload.decision.disposition;
+  const card = $(".promotion-card");
+  card.dataset.status = disposition;
+  $("#promotion-disposition").textContent = disposition.replaceAll("_", " ");
+  $("#promotion-next-review").textContent = payload.decision.next_review_condition;
+  const passes = payload.checks.filter((item) => item.status === "PASS").length;
+  const blocks = payload.decision.blocking_checks.length;
+  const rejects = payload.decision.rejection_checks.length;
+  $("#promotion-summary").innerHTML = [
+    ["EVIDENCE WINDOW", `${payload.evidence_window.evaluated_snapshots} / ${payload.evidence_window.available_snapshots}`, "evaluated / available"],
+    ["PASSING CHECKS", `${passes} / ${payload.checks.length}`, "all required for candidacy"],
+    ["BLOCKING CHECKS", blocks, "continue observation"],
+    ["REJECTION CHECKS", rejects, "material adverse evidence"],
+  ].map(([label, value, note]) => `<div><span>${label}</span><strong>${escapeHtml(value)}</strong><small>${note}</small></div>`).join("");
+
+  const order = { REJECT: 0, BLOCK: 1, PASS: 2 };
+  $("#promotion-checks").innerHTML = [...payload.checks]
+    .sort((left, right) => order[left.status] - order[right.status])
+    .map((check) => `<article class="promotion-check" data-status="${escapeHtml(check.status)}">
+      <div class="promotion-check-head">
+        <span>${escapeHtml(check.status)}</span>
+        <strong>${escapeHtml(check.label)}</strong>
+      </div>
+      <p class="promotion-observed">OBSERVED ${escapeHtml(formatGovernanceObserved(check))} · REQUIRED ${escapeHtml(check.requirement)}</p>
+      <p>${escapeHtml(check.impact)}</p>
+      ${check.status === "PASS" ? "" : `<p class="promotion-recovery">CLEAR WHEN: ${escapeHtml(check.recovery_condition)}</p>`}
+    </article>`).join("");
+
+  $("#promotion-policy-list").innerHTML = Object.entries(payload.policy).map(([key, value]) => `
+    <dt>${escapeHtml(key.replaceAll("_", " ").toUpperCase())}</dt><dd>${escapeHtml(value)}</dd>`).join("");
+}
+
+function renderPromotionUnavailable(error) {
+  state.promotionGovernance = null;
+  $(".promotion-card").dataset.status = "CONTINUE_OBSERVATION";
+  $("#promotion-disposition").textContent = "GOVERNANCE UNAVAILABLE · CONTINUE OBSERVATION";
+  $("#promotion-next-review").textContent = "Restore the read-only governance endpoint. No strategy change is permitted while evidence is unavailable.";
+  $("#promotion-summary").innerHTML = '<div><span>RECOVERY</span><strong class="warning">READ-ONLY API REQUIRED</strong><small>existing shadow evidence is unchanged</small></div>';
+  $("#promotion-checks").innerHTML = `<p class="shadow-empty">${escapeHtml(error.message)}</p>`;
+  $("#promotion-policy-list").replaceChildren();
+}
+
+async function loadPromotionGovernance(strategy) {
+  const response = await fetch(`/api/v1/promotion-governance?limit=90&strategy=${encodeURIComponent(strategy)}`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`promotion governance returned ${response.status}`);
+  renderPromotionGovernance(validatePromotionGovernance(await response.json()));
+}
+
 function validationMarkets(snapshot) {
   return snapshot.validation.markets || [snapshot.validation];
 }
@@ -644,6 +724,7 @@ function renderShadowUnavailable(error) {
   $("#shadow-warning-list").innerHTML = `<p class="shadow-empty">${escapeHtml(error.message)}</p>`;
   $("#shadow-timeline").innerHTML = '<p class="shadow-empty">No snapshot timeline loaded.</p>';
   renderShadowDetailUnavailable(error);
+  renderPromotionUnavailable(error);
 }
 
 async function loadShadowSnapshot(snapshotId) {
@@ -669,8 +750,12 @@ async function loadShadowEvidence() {
     const stability = validateShadowPayload(await stabilityResponse.json(), "mil3.shadow-stability.v1");
     renderShadowStability(stability);
     const latestId = stability.points.at(-1)?.snapshot_id || index.shadow_snapshots[0]?.snapshot_id;
-    if (latestId) await loadShadowSnapshot(latestId);
-    else renderShadowDetailUnavailable(new Error("archive the first daily snapshot to populate evidence"));
+    await Promise.all([
+      latestId
+        ? loadShadowSnapshot(latestId).catch(renderShadowDetailUnavailable)
+        : Promise.resolve(renderShadowDetailUnavailable(new Error("archive the first daily snapshot to populate evidence"))),
+      loadPromotionGovernance(strategy).catch(renderPromotionUnavailable),
+    ]);
   } finally {
     $("#shadow-refresh").disabled = false;
     $("#shadow-refresh").textContent = "REFRESH READ-ONLY VIEW";

@@ -1,4 +1,4 @@
-# MIL-3.13 Continuous Shadow Console HMI Design v3
+# MIL-3.14 Strategy Promotion Governance Console HMI Design v4
 
 ## 1. Page Purpose
 
@@ -23,6 +23,8 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 11. Confirm the latest immutable daily shadow snapshot and synchronized evidence time.
 12. Review parameter churn, recurring warnings, return/risk drift and Review Gate transitions.
 13. Drill into per-asset train-selected candidates without exposing raw JSON as the primary view.
+14. Distinguish insufficient evidence from material rejection and a fully passing promotion candidate.
+15. Inspect every governance threshold, impact and recovery condition without changing strategy state.
 
 ## 4. Information Architecture
 
@@ -32,6 +34,7 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 - Right: liquidation-risk priority and actionable risk queue.
 - Lower deck: Latest Stable View, P&L attribution, cross-asset portfolio risk and Stable View differences.
 - Continuous-shadow deck: Latest Stable Snapshot, history trust, safe next step, stability trace, warning memory, daily change log and selected immutable evidence.
+- Governance card: advisory disposition, permanent authority locks, evidence window, blocking/rejection counts, ordered checks and conservative policy thresholds.
 
 ## 5. Layout Design
 
@@ -64,10 +67,14 @@ The desktop layout follows a flight-recorder/control-desk pattern with a persist
 - `RecurringWarningMemory`
 - `DailySnapshotTimeline`
 - `PerAssetCandidateEvidence`
+- `PromotionGovernanceDecision`
+- `PromotionAuthorityLockPanel`
+- `PromotionCheckEvidence`
+- `PromotionRecoveryCondition`
 
 ## 7. Data Model
 
-The page consumes `mil3.dashboard.v2`, `mil3.portfolio.v1`, `mil3.stable-view-diff.v1`, `mil3.funding-cadence.v1`, `mil3.shadow-daily-index.v1`, `mil3.shadow-daily.v1` and `mil3.shadow-stability.v1`, while keeping display compatibility with v1 static dashboard payloads. The client rejects any execution mode other than `PAPER_ONLY`; shadow evidence is also rejected unless it explicitly sets `live_execution_allowed` to `false`.
+The page consumes `mil3.dashboard.v2`, `mil3.portfolio.v1`, `mil3.stable-view-diff.v1`, `mil3.funding-cadence.v1`, `mil3.shadow-daily-index.v1`, `mil3.shadow-daily.v1`, `mil3.shadow-stability.v1` and `mil3.promotion-governance.v1`, while keeping display compatibility with v1 static dashboard payloads. The client rejects any execution mode other than `PAPER_ONLY`; shadow evidence is rejected unless it explicitly sets `live_execution_allowed` to `false`, and governance is rejected unless automatic strategy change is also explicitly disabled.
 
 ## 8. Alarm and Risk Design
 
@@ -75,9 +82,11 @@ Risk items expose severity, object, trigger, impact, recommended next step, stat
 
 Recurring validation warnings are treated as evidence objects. Each shows its recurrence count and a specific review or recovery instruction. Parameter churn, insufficient daily history, DEFER transitions and liquidation-risk drift remain visible in the main continuous-shadow deck.
 
+Governance orders material `REJECT` checks before `BLOCK` and `PASS` checks. Non-pass checks state their observed value, requirement, impact and recovery condition. Color is reinforced by explicit text labels.
+
 ## 9. Automation / AI Design
 
-AARS output is presented as a recommendation with state, confidence, Bull/Base/Bear probabilities, supporting evidence, counter evidence and the transparent decision reason. Daily snapshot detail separately identifies the train-selected validation candidate and the fixed monitored portfolio policy so research selection is never presented as automatic promotion. It has no execution authority or action control.
+AARS output is presented as a recommendation with state, confidence, Bull/Base/Bear probabilities, supporting evidence, counter evidence and the transparent decision reason. Daily snapshot detail separately identifies the train-selected validation candidate and the fixed monitored portfolio policy so research selection is never presented as automatic promotion. `PROMOTION_CANDIDATE` authorizes only a separate human paper-only review. It has no execution authority or action control.
 
 ## 10. Degraded Mode and Recovery
 
@@ -85,7 +94,7 @@ Missing, stale or unconfirmed data produces a prominent degraded banner. The scr
 
 ## 11. User Actions and Gates
 
-Available actions only change the inspected market, replay window, archive, strategy, trace, diff baseline, validation-strategy filter or immutable snapshot detail. Refresh reads evidence but does not archive it. There are no order, credential, live-mode, approval or execution controls. A failed switch preserves the last displayed stable evidence and raises the degraded banner.
+Available actions only change the inspected market, replay window, archive, strategy, trace, diff baseline, validation-strategy filter or immutable snapshot detail. Refresh reads evidence and recomputes advisory governance but does not archive or promote anything. There are no order, credential, live-mode, approval, parameter-change or execution controls. A failed switch preserves the last displayed stable evidence and raises the degraded banner.
 
 ## 12. HMI Review Gate
 

@@ -17,7 +17,7 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
     root = str(Path(ui_root).resolve())
 
     class ReadOnlyHandler(SimpleHTTPRequestHandler):
-        server_version = "AARS-MIL3-ReadOnly/0.3"
+        server_version = "AARS-MIL3-ReadOnly/0.4"
 
         def __init__(self, *args: object, **kwargs: object) -> None:
             super().__init__(*args, directory=root, **kwargs)
@@ -94,6 +94,12 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
             if parsed.path == "/api/v1/shadow-stability":
                 limit = int(query.get("limit", ["90"])[0])
                 return HTTPStatus.OK, service.shadow_stability(
+                    limit=limit,
+                    target_strategy=query.get("strategy", [None])[0],
+                )
+            if parsed.path == "/api/v1/promotion-governance":
+                limit = int(query.get("limit", ["90"])[0])
+                return HTTPStatus.OK, service.promotion_governance(
                     limit=limit,
                     target_strategy=query.get("strategy", [None])[0],
                 )

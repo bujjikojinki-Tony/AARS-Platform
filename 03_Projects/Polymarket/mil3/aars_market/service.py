@@ -229,3 +229,13 @@ class DashboardService:
             limit=limit, target_strategy=target_strategy
         )
         return build_shadow_stability(snapshots)
+
+    def promotion_governance(
+        self, *, limit: int = 90, target_strategy: str | None = None
+    ) -> dict[str, Any]:
+        from .governance import build_promotion_governance
+
+        stability = self.shadow_stability(
+            limit=limit, target_strategy=target_strategy
+        )
+        return build_promotion_governance(stability)

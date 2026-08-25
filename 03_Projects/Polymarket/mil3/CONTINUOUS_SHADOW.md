@@ -100,6 +100,16 @@ refreshing the evidence or selecting a snapshot never creates an archive. If
 the API is unavailable, the workspace displays a degraded recovery state and
 does not fabricate sample daily history.
 
+## MIL-3.14 promotion governance
+
+The local console also evaluates a conservative advisory promotion policy over
+immutable daily evidence. It distinguishes insufficient or unstable evidence
+(`CONTINUE_OBSERVATION`) from material adverse evidence (`REJECT_PROMOTION`) and
+fully passing evidence (`PROMOTION_CANDIDATE`). A candidate remains subject to
+separate human PAPER_ONLY review; automatic strategy change and live execution
+are always disabled. See `PROMOTION_GOVERNANCE.md` for thresholds and rejection
+bands.
+
 ## Review interpretation
 
 The combined daily review is `DEFER` when either validation is deferred or the

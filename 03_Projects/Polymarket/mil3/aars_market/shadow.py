@@ -164,6 +164,10 @@ def _point(snapshot_id: str, payload: dict[str, Any]) -> dict[str, Any]:
     validation = payload["validation"]
     aggregates = [market["aggregate"] for market in _markets(validation)]
     portfolio = payload["portfolio"]["summary"]
+    mean_test_return = fmean(float(item["mean_test_return"]) for item in aggregates)
+    mean_buy_hold_return = fmean(
+        float(item.get("mean_buy_hold_return", 0.0)) for item in aggregates
+    )
     return {
         "snapshot_id": snapshot_id,
         "as_of": payload["as_of"],
@@ -171,8 +175,10 @@ def _point(snapshot_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         "portfolio_strategy": payload["configuration"]["portfolio_strategy"],
         "selected_candidates": _selected_candidates(validation),
         "warning_codes": _warning_codes(validation),
-        "mean_validation_test_return": fmean(
-            float(item["mean_test_return"]) for item in aggregates
+        "mean_validation_test_return": mean_test_return,
+        "mean_validation_buy_hold_return": mean_buy_hold_return,
+        "mean_validation_excess_return_vs_buy_hold": (
+            mean_test_return - mean_buy_hold_return
         ),
         "mean_selection_stability": fmean(
             float(item["selection_stability"]) for item in aggregates
