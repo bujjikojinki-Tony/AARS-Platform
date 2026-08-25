@@ -92,3 +92,6 @@ observation_application_allowed=false
 automatic_strategy_change_allowed=false
 live_execution_allowed=false
 ```
+
+Continuous checkpoint scheduling, persistence confirmation and decay/risk
+alarms are defined in `CONTINUOUS_FORWARD_OBSERVATION.md`.

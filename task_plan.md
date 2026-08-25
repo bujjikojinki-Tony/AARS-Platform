@@ -329,3 +329,13 @@ PWB-11 Complete
 - [x] Update MIL-3 documentation and run the full suite
 - [x] Commit the milestone
 - **Status:** complete
+
+## MIL-3.18 Continuous Forward Observation Governance
+- [x] Define checkpoint scheduling, stability analysis, decay warnings, and confirmation policy
+- [x] Add deterministic forward-observation stability/governance model
+- [x] Add safe scheduled checkpoint orchestration without duplicate writes or execution paths
+- [x] Expose read-only stability/governance API and task-centered UI evidence
+- [x] Add deterministic scheduler, stability, degradation, API, CLI, and UI tests
+- [x] Update documentation and run the full suite
+- [x] Review and commit the milestone
+- **Status:** complete

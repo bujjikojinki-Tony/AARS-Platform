@@ -8,7 +8,7 @@ UI_ROOT = Path(__file__).parents[1] / "ui"
 def test_continuous_shadow_workspace_exposes_task_and_safety_hierarchy():
     html = (UI_ROOT / "index.html").read_text(encoding="utf-8")
 
-    assert "AARS // 03.17" in html
+    assert "AARS // 03.18" in html
     assert 'id="shadow-state-banner"' in html
     assert 'id="shadow-review-gate"' in html
     assert 'id="shadow-history-trust"' in html

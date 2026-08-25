@@ -217,3 +217,18 @@
 - Added `FORWARD_OBSERVATION.md` and updated the main MIL-3 and UI documentation.
 - Final verification: JavaScript syntax check passed; 98 Python tests passed in 2.62 seconds.
 - Final diff passed whitespace validation; MIL-3.17 is ready for its local milestone commit.
+## 2026-08-25 — MIL-3.18 started
+- Confirmed clean MIL-3.17 baseline and recovered the persistent plan.
+- Selected continuous checkpoint scheduling plus stability/decay governance as the next bounded milestone.
+- Next: inspect scheduler and observation contracts, then implement the stability model first.
+- Implemented derived forward stability/governance with confirmation streaks, lineage/cadence verification, decay/reversal/rising-risk alarms and hard-stop precedence.
+- Implemented the independent local forward monitor and bounded CLI; ingestion remains public-market-data-only.
+- Added seven deterministic MIL-3.18 backend tests; all pass after correcting one direct-handler test expectation.
+- Next: expose stability and alarm evidence in the read-only console, then document and run the full suite.
+- Added continuous-governance UI progress, trace, alarm and recovery evidence plus strict client authority validation.
+- Added continuous-forward documentation and updated the main MIL-3 and UI contracts.
+- Full verification: JavaScript syntax passed; 106 Python tests passed in 3.14 seconds.
+- Next: inspect the final diff for safety/regression issues, then commit MIL-3.18 locally.
+- Final hardening added review-gate authority checks, genesis/time-order lineage validation and empty-history API identity.
+- Final verification after hardening: 106 Python tests passed in 3.20 seconds; JavaScript syntax and diff whitespace checks passed.
+- MIL-3.18 is ready for its local milestone commit.

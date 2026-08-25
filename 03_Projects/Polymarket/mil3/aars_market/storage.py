@@ -1292,6 +1292,19 @@ class MarketStore:
         rows = self.list_forward_observations(limit=1, trial_id=trial_id)
         return rows[0] if rows else None
 
+    def load_forward_observations(
+        self, trial_id: str, *, limit: int = 90
+    ) -> list[tuple[str, dict[str, Any]]]:
+        metadata = self.list_forward_observations(limit=limit, trial_id=trial_id)
+        observations = []
+        for item in reversed(metadata):
+            envelope = self.get_forward_observation(item["observation_id"])
+            if envelope is not None:
+                observations.append(
+                    (item["observation_id"], envelope["observation"])
+                )
+        return observations
+
     def get_forward_observation(self, observation_id: str) -> dict[str, Any] | None:
         with self.connect() as conn:
             row = conn.execute(

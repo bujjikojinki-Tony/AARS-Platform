@@ -256,6 +256,20 @@ Status: **implemented on `mil-3-live-market-paper-trading`**.
 
 The contract and commands are documented in `mil3/FORWARD_OBSERVATION.md`.
 
+### MIL-3.18 — Continuous Forward Observation Governance
+
+Status: **implemented on `mil-3-live-market-paper-trading`**.
+
+- `run_forward_monitor.py` provides a bounded or continuous local polling loop that advances every eligible trial by at most one immutable synchronized endpoint per cycle.
+- The monitor is isolated from the ingestion scheduler, idempotently reuses unchanged endpoints, waits for insufficient history, degrades on evidence failures and skips trials after a hard stop.
+- Read-only stability evaluates up to 30 checkpoints and requires at least 720 measured 1h bars plus three consecutive qualifying checkpoints before confirmation.
+- Every checkpoint transition verifies predecessor observation ID and input hash; broken lineage or a gap above 48 hours defers review.
+- Edge decay, edge reversal, rising liquidation risk and hard stops become structured alarms with trigger, impact, recommended response and closure condition.
+- `EXTENDED_OBSERVATION_CONFIRMED` is evidence for human paper review only. Automatic strategy changes, parameter application and live execution remain prohibited.
+- The console keeps horizon/streak progress, score/return deltas, risk, checkpoint trace and active alarms in the main forward-observation surface.
+
+The scheduling and governance contract is documented in `mil3/CONTINUOUS_FORWARD_OBSERVATION.md`.
+
 ## Initial decision policy
 
 The initial policy intentionally prefers risk control over activity:
@@ -301,6 +315,10 @@ python run_validate.py \
 python run_forward_observation.py \
   --db mil3_market.sqlite \
   --trial-id <eligible_trial_id>
+python run_forward_monitor.py \
+  --db mil3_market.sqlite \
+  --poll-seconds 3600 \
+  --max-cycles 1
 python -m pytest -q
 ```
 
@@ -315,6 +333,7 @@ The ingestion and scheduler commands touch only public market-data endpoints. Re
 - MIL-3.10 deterministic tests cover read-only health behavior, missing/stale/partial failure modes, consistent online backup, scoped retention, bounded log rotation, absolute launchd definitions, localhost-only API binding and data-preserving uninstall.
 - MIL-3.11 deterministic tests cover parameter-grid caps, chronological fold boundaries, training-only selection, strict finite JSON, common-ledger evidence, multi-asset aggregation and CLI report generation.
 - MIL-3.17 deterministic tests cover strict forward boundaries, synchronized assets, warmup exclusion, dynamic funding completeness, eligible-trial enforcement, hard stops, immutable lineage, read-only API/CLI authority and UI boundary visibility.
+- MIL-3.18 deterministic tests cover minimum horizon and confirmation streaks, decay/reversal/rising-risk alarms, hard-stop precedence, lineage/cadence deferral, bounded monitoring, idempotent endpoint reuse, waiting states, read-only stability API/CLI authority and UI alarm actionability.
 
 ## Definition of Done
 

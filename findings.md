@@ -211,3 +211,22 @@
 - Rebuilding the same endpoint must preserve the checkpoint's original lineage to remain idempotent; a later endpoint chains to the prior observation ID and input hash, while older unseen endpoints are rejected.
 - Warmup candles must be included in the content hash because they affect the first forward decision, even though they are excluded from all measured performance; the implementation now preserves this reproducibility distinction.
 - The storage boundary independently revalidates the archived trial configuration, target strategy and per-asset anchors, so callers cannot bypass the normal CLI by submitting altered parameters or a forward start at/before the trial endpoint.
+## 2026-08-25 — MIL-3.18 kickoff
+- MIL-3.17 is cleanly committed at `6964d87`; the branch is seven commits ahead of origin.
+- MIL-3.18 will govern a sequence of existing immutable checkpoints rather than introduce another strategy or execution mechanism.
+- Confirmation must require both a minimum forward horizon and consecutive qualifying checkpoints; a single favorable checkpoint is insufficient.
+- The main view should keep current risk, evidence continuity, confirmation progress, decay warnings, and recovery instructions visible without action controls.
+- The existing ingestion scheduler is intentionally public-market-data-only; continuous forward observation should be a separate local runner so replay failures cannot interfere with ingestion and the scheduler's declared scope remains truthful.
+- Existing shadow stability derives transitions without persisting a second aggregate table. MIL-3.18 can follow that pattern: immutable forward checkpoints remain the source of truth, while stability/governance is rebuilt read-only from their ordered payloads.
+- Long-term confirmation should require a minimum measured horizon plus a tail streak of qualifying checkpoints; hard stops override all confirmation progress, and broken lineage must force deferral.
+- The stability model can remain read-only and deterministic: it derives score/return/risk transitions, verifies every predecessor ID and input hash, and turns continuity, decay, reversal, rising risk and hard-stop conditions into actionable evidence objects.
+- Default confirmation is deliberately stricter than MIL-3.17's first checkpoint: 720 measured 1h bars (30 days) and three consecutive qualifying checkpoints inside a 30-checkpoint evaluation window.
+- The monitor is isolated from ingestion, processes every eligible archived trial, reuses an unchanged endpoint idempotently, waits on insufficient history, degrades on integrity/coverage failures, and permanently skips a trial after its latest hard-stop checkpoint.
+
+## MIL-3.18 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| Direct `_api_payload()` test expected a returned 400 for a missing `trial_id`, but validation raises before HTTP dispatch wraps it | 1 | Updated the unit test to assert the domain `ValueError`; request dispatch remains responsible for the HTTP 400 envelope |
+- The MIL-3.18 control surface passes its targeted syntax/tests and keeps confirmation progress, current risk, checkpoint trace, alarms, recommended response and closure condition in the primary forward-observation card.
+- Final review added review-gate authority validation, genesis/non-monotonic lineage checks and a truthful empty-history stability response bound to the requested archived trial.
+- No authenticated adapter, credential handling, order call or configuration-application route was added; the new monitor only reads market/trial evidence and archives PAPER_ONLY checkpoints.

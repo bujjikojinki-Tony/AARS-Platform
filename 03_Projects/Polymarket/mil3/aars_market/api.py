@@ -122,6 +122,13 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
                     target_strategy=query.get("strategy", [None])[0],
                     trial_id=query.get("trial_id", [None])[0],
                 )
+            if parsed.path == "/api/v1/forward-stability":
+                trial_id = query.get("trial_id", [""])[0]
+                if not trial_id:
+                    raise ValueError("trial_id is required")
+                return HTTPStatus.OK, service.forward_stability(
+                    trial_id, limit=int(query.get("limit", ["90"])[0])
+                )
             forward_prefix = "/api/v1/forward-observations/"
             if parsed.path.startswith(forward_prefix):
                 observation_id = parsed.path[len(forward_prefix):]

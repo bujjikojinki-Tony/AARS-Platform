@@ -91,10 +91,13 @@ The desktop layout follows a flight-recorder/control-desk pattern with a persist
 - `ForwardObservationCard`
 - `StrictOutOfSampleBoundary`
 - `ForwardCheckpointLineage`
+- `ForwardConfirmationProgress`
+- `ForwardStabilityTrace`
+- `ForwardEvidenceAlarm`
 
 ## 7. Data Model
 
-The page consumes `mil3.dashboard.v2`, `mil3.portfolio.v1`, `mil3.stable-view-diff.v1`, `mil3.funding-cadence.v1`, `mil3.shadow-daily-index.v1`, `mil3.shadow-daily.v1`, `mil3.shadow-stability.v1`, `mil3.promotion-governance.v1`, `mil3.paper-configuration-proposal-index.v1`, `mil3.paper-configuration-proposal-envelope.v1`, `mil3.paper-trial-result-index.v1`, `mil3.paper-trial-result-envelope.v1`, `mil3.forward-observation-index.v1` and `mil3.forward-observation-envelope.v1`, while keeping display compatibility with v1 static dashboard payloads. The client rejects any execution mode other than `PAPER_ONLY`; trial and forward evidence are rejected unless application, automatic change and live execution are explicitly disabled at both envelope and review-gate levels. Forward evidence must also prove the strict post-trial boundary and exclude warmup history from performance.
+The page consumes `mil3.dashboard.v2`, `mil3.portfolio.v1`, `mil3.stable-view-diff.v1`, `mil3.funding-cadence.v1`, `mil3.shadow-daily-index.v1`, `mil3.shadow-daily.v1`, `mil3.shadow-stability.v1`, `mil3.promotion-governance.v1`, `mil3.paper-configuration-proposal-index.v1`, `mil3.paper-configuration-proposal-envelope.v1`, `mil3.paper-trial-result-index.v1`, `mil3.paper-trial-result-envelope.v1`, `mil3.forward-observation-index.v1`, `mil3.forward-observation-envelope.v1` and `mil3.forward-stability.v1`, while keeping display compatibility with v1 static dashboard payloads. The client rejects any execution mode other than `PAPER_ONLY`; trial, forward and stability evidence are rejected unless application, automatic change and live execution are explicitly disabled at both envelope and review-gate levels. Forward evidence must also prove the strict post-trial boundary and exclude warmup history from performance.
 
 ## 8. Alarm and Risk Design
 
@@ -125,6 +128,8 @@ If no proposal exists, the console keeps `NO CHANGE PERMITTED` visible and expla
 If no trial exists, the console shows `NO CONFIGURATION APPLIED` and states that an acknowledged proposal is required. If the API or trial evidence is unavailable, no stop result or disposition is inferred.
 
 If no forward checkpoint exists, the console states that an eligible trial and new market data are required. If its boundary or authority evidence is invalid, no forward disposition is rendered and historical results are never treated as out-of-sample evidence.
+
+If forward stability is unavailable, the checkpoint itself may remain visible but the console states `NO PERSISTENCE CLAIM`. Stability alarms remain continuously visible in the main card and expose trigger, impact, recommended response and closure condition without dismissal or execution controls.
 
 ## 11. User Actions and Gates
 

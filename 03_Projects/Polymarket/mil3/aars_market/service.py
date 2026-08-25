@@ -302,3 +302,18 @@ class DashboardService:
         if payload is None:
             raise KeyError(f"forward observation not found: {observation_id}")
         return payload
+
+    def forward_stability(
+        self, trial_id: str, *, limit: int = 90
+    ) -> dict[str, Any]:
+        from .forward_stability import build_forward_stability
+
+        trial = self.store.get_paper_trial_result(trial_id)
+        if trial is None:
+            raise KeyError(f"paper trial not found: {trial_id}")
+        observations = self.store.load_forward_observations(trial_id, limit=limit)
+        payload = build_forward_stability(observations)
+        if not observations:
+            payload["trial_id"] = trial_id
+            payload["target_strategy"] = trial["trial"]["target_strategy"]
+        return payload

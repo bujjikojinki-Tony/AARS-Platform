@@ -10,6 +10,7 @@ const state = {
   paperProposal: null,
   paperTrial: null,
   forwardObservation: null,
+  forwardStability: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -159,6 +160,20 @@ function validateForwardObservationEnvelope(payload) {
   }
   if (gate?.observation_application_allowed !== false || gate?.automatic_strategy_change_allowed !== false || gate?.live_execution_allowed !== false) {
     throw new Error("forward observation review gate exceeded advisory authority");
+  }
+  return payload;
+}
+
+function validateForwardStability(payload) {
+  if (payload.schema_version !== "mil3.forward-stability.v1") throw new Error("unsupported forward stability schema");
+  if (payload.execution_mode !== "PAPER_ONLY") throw new Error("unsafe forward stability mode rejected");
+  const authority = payload.authority;
+  const gate = payload.review_gate;
+  if (authority?.observation_application_allowed !== false || authority?.automatic_strategy_change_allowed !== false || authority?.live_execution_allowed !== false) {
+    throw new Error("forward stability did not preserve authority locks");
+  }
+  if (gate?.observation_application_allowed !== false || gate?.automatic_strategy_change_allowed !== false || gate?.live_execution_allowed !== false) {
+    throw new Error("forward stability review gate exceeded advisory authority");
   }
   return payload;
 }
@@ -978,6 +993,46 @@ function renderForwardObservation(envelope) {
   $("#forward-observation-source").textContent = `TRIAL ${observation.trial_id} · INPUT SHA256 ${observation.input_evidence.combined_sha256} · FORWARD-ONLY · NO RESULT APPLIES A CONFIGURATION`;
 }
 
+function renderForwardStability(payload) {
+  state.forwardStability = payload;
+  const summary = payload.summary;
+  const policy = payload.policy;
+  const disposition = payload.review_gate.disposition;
+  $("#forward-stability-status").textContent = disposition.replaceAll("_", " ");
+  $("#forward-stability-status").dataset.status = disposition;
+  $("#forward-stability-progress").innerHTML = [
+    ["MEASURED HORIZON", `${summary.latest_forward_bars} / ${policy.minimum_forward_bars} BARS`, summary.latest_forward_bars >= policy.minimum_forward_bars ? "HORIZON MET" : "ACCUMULATING"],
+    ["QUALIFYING STREAK", `${summary.consecutive_qualifying_checkpoints} / ${policy.minimum_consecutive_qualifying}`, summary.consecutive_qualifying_checkpoints >= policy.minimum_consecutive_qualifying ? "STREAK MET" : "NOT YET PERSISTENT"],
+    ["CURRENT SCORE Δ", formatNumber(summary.current_score_delta, 3), `BEST ${formatNumber(summary.best_score_delta, 3)}`],
+    ["CURRENT RETURN Δ", formatPercent(summary.current_return_delta, 1, true), `${summary.evaluated_checkpoints} / ${summary.available_checkpoints} CHECKPOINTS EVALUATED`],
+    ["LIQUIDATION RISK", formatPercent(summary.current_liquidation_risk), summary.warning_codes.includes("LIQUIDATION_RISK_RISING") ? "RISING" : "NO RISING-RISK ALARM"],
+  ].map(([label, value, note]) => `<div><span>${label}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></div>`).join("");
+
+  $("#forward-stability-trace").innerHTML = payload.points.length ? payload.points.map((point) => `
+    <article data-qualified="${point.forward_bars >= policy.minimum_forward_bars && point.score_delta >= 0 && point.return_delta >= 0 && !point.stop_triggered}">
+      <span>${escapeHtml(formatDate(point.observed_through))}</span>
+      <strong>${formatNumber(point.score_delta, 3)} <small>SCORE Δ</small></strong>
+      <em>${formatPercent(point.return_delta, 1, true)} RETURN Δ · ${formatPercent(point.proposed_max_liquidation_risk)} LIQ RISK</em>
+    </article>`).join("") : '<p class="shadow-empty">No checkpoint trace is available.</p>';
+
+  $("#forward-stability-alarms").innerHTML = payload.alarms.length ? payload.alarms.map((alarm) => `
+    <article data-severity="${escapeHtml(alarm.severity)}">
+      <div><strong>${escapeHtml(alarm.severity)} · ${escapeHtml(alarm.code.replaceAll("_", " "))}</strong><span>${escapeHtml(alarm.object)}</span></div>
+      <dl><dt>TRIGGER</dt><dd>${escapeHtml(alarm.trigger)}</dd><dt>IMPACT</dt><dd>${escapeHtml(alarm.impact)}</dd><dt>RECOMMENDED</dt><dd>${escapeHtml(alarm.recommended_action)}</dd><dt>CLOSE WHEN</dt><dd>${escapeHtml(alarm.closure_condition)}</dd></dl>
+    </article>`).join("") : '<p class="forward-clear">NO ACTIVE DECAY OR CONTINUITY ALARMS</p>';
+  $("#forward-stability-next").textContent = `${payload.review_gate.next_review_condition} Automatic strategy change and live execution remain disallowed.`;
+}
+
+function renderForwardStabilityUnavailable(error) {
+  state.forwardStability = null;
+  $("#forward-stability-status").textContent = "STABILITY UNAVAILABLE";
+  $("#forward-stability-status").dataset.status = "UNAVAILABLE";
+  $("#forward-stability-progress").innerHTML = '<div><span>SAFE STATE</span><strong class="warning">NO PERSISTENCE CLAIM</strong><small>read-only evidence unavailable</small></div>';
+  $("#forward-stability-trace").innerHTML = '<p class="shadow-empty">No checkpoint trend is inferred.</p>';
+  $("#forward-stability-alarms").innerHTML = `<p class="shadow-empty">${escapeHtml(error.message)}</p>`;
+  $("#forward-stability-next").textContent = "Restore the read-only stability endpoint; keep baseline and do not apply parameters.";
+}
+
 function renderForwardObservationUnavailable(error, empty = false) {
   state.forwardObservation = null;
   $(".forward-observation-card").dataset.status = empty ? "NO_OBSERVATION" : "UNAVAILABLE";
@@ -989,6 +1044,7 @@ function renderForwardObservationUnavailable(error, empty = false) {
   $("#forward-observation-lineage").innerHTML = '<strong>NO ARCHIVED LINEAGE</strong><p>No checkpoint continuity is inferred.</p>';
   $("#forward-observation-assets").replaceChildren();
   $("#forward-observation-source").textContent = error.message;
+  renderForwardStabilityUnavailable(error);
 }
 
 async function loadForwardObservations(strategy) {
@@ -1000,9 +1056,17 @@ async function loadForwardObservations(strategy) {
     renderForwardObservationUnavailable(new Error("Archive a checkpoint after an eligible trial accumulates new PAPER_ONLY evidence."), true);
     return;
   }
-  const detailResponse = await fetch(`/api/v1/forward-observations/${encodeURIComponent(latest.observation_id)}`, { cache: "no-store" });
+  const [detailResponse, stabilityResponse] = await Promise.all([
+    fetch(`/api/v1/forward-observations/${encodeURIComponent(latest.observation_id)}`, { cache: "no-store" }),
+    fetch(`/api/v1/forward-stability?trial_id=${encodeURIComponent(latest.trial_id)}&limit=90`, { cache: "no-store" }),
+  ]);
   if (!detailResponse.ok) throw new Error(`forward observation detail returned ${detailResponse.status}`);
   renderForwardObservation(validateForwardObservationEnvelope(await detailResponse.json()));
+  if (!stabilityResponse.ok) {
+    renderForwardStabilityUnavailable(new Error(`forward stability returned ${stabilityResponse.status}`));
+  } else {
+    renderForwardStability(validateForwardStability(await stabilityResponse.json()));
+  }
 }
 
 function validationMarkets(snapshot) {
