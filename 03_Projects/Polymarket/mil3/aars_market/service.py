@@ -281,3 +281,24 @@ class DashboardService:
         if payload is None:
             raise KeyError(f"paper trial not found: {trial_id}")
         return payload
+
+    def list_forward_observations(
+        self, *, limit: int = 30, target_strategy: str | None = None, trial_id: str | None = None
+    ) -> dict[str, Any]:
+        return {
+            "schema_version": "mil3.forward-observation-index.v1",
+            "execution_mode": "PAPER_ONLY",
+            "observations": self.store.list_forward_observations(
+                limit=limit, target_strategy=target_strategy, trial_id=trial_id
+            ),
+            "read_only": True,
+            "observation_application_allowed": False,
+            "automatic_strategy_change_allowed": False,
+            "live_execution_allowed": False,
+        }
+
+    def forward_observation(self, observation_id: str) -> dict[str, Any]:
+        payload = self.store.get_forward_observation(observation_id)
+        if payload is None:
+            raise KeyError(f"forward observation not found: {observation_id}")
+        return payload

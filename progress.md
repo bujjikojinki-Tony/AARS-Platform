@@ -206,3 +206,14 @@
 - Added `weather-dashboard/src/weather_dashboard/ui/activation_authorization_review_panel.py` and wired it into the History shell.
 - Added PWB-11 dashboard smoke coverage and freeze docs.
 - Verified the new panel module and History shell import path with the local `python3` runtime.
+## 2026-08-25 — MIL-3.17 started
+- Confirmed clean `mil-3-live-market-paper-trading` worktree at MIL-3.16.
+- Recovered the file-based plan and established the forward-only observation boundary and safety constraints.
+- Next: implement the domain model and storage contract, then expose read-only workflows and deterministic tests.
+- Implemented the forward-only builder, synchronized multi-asset boundary, dynamic funding coverage gate, advisory dispositions, append-only SQLite archive, lineage chain, read-only service/API, and explicit local CLI.
+- Added seven deterministic MIL-3.17 backend acceptance tests; all seven pass.
+- Next: add the read-only forward observation console, documentation, then run the full suite.
+- Added the forward-only dashboard card with explicit leakage boundary, advisory status, stop state, per-asset evidence and checkpoint lineage; the client fails closed on schema or authority violations.
+- Added `FORWARD_OBSERVATION.md` and updated the main MIL-3 and UI documentation.
+- Final verification: JavaScript syntax check passed; 98 Python tests passed in 2.62 seconds.
+- Final diff passed whitespace validation; MIL-3.17 is ready for its local milestone commit.

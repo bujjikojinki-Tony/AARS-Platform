@@ -156,6 +156,26 @@ CREATE TABLE IF NOT EXISTS paper_trial_results (
 
 CREATE INDEX IF NOT EXISTS idx_paper_trials_completed
 ON paper_trial_results(completed_at DESC, trial_id DESC);
+
+CREATE TABLE IF NOT EXISTS forward_observations (
+    observation_id TEXT PRIMARY KEY,
+    trial_id TEXT NOT NULL,
+    observed_through TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    target_strategy TEXT NOT NULL,
+    disposition TEXT NOT NULL,
+    input_sha256 TEXT NOT NULL,
+    schema_version TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    UNIQUE(trial_id, observed_through),
+    FOREIGN KEY (trial_id) REFERENCES paper_trial_results(trial_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_forward_observations_created
+ON forward_observations(created_at DESC, observation_id DESC);
+
+CREATE INDEX IF NOT EXISTS idx_forward_observations_trial_end
+ON forward_observations(trial_id, observed_through DESC);
 """
 
 
@@ -1113,6 +1133,180 @@ class MarketStore:
             "trial": json.loads(row["payload_json"]),
             "read_only": True,
             "trial_application_allowed": False,
+            "automatic_strategy_change_allowed": False,
+            "live_execution_allowed": False,
+        }
+
+    def archive_forward_observation(self, payload: dict[str, Any]) -> str:
+        if payload.get("schema_version") != "mil3.forward-observation.v1":
+            raise ValueError("unsupported forward observation schema")
+        if payload.get("execution_mode") != "PAPER_ONLY":
+            raise ValueError("forward observation must be PAPER_ONLY")
+        authority = payload.get("authority", {})
+        gate = payload.get("review_gate", {})
+        for source in (authority, gate):
+            if source.get("observation_application_allowed") is not False:
+                raise ValueError("forward observation must disallow application")
+            if source.get("automatic_strategy_change_allowed") is not False:
+                raise ValueError("forward observation must lock automatic changes")
+            if source.get("live_execution_allowed") is not False:
+                raise ValueError("forward observation must disallow live execution")
+        if gate.get("disposition") not in {
+            "STOP_FORWARD_OBSERVATION",
+            "CONTINUE_FORWARD_OBSERVATION",
+            "PROPOSED_EDGE_CONFIRMED",
+            "PROPOSED_EDGE_NOT_CONFIRMED",
+        }:
+            raise ValueError("unsupported forward observation disposition")
+        if (payload.get("stop_condition", {}).get("triggered") is True) != (
+            gate.get("disposition") == "STOP_FORWARD_OBSERVATION"
+        ):
+            raise ValueError("forward observation stop result and disposition disagree")
+        evidence = payload.get("input_evidence", {})
+        combined = str(evidence.get("combined_sha256", ""))
+        hashes = evidence.get("per_asset_sha256", {})
+        expected = hashlib.sha256(
+            json.dumps(hashes, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest() if isinstance(hashes, dict) and hashes else ""
+        if len(combined) != 64 or combined != expected:
+            raise ValueError("forward observation input hash does not match assets")
+        symbols = payload.get("configuration", {}).get("symbols", [])
+        assets = payload.get("results", {}).get("per_asset", [])
+        if set(symbols) != set(hashes) or {item.get("symbol") for item in assets} != set(hashes):
+            raise ValueError("forward observation assets do not match configuration")
+        boundary = payload.get("boundary", {})
+        if boundary.get("policy") != "STRICTLY_AFTER_TRIAL_EVIDENCE_END":
+            raise ValueError("forward observation boundary policy is invalid")
+        if boundary.get("historical_replay_included") is not False:
+            raise ValueError("forward observation cannot include historical replay")
+        observed_through = _parse(str(boundary["synchronized_forward_end"]))
+        generated = _parse(str(payload["generated_at"]))
+
+        canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False)
+        identity_payload = json.loads(canonical)
+        identity_payload.pop("generated_at", None)
+        identity = json.dumps(identity_payload, sort_keys=True, separators=(",", ":"), allow_nan=False)
+        observation_id = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:24]
+        with self.connect() as conn:
+            trial = conn.execute(
+                "SELECT disposition, target_strategy, payload_json FROM paper_trial_results WHERE trial_id=?",
+                (payload["trial_id"],),
+            ).fetchone()
+            if trial is None:
+                raise ValueError("forward observation trial is not archived")
+            if trial["disposition"] != "ELIGIBLE_FOR_EXTENDED_PAPER_OBSERVATION":
+                raise ValueError("forward observation trial is not eligible")
+            trial_payload = json.loads(trial["payload_json"])
+            trial_configuration = trial_payload.get("configuration", {})
+            observation_configuration = payload.get("configuration", {})
+            for key in ("symbols", "timeframe", "warmup_bars", "baseline", "proposed"):
+                if observation_configuration.get(key) != trial_configuration.get(key):
+                    raise ValueError("forward observation configuration differs from trial")
+            if observation_configuration.get("trial_settings") != trial_configuration.get("settings"):
+                raise ValueError("forward observation settings differ from trial")
+            if payload.get("target_strategy") != trial["target_strategy"]:
+                raise ValueError("forward observation strategy differs from trial")
+            trial_anchors = {
+                item.get("symbol"): item.get("evidence_end")
+                for item in trial_payload.get("results", {}).get("per_asset", [])
+                if isinstance(item, dict)
+            }
+            if boundary.get("trial_evidence_end_per_asset") != trial_anchors:
+                raise ValueError("forward observation anchors differ from trial")
+            for asset in assets:
+                symbol = asset.get("symbol")
+                try:
+                    anchor = _parse(str(trial_anchors[symbol]))
+                    forward_start = _parse(str(asset["forward_start"]))
+                    forward_end = _parse(str(asset["forward_end"]))
+                except (KeyError, TypeError, ValueError):
+                    raise ValueError("forward observation asset boundary is invalid") from None
+                if forward_start <= anchor or forward_end != observed_through:
+                    raise ValueError("forward observation asset crosses trial boundary")
+                if int(asset.get("forward_bars", 0)) <= 0:
+                    raise ValueError("forward observation asset bars are invalid")
+            existing = conn.execute(
+                "SELECT observation_id, payload_json FROM forward_observations WHERE trial_id=? AND observed_through=?",
+                (payload["trial_id"], _iso(observed_through)),
+            ).fetchone()
+            if existing is not None:
+                existing_identity = json.loads(existing["payload_json"])
+                existing_identity.pop("generated_at", None)
+                if existing_identity != identity_payload:
+                    raise ValueError("forward endpoint already has different observation evidence")
+                return str(existing["observation_id"])
+            latest = conn.execute(
+                """SELECT observation_id, observed_through, input_sha256
+                   FROM forward_observations WHERE trial_id=?
+                   ORDER BY observed_through DESC LIMIT 1""",
+                (payload["trial_id"],),
+            ).fetchone()
+            lineage = payload.get("lineage", {})
+            if latest is None:
+                if lineage.get("previous_observation_id") is not None or lineage.get("previous_input_sha256") is not None:
+                    raise ValueError("first forward observation has invalid lineage")
+            else:
+                if observed_through < _parse(latest["observed_through"]):
+                    raise ValueError("forward observation cannot move backward")
+                if lineage.get("previous_observation_id") != latest["observation_id"] or lineage.get("previous_input_sha256") != latest["input_sha256"]:
+                    raise ValueError("forward observation lineage does not match latest checkpoint")
+            conn.execute(
+                """INSERT INTO forward_observations(
+                       observation_id, trial_id, observed_through, created_at,
+                       target_strategy, disposition, input_sha256, schema_version, payload_json
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    observation_id, payload["trial_id"], _iso(observed_through), _iso(generated),
+                    payload["target_strategy"], gate["disposition"], combined,
+                    payload["schema_version"], canonical,
+                ),
+            )
+        return observation_id
+
+    def list_forward_observations(
+        self, *, limit: int = 30, target_strategy: str | None = None, trial_id: str | None = None
+    ) -> list[dict[str, Any]]:
+        if limit <= 0:
+            raise ValueError("limit must be positive")
+        where: list[str] = []
+        params: list[object] = []
+        if target_strategy:
+            where.append("target_strategy=?")
+            params.append(target_strategy.upper())
+        if trial_id:
+            where.append("trial_id=?")
+            params.append(trial_id)
+        clause = f" WHERE {' AND '.join(where)}" if where else ""
+        params.append(limit)
+        with self.connect() as conn:
+            rows = conn.execute(
+                f"""SELECT observation_id, trial_id, observed_through, created_at,
+                            target_strategy, disposition, input_sha256, schema_version
+                     FROM forward_observations{clause}
+                     ORDER BY observed_through DESC, observation_id DESC LIMIT ?""",
+                params,
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def latest_forward_observation_for_trial(self, trial_id: str) -> dict[str, Any] | None:
+        rows = self.list_forward_observations(limit=1, trial_id=trial_id)
+        return rows[0] if rows else None
+
+    def get_forward_observation(self, observation_id: str) -> dict[str, Any] | None:
+        with self.connect() as conn:
+            row = conn.execute(
+                "SELECT payload_json FROM forward_observations WHERE observation_id=?",
+                (observation_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        return {
+            "schema_version": "mil3.forward-observation-envelope.v1",
+            "execution_mode": "PAPER_ONLY",
+            "observation_id": observation_id,
+            "observation": json.loads(row["payload_json"]),
+            "read_only": True,
+            "observation_application_allowed": False,
             "automatic_strategy_change_allowed": False,
             "live_execution_allowed": False,
         }

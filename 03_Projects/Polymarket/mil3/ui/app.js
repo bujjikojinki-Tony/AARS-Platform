@@ -9,6 +9,7 @@ const state = {
   promotionGovernance: null,
   paperProposal: null,
   paperTrial: null,
+  forwardObservation: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -128,6 +129,36 @@ function validatePaperTrialEnvelope(payload) {
   }
   if (gate?.trial_application_allowed !== false || gate?.automatic_strategy_change_allowed !== false || gate?.live_execution_allowed !== false) {
     throw new Error("paper trial review gate exceeded advisory authority");
+  }
+  return payload;
+}
+
+function validateForwardObservationIndex(payload) {
+  if (payload.schema_version !== "mil3.forward-observation-index.v1") throw new Error("unsupported forward observation index schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true) throw new Error("unsafe forward observation index rejected");
+  if (payload.observation_application_allowed !== false || payload.automatic_strategy_change_allowed !== false || payload.live_execution_allowed !== false) {
+    throw new Error("forward observation index did not preserve authority locks");
+  }
+  return payload;
+}
+
+function validateForwardObservationEnvelope(payload) {
+  if (payload.schema_version !== "mil3.forward-observation-envelope.v1") throw new Error("unsupported forward observation envelope schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true) throw new Error("unsafe forward observation envelope rejected");
+  if (payload.observation_application_allowed !== false || payload.automatic_strategy_change_allowed !== false || payload.live_execution_allowed !== false) {
+    throw new Error("forward observation envelope did not preserve authority locks");
+  }
+  const observation = payload.observation;
+  if (observation?.boundary?.policy !== "STRICTLY_AFTER_TRIAL_EVIDENCE_END" || observation?.boundary?.historical_replay_included !== false || observation?.boundary?.warmup_context_affects_performance !== false) {
+    throw new Error("forward observation did not preserve the out-of-sample boundary");
+  }
+  const authority = observation?.authority;
+  const gate = observation?.review_gate;
+  if (authority?.observation_application_allowed !== false || authority?.automatic_strategy_change_allowed !== false || authority?.live_execution_allowed !== false) {
+    throw new Error("forward observation did not preserve authority locks");
+  }
+  if (gate?.observation_application_allowed !== false || gate?.automatic_strategy_change_allowed !== false || gate?.live_execution_allowed !== false) {
+    throw new Error("forward observation review gate exceeded advisory authority");
   }
   return payload;
 }
@@ -904,6 +935,76 @@ async function loadPaperTrials(strategy) {
   renderPaperTrial(validatePaperTrialEnvelope(await detailResponse.json()));
 }
 
+function renderForwardObservation(envelope) {
+  state.forwardObservation = envelope;
+  const observation = envelope.observation;
+  const baseline = observation.results.baseline;
+  const proposed = observation.results.proposed;
+  const delta = observation.results.delta_proposed_minus_baseline;
+  const disposition = observation.review_gate.disposition;
+  const card = $(".forward-observation-card");
+  card.dataset.status = disposition;
+  $("#forward-observation-status").textContent = disposition.replaceAll("_", " ");
+  $("#forward-observation-id").textContent = envelope.observation_id;
+  $("#forward-observation-summary").innerHTML = [
+    ["FORWARD BARS", observation.results.forward_bars, `${observation.review_gate.confirmation_bars_required} required for confirmation`],
+    ["OBSERVED THROUGH", formatDate(observation.boundary.synchronized_forward_end), "common multi-asset boundary"],
+    ["PROPOSED RETURN", formatPercent(proposed.mean_total_return, 1, true), `Δ ${formatPercent(delta.mean_total_return, 1, true)}`],
+    ["MAX LIQUIDATION RISK", formatPercent(proposed.max_liquidation_risk), observation.stop_condition.triggered ? "stop triggered" : "within paper stop"],
+  ].map(([label, value, note]) => `<div><span>${label}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></div>`).join("");
+
+  const metrics = [
+    ["mean_total_return", "MEAN TOTAL RETURN"],
+    ["worst_max_drawdown", "WORST MAX DRAWDOWN"],
+    ["mean_sharpe_approx", "MEAN SHARPE"],
+    ["mean_sortino", "MEAN SORTINO"],
+    ["max_liquidation_risk", "MAX LIQUIDATION RISK"],
+  ];
+  $("#forward-observation-comparison").innerHTML = `<div class="trial-compare-head"><span>METRIC</span><span>BASELINE</span><span>PROPOSED</span><span>DELTA</span></div>${metrics.map(([key, label]) => `
+    <div class="trial-compare-row"><span>${label}</span><strong>${formatTrialMetric(key, baseline[key])}</strong><strong>${formatTrialMetric(key, proposed[key])}</strong><strong class="${trendClass(key.includes("drawdown") || key.includes("liquidation") ? -delta[key] : delta[key])}">${formatTrialMetric(key, delta[key], true)}</strong></div>`).join("")}`;
+
+  const anchors = Object.entries(observation.boundary.trial_evidence_end_per_asset);
+  $("#forward-observation-boundary").innerHTML = `
+    <strong>NO HISTORICAL PERFORMANCE REUSED</strong>
+    <p>Warmup context supports indicators only. Returns, costs, funding and risk begin on the first candle strictly after each archived trial boundary.</p>
+    <dl>${anchors.map(([symbol, end]) => `<dt>${escapeHtml(symbol)} TRIAL END</dt><dd>${escapeHtml(formatDate(end))}</dd>`).join("")}</dl>`;
+  const lineage = observation.lineage;
+  $("#forward-observation-lineage").innerHTML = `
+    <strong>${lineage.previous_observation_id ? "CHAINED CHECKPOINT" : "GENESIS CHECKPOINT"}</strong>
+    <dl><dt>PREVIOUS ID</dt><dd>${escapeHtml(lineage.previous_observation_id || "NONE")}</dd><dt>PREVIOUS INPUT</dt><dd>${escapeHtml(lineage.previous_input_sha256 ? `${lineage.previous_input_sha256.slice(0, 16)}…` : "NONE")}</dd></dl>
+    <p>Archived checkpoints cannot move backward or overwrite different evidence at the same endpoint.</p>`;
+  $("#forward-observation-assets").innerHTML = observation.results.per_asset.map((asset) => `
+    <article><span>${escapeHtml(asset.symbol)} · ${escapeHtml(asset.forward_bars)} FORWARD BARS · ${escapeHtml(asset.funding_coverage.status)} FUNDING</span><strong>${formatPercent(asset.proposed.total_return, 1, true)} <small>PROPOSED RETURN</small></strong><dl><dt>FORWARD START</dt><dd>${escapeHtml(formatDate(asset.forward_start))}</dd><dt>BASELINE RETURN</dt><dd>${formatPercent(asset.baseline.total_return, 1, true)}</dd><dt>PROPOSED DRAWDOWN</dt><dd>${formatPercent(asset.proposed.max_drawdown)}</dd></dl><code>${escapeHtml(asset.input_sha256.slice(0, 16))}…</code></article>`).join("");
+  $("#forward-observation-source").textContent = `TRIAL ${observation.trial_id} · INPUT SHA256 ${observation.input_evidence.combined_sha256} · FORWARD-ONLY · NO RESULT APPLIES A CONFIGURATION`;
+}
+
+function renderForwardObservationUnavailable(error, empty = false) {
+  state.forwardObservation = null;
+  $(".forward-observation-card").dataset.status = empty ? "NO_OBSERVATION" : "UNAVAILABLE";
+  $("#forward-observation-status").textContent = empty ? "NO FORWARD CHECKPOINT" : "FORWARD ARCHIVE UNAVAILABLE";
+  $("#forward-observation-id").textContent = "NO CHECKPOINT SELECTED";
+  $("#forward-observation-summary").innerHTML = `<div><span>SAFE STATE</span><strong class="warning">NO CONFIGURATION APPLIED</strong><small>${empty ? "eligible trial and new market data required" : "restore read-only local API"}</small></div>`;
+  $("#forward-observation-comparison").innerHTML = '<p class="shadow-empty">No true out-of-sample comparison is available.</p>';
+  $("#forward-observation-boundary").innerHTML = '<strong>BOUNDARY NOT VERIFIED</strong><p>No historical result is treated as forward evidence.</p>';
+  $("#forward-observation-lineage").innerHTML = '<strong>NO ARCHIVED LINEAGE</strong><p>No checkpoint continuity is inferred.</p>';
+  $("#forward-observation-assets").replaceChildren();
+  $("#forward-observation-source").textContent = error.message;
+}
+
+async function loadForwardObservations(strategy) {
+  const response = await fetch(`/api/v1/forward-observations?limit=30&strategy=${encodeURIComponent(strategy)}`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`forward observation index returned ${response.status}`);
+  const index = validateForwardObservationIndex(await response.json());
+  const latest = index.observations[0];
+  if (!latest) {
+    renderForwardObservationUnavailable(new Error("Archive a checkpoint after an eligible trial accumulates new PAPER_ONLY evidence."), true);
+    return;
+  }
+  const detailResponse = await fetch(`/api/v1/forward-observations/${encodeURIComponent(latest.observation_id)}`, { cache: "no-store" });
+  if (!detailResponse.ok) throw new Error(`forward observation detail returned ${detailResponse.status}`);
+  renderForwardObservation(validateForwardObservationEnvelope(await detailResponse.json()));
+}
+
 function validationMarkets(snapshot) {
   return snapshot.validation.markets || [snapshot.validation];
 }
@@ -967,6 +1068,7 @@ function renderShadowUnavailable(error) {
   renderPromotionUnavailable(error);
   renderPaperProposalUnavailable(error);
   renderPaperTrialUnavailable(error);
+  renderForwardObservationUnavailable(error);
 }
 
 async function loadShadowSnapshot(snapshotId) {
@@ -999,6 +1101,7 @@ async function loadShadowEvidence() {
       loadPromotionGovernance(strategy).catch(renderPromotionUnavailable),
       loadPaperProposals(strategy).catch(renderPaperProposalUnavailable),
       loadPaperTrials(strategy).catch(renderPaperTrialUnavailable),
+      loadForwardObservations(strategy).catch(renderForwardObservationUnavailable),
     ]);
   } finally {
     $("#shadow-refresh").disabled = false;

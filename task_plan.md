@@ -319,3 +319,13 @@ PWB-11 Complete
 - [x] Ensure responses carry safety flags
 - [x] Preserve no-execution boundary
 - **Status:** complete
+
+## MIL-3.17 Forward-Only Extended Paper Observation
+- [x] Define the immutable forward-observation contract and strict out-of-sample boundary
+- [x] Add forward-only replay construction, funding coverage gates, and advisory dispositions
+- [x] Persist append-only observation checkpoints with lineage and content hashes
+- [x] Add read-only service, API, CLI, and dashboard visibility
+- [x] Add deterministic leakage, immutability, risk, API, CLI, and UI tests
+- [x] Update MIL-3 documentation and run the full suite
+- [x] Commit the milestone
+- **Status:** complete

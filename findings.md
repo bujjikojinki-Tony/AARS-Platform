@@ -196,3 +196,18 @@
 - The local `python3` runtime can also compile and smoke-test the new activation-authorization review service layer.
 - The local `python3` runtime can compile the new activation-authorization review panel and the History shell wiring, but live Streamlit rendering remains environment-bound in this session.
 - API and dashboard live verification are still partially environment-bound because the bundled runtime does not include full `fastapi` / `pytest` / `streamlit` coverage for an end-to-end run.
+## 2026-08-25 — MIL-3.17 kickoff
+- The branch is clean at `c8476bf` and is six commits ahead of origin; remote publishing remains separate from implementation.
+- MIL-3.16 already supplies immutable acknowledged proposals, same-window trial results, funding completeness checks, and read-only API/UI surfaces.
+- The correct forward boundary is each asset's archived trial `evidence_end`, not the trial generation wall-clock time.
+- Replay warmup can remain leak-free by loading exactly `warmup_bars - 1` context candles at or before the anchor, so the replay engine's first actionable bar is the first candle strictly after the anchor.
+- Forward observation must remain advisory and append-only: no candidate application, no execution route, and no rewriting an earlier checkpoint.
+- The existing simulation engine starts strategy actions at index `warmup_bars - 1`; using 59 historical context bars for a 60-bar warmup makes the first actionable bar exactly the first unseen forward candle.
+- Existing MIL-3.16 tests already provide deterministic candles, funding, proposal acknowledgement, storage immutability, read-only API, explicit CLI, and static UI safety patterns that MIL-3.17 can extend consistently.
+- `ReplayEngine.run_detailed` counts only bars from its warmup boundary onward, filters funding from that same boundary, and initializes a fresh portfolio there; no engine mutation is needed for forward-only measurement.
+- A synchronized cross-asset checkpoint should use the minimum latest unseen candle time so every asset is assessed over an identical forward end and no faster feed gets extra evidence.
+- The dashboard already validates envelope authority at runtime; the new forward view should add equivalent schema and authority rejection before rendering any status.
+- MIL-3.17 domain/storage tests confirm 59 context bars plus 80 unseen bars produce exactly 80 measured bars; funding gaps fail closed and eligible-trial enforcement is explicit.
+- Rebuilding the same endpoint must preserve the checkpoint's original lineage to remain idempotent; a later endpoint chains to the prior observation ID and input hash, while older unseen endpoints are rejected.
+- Warmup candles must be included in the content hash because they affect the first forward decision, even though they are excluded from all measured performance; the implementation now preserves this reproducibility distinction.
+- The storage boundary independently revalidates the archived trial configuration, target strategy and per-asset anchors, so callers cannot bypass the normal CLI by submitting altered parameters or a forward start at/before the trial endpoint.

@@ -241,6 +241,21 @@ Status: **implemented on `mil-3-live-market-paper-trading`**.
 
 The fold contract, ranking score, warnings and commands are documented in `mil3/ROBUSTNESS_VALIDATION.md`.
 
+### MIL-3.17 — Forward-Only Extended Paper Observation
+
+Status: **implemented on `mil-3-live-market-paper-trading`**.
+
+- Only trials marked `ELIGIBLE_FOR_EXTENDED_PAPER_OBSERVATION` may start a checkpoint.
+- Each asset begins measurement on the first candle strictly after its archived trial evidence boundary. Historical candles provide indicator warmup only and contribute no P&L, costs, funding or risk.
+- Multi-asset checkpoints share the minimum latest candle time, preserving a common out-of-sample endpoint.
+- Baseline and proposed candidates retain the exact trial parameters, capital, fees, slippage, maintenance margin and common `ReplayEngine` accounting.
+- Funding-dependent candidates require cadence-aware `COMPLETE` funding coverage over the forward interval.
+- Checkpoints are immutable, content-addressed and lineage-chained. Same-endpoint conflicting evidence, missing lineage and backward checkpoints are rejected.
+- Outcomes remain advisory: continue observing, proposed edge confirmed/not confirmed, or stop forward observation. No outcome applies parameters or creates an execution route.
+- The localhost API and console expose read-only index/detail evidence, leakage boundary, stop state, per-asset hashes and checkpoint lineage.
+
+The contract and commands are documented in `mil3/FORWARD_OBSERVATION.md`.
+
 ## Initial decision policy
 
 The initial policy intentionally prefers risk control over activity:
@@ -283,6 +298,9 @@ python run_validate.py \
   --symbols BTCUSDT ETHUSDT SOLUSDT \
   --strategy AARS_DYNAMIC \
   --output-json validation-multi-asset.json
+python run_forward_observation.py \
+  --db mil3_market.sqlite \
+  --trial-id <eligible_trial_id>
 python -m pytest -q
 ```
 
@@ -296,6 +314,7 @@ The ingestion and scheduler commands touch only public market-data endpoints. Re
 - MIL-3.9 deterministic tests cover 4-hour adjustment decoding, complete snapshot materialization, failed-snapshot behavior, idempotent cadence storage, piecewise coverage gaps, explicit fallback provenance and the read-only cadence API.
 - MIL-3.10 deterministic tests cover read-only health behavior, missing/stale/partial failure modes, consistent online backup, scoped retention, bounded log rotation, absolute launchd definitions, localhost-only API binding and data-preserving uninstall.
 - MIL-3.11 deterministic tests cover parameter-grid caps, chronological fold boundaries, training-only selection, strict finite JSON, common-ledger evidence, multi-asset aggregation and CLI report generation.
+- MIL-3.17 deterministic tests cover strict forward boundaries, synchronized assets, warmup exclusion, dynamic funding completeness, eligible-trial enforcement, hard stops, immutable lineage, read-only API/CLI authority and UI boundary visibility.
 
 ## Definition of Done
 

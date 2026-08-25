@@ -115,6 +115,20 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
                     limit=limit,
                     target_strategy=query.get("strategy", [None])[0],
                 )
+            if parsed.path == "/api/v1/forward-observations":
+                limit = int(query.get("limit", ["30"])[0])
+                return HTTPStatus.OK, service.list_forward_observations(
+                    limit=limit,
+                    target_strategy=query.get("strategy", [None])[0],
+                    trial_id=query.get("trial_id", [None])[0],
+                )
+            forward_prefix = "/api/v1/forward-observations/"
+            if parsed.path.startswith(forward_prefix):
+                observation_id = parsed.path[len(forward_prefix):]
+                try:
+                    return HTTPStatus.OK, service.forward_observation(observation_id)
+                except KeyError:
+                    return HTTPStatus.NOT_FOUND, {"error": "forward observation not found"}
             trial_prefix = "/api/v1/paper-trials/"
             if parsed.path.startswith(trial_prefix):
                 trial_id = parsed.path[len(trial_prefix):]
