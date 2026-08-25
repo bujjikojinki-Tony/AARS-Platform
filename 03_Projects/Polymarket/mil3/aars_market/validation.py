@@ -217,7 +217,7 @@ def build_walk_forward_folds(
     return tuple(folds)
 
 
-def _strategy(candidate: ValidationCandidate) -> ShadowStrategy:
+def strategy_for_candidate(candidate: ValidationCandidate) -> ShadowStrategy:
     if candidate.target_strategy == "AARS_DYNAMIC":
         return AarsDynamicStrategy(max_abs_exposure=candidate.aars_max_abs_exposure)
     if candidate.target_strategy == "SPOT_GRID":
@@ -247,7 +247,11 @@ def evaluate_candidate(
         funding_rates=settings.funding_rates,
         maintenance_margin_rate=settings.maintenance_margin_rate,
     )
-    return engine.run(candles, _strategy(candidate), warmup_bars=settings.warmup_bars)
+    return engine.run(
+        candles,
+        strategy_for_candidate(candidate),
+        warmup_bars=settings.warmup_bars,
+    )
 
 
 def risk_adjusted_score(summary: SimulationSummary) -> float:

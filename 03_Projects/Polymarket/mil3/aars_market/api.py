@@ -17,7 +17,7 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
     root = str(Path(ui_root).resolve())
 
     class ReadOnlyHandler(SimpleHTTPRequestHandler):
-        server_version = "AARS-MIL3-ReadOnly/0.5"
+        server_version = "AARS-MIL3-ReadOnly/0.6"
 
         def __init__(self, *args: object, **kwargs: object) -> None:
             super().__init__(*args, directory=root, **kwargs)
@@ -109,6 +109,19 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
                     limit=limit,
                     target_strategy=query.get("strategy", [None])[0],
                 )
+            if parsed.path == "/api/v1/paper-trials":
+                limit = int(query.get("limit", ["30"])[0])
+                return HTTPStatus.OK, service.list_paper_trials(
+                    limit=limit,
+                    target_strategy=query.get("strategy", [None])[0],
+                )
+            trial_prefix = "/api/v1/paper-trials/"
+            if parsed.path.startswith(trial_prefix):
+                trial_id = parsed.path[len(trial_prefix):]
+                try:
+                    return HTTPStatus.OK, service.paper_trial(trial_id)
+                except KeyError:
+                    return HTTPStatus.NOT_FOUND, {"error": "paper trial not found"}
             proposal_prefix = "/api/v1/paper-proposals/"
             if parsed.path.startswith(proposal_prefix):
                 proposal_id = parsed.path[len(proposal_prefix):]

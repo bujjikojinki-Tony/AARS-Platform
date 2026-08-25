@@ -8,6 +8,7 @@ const state = {
   selectedShadowSnapshot: null,
   promotionGovernance: null,
   paperProposal: null,
+  paperTrial: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -101,6 +102,32 @@ function validatePaperProposalEnvelope(payload) {
   }
   if (payload.review && (payload.review.acknowledgement_applies_parameters !== false || payload.review.live_execution_allowed !== false)) {
     throw new Error("paper proposal review exceeded advisory authority");
+  }
+  return payload;
+}
+
+function validatePaperTrialIndex(payload) {
+  if (payload.schema_version !== "mil3.paper-trial-result-index.v1") throw new Error("unsupported paper trial index schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true) throw new Error("unsafe paper trial index rejected");
+  if (payload.trial_application_allowed !== false || payload.automatic_strategy_change_allowed !== false || payload.live_execution_allowed !== false) {
+    throw new Error("paper trial index did not preserve authority locks");
+  }
+  return payload;
+}
+
+function validatePaperTrialEnvelope(payload) {
+  if (payload.schema_version !== "mil3.paper-trial-result-envelope.v1") throw new Error("unsupported paper trial envelope schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true) throw new Error("unsafe paper trial envelope rejected");
+  if (payload.trial_application_allowed !== false || payload.automatic_strategy_change_allowed !== false || payload.live_execution_allowed !== false) {
+    throw new Error("paper trial envelope did not preserve authority locks");
+  }
+  const authority = payload.trial?.authority;
+  const gate = payload.trial?.review_gate;
+  if (authority?.trial_application_allowed !== false || authority?.automatic_strategy_change_allowed !== false || authority?.live_execution_allowed !== false) {
+    throw new Error("paper trial did not preserve authority locks");
+  }
+  if (gate?.trial_application_allowed !== false || gate?.automatic_strategy_change_allowed !== false || gate?.live_execution_allowed !== false) {
+    throw new Error("paper trial review gate exceeded advisory authority");
   }
   return payload;
 }
@@ -765,6 +792,118 @@ async function loadPaperProposals(strategy) {
   renderPaperProposal(validatePaperProposalEnvelope(await detailResponse.json()));
 }
 
+const trialPercentMetrics = new Set([
+  "mean_total_return",
+  "worst_max_drawdown",
+  "max_liquidation_risk",
+  "min_margin_buffer_pct",
+]);
+
+function formatTrialMetric(name, value, signed = false) {
+  if (value === null || value === undefined) return "NOT FINITE";
+  if (trialPercentMetrics.has(name)) return formatPercent(value, 1, signed);
+  if (name === "liquidation_events") return String(value);
+  return formatNumber(value, 2);
+}
+
+function renderPaperTrial(envelope) {
+  state.paperTrial = envelope;
+  const trial = envelope.trial;
+  const baseline = trial.results.baseline;
+  const proposed = trial.results.proposed;
+  const delta = trial.results.delta_proposed_minus_baseline;
+  const disposition = trial.review_gate.disposition;
+  const card = $(".paper-trial-card");
+  card.dataset.status = disposition;
+  $("#paper-trial-status").textContent = disposition.replaceAll("_", " ");
+  $("#paper-trial-id").textContent = envelope.trial_id;
+  $("#paper-trial-summary").innerHTML = [
+    ["TARGET", trial.target_strategy.replaceAll("_", " "), "isolated paper replay"],
+    ["ASSETS", trial.configuration.symbols.length, trial.configuration.symbols.join(" · ")],
+    ["WINDOW", trial.configuration.replay_window.toUpperCase(), `${trial.configuration.timeframe} · ${trial.configuration.warmup_bars} warmup bars`],
+    ["COMPLETED", formatDate(trial.generated_at), "immutable result"],
+  ].map(([label, value, note]) => `<div><span>${label}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></div>`).join("");
+
+  const comparisonMetrics = [
+    ["mean_total_return", "MEAN TOTAL RETURN"],
+    ["worst_max_drawdown", "WORST MAX DRAWDOWN"],
+    ["mean_sharpe_approx", "MEAN SHARPE"],
+    ["mean_sortino", "MEAN SORTINO"],
+    ["max_liquidation_risk", "MAX LIQUIDATION RISK"],
+    ["max_effective_leverage", "MAX EFFECTIVE LEVERAGE"],
+  ];
+  $("#paper-trial-comparison").innerHTML = `<div class="trial-compare-head"><span>METRIC</span><span>BASELINE</span><span>PROPOSED</span><span>DELTA</span></div>${comparisonMetrics.map(([key, label]) => `
+    <div class="trial-compare-row">
+      <span>${label}</span>
+      <strong>${formatTrialMetric(key, baseline[key])}</strong>
+      <strong>${formatTrialMetric(key, proposed[key])}</strong>
+      <strong class="${trendClass(key.includes("drawdown") || key.includes("liquidation") || key.includes("leverage") ? -delta[key] : delta[key])}">${formatTrialMetric(key, delta[key], true)}</strong>
+    </div>`).join("")}`;
+
+  const costs = [
+    ["turnover_notional", "TURNOVER", formatMoney],
+    ["fees", "FEES", formatMoney],
+    ["slippage", "SLIPPAGE", formatMoney],
+    ["funding", "FUNDING", formatMoney],
+    ["realized_pnl", "REALIZED P&L", formatMoney],
+    ["realized_grid_pnl", "GRID P&L", formatMoney],
+    ["inventory_unrealized_pnl", "INVENTORY UNREALIZED", formatMoney],
+  ];
+  $("#paper-trial-costs").innerHTML = costs.map(([key, label, formatter]) => `
+    <div><span>${label}</span><strong>${formatter(proposed[key])}</strong><small>Δ ${formatter(delta[key])}</small></div>`).join("");
+
+  const stop = trial.stop_condition;
+  $("#paper-trial-stop").innerHTML = `
+    <strong>${stop.triggered ? "STOP TRIGGERED" : "NO STOP TRIGGERED"}</strong>
+    <dl>
+      <dt>MAX DRAWDOWN LIMIT</dt><dd>${formatPercent(stop.max_drawdown)}</dd>
+      <dt>MAX LIQUIDATION RISK</dt><dd>${formatPercent(stop.max_liquidation_risk)}</dd>
+      <dt>LIQUIDATION EVENTS ALLOWED</dt><dd>${escapeHtml(stop.liquidation_events_allowed)}</dd>
+    </dl>
+    <p>${stop.reasons.length ? escapeHtml(stop.reasons.join(" · ").replaceAll("_", " ")) : "All archived stop checks remained within the configured paper limits."}</p>
+    <small>NO RESULT APPLIES A CONFIGURATION.</small>`;
+
+  $("#paper-trial-assets").innerHTML = trial.results.per_asset.map((asset) => `
+    <article>
+      <span>${escapeHtml(asset.symbol)} · ${escapeHtml(asset.bars)} BARS · ${escapeHtml(asset.funding_events)} FUNDING EVENTS · ${escapeHtml(asset.funding_coverage.status)} @ ${escapeHtml(asset.funding_coverage.cadence_hours)}H ${escapeHtml(asset.funding_coverage.cadence_source)}</span>
+      <strong>${formatPercent(asset.proposed.total_return, 1, true)} <small>PROPOSED RETURN</small></strong>
+      <dl>
+        <dt>BASELINE RETURN</dt><dd>${formatPercent(asset.baseline.total_return, 1, true)}</dd>
+        <dt>PROPOSED DRAWDOWN</dt><dd>${formatPercent(asset.proposed.max_drawdown)}</dd>
+        <dt>PROPOSED LIQUIDATION RISK</dt><dd>${formatPercent(asset.proposed.max_liquidation_risk)}</dd>
+      </dl>
+      <code>${escapeHtml(asset.input_sha256.slice(0, 16))}…</code>
+    </article>`).join("");
+  $("#paper-trial-source").textContent = `PROPOSAL ${trial.proposal_id} · SOURCE SNAPSHOT ${trial.source_snapshot_id} · INPUT SHA256 ${trial.input_evidence.combined_sha256} · ${trial.input_evidence.reproducibility_scope}`;
+}
+
+function renderPaperTrialUnavailable(error, empty = false) {
+  state.paperTrial = null;
+  $(".paper-trial-card").dataset.status = empty ? "NO_TRIAL" : "UNAVAILABLE";
+  $("#paper-trial-status").textContent = empty ? "NO ARCHIVED TRIAL" : "TRIAL ARCHIVE UNAVAILABLE";
+  $("#paper-trial-id").textContent = "NO TRIAL SELECTED";
+  $("#paper-trial-summary").innerHTML = `<div><span>SAFE STATE</span><strong class="warning">NO CONFIGURATION APPLIED</strong><small>${empty ? "trial requires an acknowledged proposal" : "restore read-only local API"}</small></div>`;
+  $("#paper-trial-comparison").innerHTML = '<p class="shadow-empty">No same-window baseline/proposed evidence is available.</p>';
+  $("#paper-trial-costs").innerHTML = '<p class="shadow-empty">No common-ledger cost delta is available.</p>';
+  $("#paper-trial-stop").innerHTML = '<strong>TRIAL NOT VERIFIED</strong><p>No stop result is inferred without immutable evidence.</p><small>NO RESULT APPLIES A CONFIGURATION.</small>';
+  $("#paper-trial-assets").replaceChildren();
+  $("#paper-trial-source").textContent = error.message;
+}
+
+async function loadPaperTrials(strategy) {
+  const response = await fetch(`/api/v1/paper-trials?limit=30&strategy=${encodeURIComponent(strategy)}`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`paper trial index returned ${response.status}`);
+  const index = validatePaperTrialIndex(await response.json());
+  const latest = index.trials[0];
+  if (!latest) {
+    renderPaperTrialUnavailable(new Error("Run an isolated local trial only after the proposal is acknowledged for PAPER_ONLY evaluation."), true);
+    return;
+  }
+  const detailResponse = await fetch(`/api/v1/paper-trials/${encodeURIComponent(latest.trial_id)}`, { cache: "no-store" });
+  if (!detailResponse.ok) throw new Error(`paper trial detail returned ${detailResponse.status}`);
+  renderPaperTrial(validatePaperTrialEnvelope(await detailResponse.json()));
+}
+
 function validationMarkets(snapshot) {
   return snapshot.validation.markets || [snapshot.validation];
 }
@@ -827,6 +966,7 @@ function renderShadowUnavailable(error) {
   renderShadowDetailUnavailable(error);
   renderPromotionUnavailable(error);
   renderPaperProposalUnavailable(error);
+  renderPaperTrialUnavailable(error);
 }
 
 async function loadShadowSnapshot(snapshotId) {
@@ -858,6 +998,7 @@ async function loadShadowEvidence() {
         : Promise.resolve(renderShadowDetailUnavailable(new Error("archive the first daily snapshot to populate evidence"))),
       loadPromotionGovernance(strategy).catch(renderPromotionUnavailable),
       loadPaperProposals(strategy).catch(renderPaperProposalUnavailable),
+      loadPaperTrials(strategy).catch(renderPaperTrialUnavailable),
     ]);
   } finally {
     $("#shadow-refresh").disabled = false;

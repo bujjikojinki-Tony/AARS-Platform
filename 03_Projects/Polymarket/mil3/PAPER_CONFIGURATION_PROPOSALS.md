@@ -77,3 +77,6 @@ explicit local commands above.
 
 The console presents the packet as read-only evidence and deliberately contains
 no approve, apply, order, credential or live-mode control.
+
+An acknowledged proposal may feed one isolated MIL-3.16 same-window trial. See
+`PAPER_TRIALS.md`. Trial creation still does not apply the proposal.

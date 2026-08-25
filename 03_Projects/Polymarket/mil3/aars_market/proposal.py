@@ -34,7 +34,7 @@ def _markets(validation: Mapping[str, Any]) -> list[Mapping[str, Any]]:
     return list(validation.get("markets", [validation]))
 
 
-def _validated_candidate(
+def candidate_from_parameters(
     value: Mapping[str, Any], target: str, *, label: str
 ) -> dict[str, Any]:
     required = ("target_strategy", *_PARAMETERS)
@@ -86,7 +86,7 @@ def _selected_candidates(
         selections.append(
             (
                 symbol,
-                _validated_candidate(
+                candidate_from_parameters(
                     folds[-1]["selected_candidate"], target, label=f"{symbol} selected"
                 ),
             )
@@ -185,7 +185,7 @@ def build_paper_configuration_proposal(
     proposed = next(
         candidate for _, candidate in selections if candidate["candidate_id"] == selected_id
     )
-    baseline = _validated_candidate(
+    baseline = candidate_from_parameters(
         baseline_parameters or _default_baseline(target), target, label="baseline"
     )
     parameter_changes = _changes(baseline, proposed)

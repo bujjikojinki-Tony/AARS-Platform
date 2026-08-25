@@ -119,6 +119,14 @@ and human review state. Review outcomes are terminal and immutable, but
 acknowledgement does not apply any setting. The API remains read-only. See
 `PAPER_CONFIGURATION_PROPOSALS.md` for the commands and schema contract.
 
+## MIL-3.16 governed paper trial
+
+An acknowledged proposal can be replayed once against its fixed baseline on the
+same source-window evidence. The result archives exact input hashes, per-asset
+common-ledger summaries, proposed-minus-baseline deltas and hard stop outcomes.
+The console keeps stop status and authority locks visible. No result applies a
+configuration. See `PAPER_TRIALS.md`.
+
 ## Review interpretation
 
 The combined daily review is `DEFER` when either validation is deferred or the

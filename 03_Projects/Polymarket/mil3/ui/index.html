@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="AARS MIL-3.15 governed paper configuration proposal console" />
-    <title>AARS MIL-3.15 | Paper Proposal Console</title>
+    <meta name="description" content="AARS MIL-3.16 governed paper trial evidence console" />
+    <title>AARS MIL-3.16 | Paper Trial Console</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -13,7 +13,7 @@
     <div class="shell">
       <header class="status-bar" aria-label="System status">
         <div class="brand-lockup">
-          <span class="brand-index">AARS // 03.15</span>
+          <span class="brand-index">AARS // 03.16</span>
           <strong>SHADOW STRATEGY CONSOLE</strong>
         </div>
         <div class="status-cluster">
@@ -324,6 +324,52 @@
             </section>
           </div>
           <p id="paper-proposal-source" class="paper-proposal-source">Waiting for the read-only local proposal archive.</p>
+        </article>
+
+        <article class="paper-trial-card" aria-labelledby="paper-trial-title">
+          <div class="paper-trial-heading">
+            <div>
+              <span class="panel-index">MIL-3.16 · ISOLATED SAME-WINDOW EVIDENCE</span>
+              <h2 id="paper-trial-title">Paper trial result</h2>
+            </div>
+            <div class="paper-trial-state">
+              <span>ADVISORY DISPOSITION</span>
+              <strong id="paper-trial-status">READING ARCHIVE</strong>
+              <small id="paper-trial-id">NO TRIAL SELECTED</small>
+            </div>
+          </div>
+          <div class="paper-trial-authority" role="status">
+            <span>◉ SAME CANDLES / FUNDING / COST MODEL</span>
+            <span>◉ RESULT IS IMMUTABLE EVIDENCE</span>
+            <span>◉ TRIAL APPLICATION DISALLOWED</span>
+            <span>◉ LIVE EXECUTION DISALLOWED</span>
+          </div>
+          <div id="paper-trial-summary" class="paper-trial-summary"></div>
+          <div class="paper-trial-body">
+            <section aria-labelledby="trial-comparison-title">
+              <div class="paper-trial-section-title">
+                <span>01 / BASELINE VS PROPOSED</span>
+                <h3 id="trial-comparison-title">Risk-adjusted comparison</h3>
+              </div>
+              <div id="paper-trial-comparison" class="paper-trial-comparison"></div>
+            </section>
+            <section aria-labelledby="trial-cost-title">
+              <div class="paper-trial-section-title">
+                <span>02 / COMMON LEDGER</span>
+                <h3 id="trial-cost-title">Modeled cost and P&amp;L deltas</h3>
+              </div>
+              <div id="paper-trial-costs" class="paper-trial-costs"></div>
+            </section>
+            <section aria-labelledby="trial-stop-title">
+              <div class="paper-trial-section-title">
+                <span>03 / HARD STOP</span>
+                <h3 id="trial-stop-title">Stop-condition result</h3>
+              </div>
+              <div id="paper-trial-stop" class="paper-trial-stop"></div>
+            </section>
+          </div>
+          <div id="paper-trial-assets" class="paper-trial-assets"></div>
+          <p id="paper-trial-source" class="paper-trial-source">Waiting for the read-only local trial archive.</p>
         </article>
 
         <div id="shadow-metrics" class="shadow-metrics" aria-label="Continuous shadow summary metrics"></div>

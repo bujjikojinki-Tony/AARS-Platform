@@ -140,6 +140,22 @@ CREATE TABLE IF NOT EXISTS paper_proposal_reviews (
 
 CREATE INDEX IF NOT EXISTS idx_paper_reviews_reviewed
 ON paper_proposal_reviews(reviewed_at DESC, review_id DESC);
+
+CREATE TABLE IF NOT EXISTS paper_trial_results (
+    trial_id TEXT PRIMARY KEY,
+    proposal_id TEXT NOT NULL UNIQUE,
+    source_snapshot_id TEXT NOT NULL,
+    completed_at TEXT NOT NULL,
+    target_strategy TEXT NOT NULL,
+    disposition TEXT NOT NULL,
+    schema_version TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    FOREIGN KEY (proposal_id) REFERENCES paper_configuration_proposals(proposal_id),
+    FOREIGN KEY (source_snapshot_id) REFERENCES shadow_daily_snapshots(snapshot_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_paper_trials_completed
+ON paper_trial_results(completed_at DESC, trial_id DESC);
 """
 
 
@@ -915,6 +931,188 @@ class MarketStore:
             "review": review_payload,
             "read_only": True,
             "proposal_application_allowed": False,
+            "automatic_strategy_change_allowed": False,
+            "live_execution_allowed": False,
+        }
+
+    def archive_paper_trial_result(self, payload: dict[str, Any]) -> str:
+        if payload.get("schema_version") != "mil3.paper-trial-result.v1":
+            raise ValueError("unsupported paper trial schema")
+        if payload.get("execution_mode") != "PAPER_ONLY":
+            raise ValueError("paper trial result must be PAPER_ONLY")
+        if payload.get("lifecycle", {}).get("state") != "COMPLETED":
+            raise ValueError("only completed paper trial results may be archived")
+        authority = payload.get("authority", {})
+        if authority.get("trial_application_allowed") is not False:
+            raise ValueError("paper trial result must disallow application")
+        if authority.get("automatic_strategy_change_allowed") is not False:
+            raise ValueError("paper trial result must lock automatic changes")
+        if authority.get("live_execution_allowed") is not False:
+            raise ValueError("paper trial result must disallow live execution")
+        gate = payload.get("review_gate", {})
+        if gate.get("trial_application_allowed") is not False:
+            raise ValueError("paper trial review gate must disallow application")
+        if gate.get("automatic_strategy_change_allowed") is not False:
+            raise ValueError("paper trial review gate must lock automatic changes")
+        if gate.get("live_execution_allowed") is not False:
+            raise ValueError("paper trial review gate must disallow live execution")
+        if gate.get("disposition") not in {
+            "STOP_TRIAL",
+            "CONTINUE_BASELINE",
+            "ELIGIBLE_FOR_EXTENDED_PAPER_OBSERVATION",
+        }:
+            raise ValueError("unsupported paper trial disposition")
+        input_evidence = payload.get("input_evidence", {})
+        combined_hash = str(input_evidence.get("combined_sha256", ""))
+        per_asset_hashes = input_evidence.get("per_asset_sha256", {})
+        if len(combined_hash) != 64 or any(
+            character not in "0123456789abcdef" for character in combined_hash
+        ):
+            raise ValueError("paper trial input evidence hash is required")
+        if not isinstance(per_asset_hashes, dict) or not per_asset_hashes:
+            raise ValueError("paper trial per-asset input hashes are required")
+        if any(
+            not isinstance(value, str)
+            or len(value) != 64
+            or any(character not in "0123456789abcdef" for character in value)
+            for value in per_asset_hashes.values()
+        ):
+            raise ValueError("paper trial per-asset input hash is invalid")
+        expected_combined = hashlib.sha256(
+            json.dumps(
+                per_asset_hashes, sort_keys=True, separators=(",", ":")
+            ).encode("utf-8")
+        ).hexdigest()
+        if combined_hash != expected_combined:
+            raise ValueError("paper trial combined input hash does not match assets")
+        configured_symbols = payload.get("configuration", {}).get("symbols", [])
+        result_symbols = [
+            item.get("symbol") for item in payload.get("results", {}).get("per_asset", [])
+            if isinstance(item, dict)
+        ]
+        if (
+            not isinstance(configured_symbols, list)
+            or any(not isinstance(symbol, str) for symbol in configured_symbols)
+            or any(not isinstance(symbol, str) for symbol in result_symbols)
+            or set(configured_symbols) != set(per_asset_hashes)
+            or set(result_symbols) != set(per_asset_hashes)
+        ):
+            raise ValueError("paper trial asset evidence does not match configuration")
+        stop_triggered = payload.get("stop_condition", {}).get("triggered")
+        if (stop_triggered is True) != (gate.get("disposition") == "STOP_TRIAL"):
+            raise ValueError("paper trial stop result and disposition disagree")
+
+        canonical = json.dumps(
+            payload, sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
+        identity_payload = json.loads(canonical)
+        identity_payload.pop("generated_at", None)
+        for event in identity_payload.get("lifecycle", {}).get("events", []):
+            event.pop("at", None)
+        identity = json.dumps(
+            identity_payload, sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
+        trial_id = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:24]
+        try:
+            completed = _parse(str(payload["generated_at"]))
+        except (KeyError, ValueError):
+            raise ValueError("paper trial completion time is invalid") from None
+
+        with self.connect() as conn:
+            proposal = conn.execute(
+                """SELECT p.payload_json, r.disposition
+                   FROM paper_configuration_proposals p
+                   LEFT JOIN paper_proposal_reviews r ON r.proposal_id=p.proposal_id
+                   WHERE p.proposal_id=?""",
+                (payload["proposal_id"],),
+            ).fetchone()
+            if proposal is None:
+                raise ValueError("paper trial proposal is not archived")
+            if proposal["disposition"] != "ACKNOWLEDGED_FOR_PAPER_TRIAL":
+                raise ValueError("paper trial proposal is not acknowledged")
+            proposal_payload = json.loads(proposal["payload_json"])
+            if proposal_payload.get("target_strategy") != payload.get("target_strategy"):
+                raise ValueError("paper trial strategy differs from proposal")
+            if proposal_payload.get("source_evidence", {}).get(
+                "shadow_snapshot_id"
+            ) != payload.get("source_snapshot_id"):
+                raise ValueError("paper trial source differs from proposal evidence")
+            trial_configuration = payload.get("configuration", {})
+            if trial_configuration.get("baseline") != proposal_payload.get(
+                "baseline_parameters"
+            ) or trial_configuration.get("proposed") != proposal_payload.get(
+                "proposed_parameters"
+            ):
+                raise ValueError("paper trial parameters differ from proposal")
+            existing = conn.execute(
+                "SELECT trial_id, payload_json FROM paper_trial_results WHERE proposal_id=?",
+                (payload["proposal_id"],),
+            ).fetchone()
+            if existing is not None:
+                existing_identity = json.loads(existing["payload_json"])
+                existing_identity.pop("generated_at", None)
+                for event in existing_identity.get("lifecycle", {}).get("events", []):
+                    event.pop("at", None)
+                if existing_identity != identity_payload:
+                    raise ValueError("paper proposal already has a different trial result")
+                return str(existing["trial_id"])
+            conn.execute(
+                """INSERT INTO paper_trial_results(
+                       trial_id, proposal_id, source_snapshot_id, completed_at,
+                       target_strategy, disposition, schema_version, payload_json
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    trial_id,
+                    payload["proposal_id"],
+                    payload["source_snapshot_id"],
+                    _iso(completed),
+                    payload["target_strategy"],
+                    gate["disposition"],
+                    payload["schema_version"],
+                    canonical,
+                ),
+            )
+        return trial_id
+
+    def list_paper_trial_results(
+        self,
+        *,
+        limit: int = 30,
+        target_strategy: str | None = None,
+    ) -> list[dict[str, Any]]:
+        if limit <= 0:
+            raise ValueError("limit must be positive")
+        where = ""
+        params: list[object] = []
+        if target_strategy:
+            where = " WHERE target_strategy=?"
+            params.append(target_strategy.upper())
+        params.append(limit)
+        with self.connect() as conn:
+            rows = conn.execute(
+                f"""SELECT trial_id, proposal_id, source_snapshot_id, completed_at,
+                           target_strategy, disposition, schema_version
+                    FROM paper_trial_results{where}
+                    ORDER BY completed_at DESC, trial_id DESC LIMIT ?""",
+                params,
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def get_paper_trial_result(self, trial_id: str) -> dict[str, Any] | None:
+        with self.connect() as conn:
+            row = conn.execute(
+                "SELECT payload_json FROM paper_trial_results WHERE trial_id=?",
+                (trial_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        return {
+            "schema_version": "mil3.paper-trial-result-envelope.v1",
+            "execution_mode": "PAPER_ONLY",
+            "trial_id": trial_id,
+            "trial": json.loads(row["payload_json"]),
+            "read_only": True,
+            "trial_application_allowed": False,
             "automatic_strategy_change_allowed": False,
             "live_execution_allowed": False,
         }

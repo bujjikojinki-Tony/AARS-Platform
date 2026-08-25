@@ -260,3 +260,24 @@ class DashboardService:
         if payload is None:
             raise KeyError(f"paper proposal not found: {proposal_id}")
         return payload
+
+    def list_paper_trials(
+        self, *, limit: int = 30, target_strategy: str | None = None
+    ) -> dict[str, Any]:
+        return {
+            "schema_version": "mil3.paper-trial-result-index.v1",
+            "execution_mode": "PAPER_ONLY",
+            "trials": self.store.list_paper_trial_results(
+                limit=limit, target_strategy=target_strategy
+            ),
+            "read_only": True,
+            "trial_application_allowed": False,
+            "automatic_strategy_change_allowed": False,
+            "live_execution_allowed": False,
+        }
+
+    def paper_trial(self, trial_id: str) -> dict[str, Any]:
+        payload = self.store.get_paper_trial_result(trial_id)
+        if payload is None:
+            raise KeyError(f"paper trial not found: {trial_id}")
+        return payload
