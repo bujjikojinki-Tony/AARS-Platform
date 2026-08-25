@@ -17,7 +17,7 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
     root = str(Path(ui_root).resolve())
 
     class ReadOnlyHandler(SimpleHTTPRequestHandler):
-        server_version = "AARS-MIL3-ReadOnly/0.4"
+        server_version = "AARS-MIL3-ReadOnly/0.5"
 
         def __init__(self, *args: object, **kwargs: object) -> None:
             super().__init__(*args, directory=root, **kwargs)
@@ -103,6 +103,19 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
                     limit=limit,
                     target_strategy=query.get("strategy", [None])[0],
                 )
+            if parsed.path == "/api/v1/paper-proposals":
+                limit = int(query.get("limit", ["30"])[0])
+                return HTTPStatus.OK, service.list_paper_proposals(
+                    limit=limit,
+                    target_strategy=query.get("strategy", [None])[0],
+                )
+            proposal_prefix = "/api/v1/paper-proposals/"
+            if parsed.path.startswith(proposal_prefix):
+                proposal_id = parsed.path[len(proposal_prefix):]
+                try:
+                    return HTTPStatus.OK, service.paper_proposal(proposal_id)
+                except KeyError:
+                    return HTTPStatus.NOT_FOUND, {"error": "paper proposal not found"}
             shadow_prefix = "/api/v1/shadow-snapshots/"
             if parsed.path.startswith(shadow_prefix):
                 snapshot_id = parsed.path[len(shadow_prefix):]

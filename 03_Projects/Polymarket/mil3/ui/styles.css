@@ -408,6 +408,58 @@ tbody tr:last-child td { border-bottom: 0; }
 .promotion-policy dt { color: var(--muted); font-size: 8px; }
 .promotion-policy dd { margin: 0; color: var(--ink); font-size: 8px; text-align: right; }
 
+.paper-proposal-card { margin-top: 14px; border: 1px solid var(--line-bright); background: linear-gradient(145deg, rgba(14, 22, 21, 0.98), rgba(8, 12, 11, 0.98)); }
+.paper-proposal-card[data-status="ACKNOWLEDGED_FOR_PAPER_TRIAL"] { border-color: rgba(82, 190, 200, 0.54); }
+.paper-proposal-card[data-status="DECLINED"] { border-color: rgba(255, 98, 92, 0.54); }
+.paper-proposal-card[data-status="NO_PROPOSAL"], .paper-proposal-card[data-status="UNAVAILABLE"] { border-color: rgba(240, 184, 74, 0.38); }
+.paper-proposal-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 30px; padding: 18px 19px; border-bottom: 1px solid var(--line); }
+.paper-proposal-heading h2 { margin-top: 7px; font-size: 22px; }
+.paper-proposal-state { min-width: 240px; text-align: right; }
+.paper-proposal-state span { color: var(--muted); font-size: 8px; letter-spacing: 0.1em; }
+.paper-proposal-state strong { display: block; margin-top: 6px; color: var(--amber); font: 650 14px/1.2 var(--display); }
+.paper-proposal-card[data-status="ACKNOWLEDGED_FOR_PAPER_TRIAL"] .paper-proposal-state strong { color: var(--cyan); }
+.paper-proposal-card[data-status="DECLINED"] .paper-proposal-state strong { color: var(--red); }
+.paper-proposal-state small { display: block; margin-top: 5px; color: var(--faint); font-size: 8px; }
+.paper-proposal-authority { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--line); background: rgba(82, 190, 200, 0.035); }
+.paper-proposal-authority span { min-height: 38px; padding: 12px; color: var(--cyan); border-right: 1px solid var(--line); font-size: 7px; letter-spacing: 0.07em; text-align: center; }
+.paper-proposal-authority span:last-child { border-right: 0; }
+.paper-proposal-summary { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--line); }
+.paper-proposal-summary > div { min-height: 83px; padding: 13px 14px; border-right: 1px solid var(--line); }
+.paper-proposal-summary > div:last-child { border-right: 0; }
+.paper-proposal-summary span, .paper-risk-grid span { color: var(--muted); font-size: 8px; letter-spacing: 0.08em; }
+.paper-proposal-summary strong { display: block; margin-top: 9px; color: var(--paper); font: 620 13px/1.25 var(--display); overflow-wrap: anywhere; }
+.paper-proposal-summary small { display: block; margin-top: 7px; color: var(--faint); font-size: 8px; }
+.paper-proposal-body { display: grid; grid-template-columns: 1.05fr 1.35fr 0.8fr; }
+.paper-proposal-body > section { min-width: 0; padding: 16px; border-right: 1px solid var(--line); }
+.paper-proposal-body > section:last-child { border-right: 0; }
+.paper-proposal-section-title span { color: var(--cyan); font-size: 7px; letter-spacing: 0.08em; }
+.paper-proposal-section-title h3 { margin-top: 6px; color: var(--paper); font: 600 12px/1.3 var(--display); }
+.paper-proposal-changes { display: grid; gap: 8px; margin-top: 14px; }
+.paper-proposal-changes article { padding: 10px 11px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.012); }
+.paper-proposal-changes article > span { color: var(--muted); font-size: 7px; letter-spacing: 0.08em; }
+.paper-proposal-changes article > div { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 9px; margin-top: 8px; }
+.paper-proposal-changes strong { color: var(--ink); font: 620 14px/1 var(--display); }
+.paper-proposal-changes strong:last-child { color: var(--cyan); text-align: right; }
+.paper-proposal-changes i { color: var(--amber); font-style: normal; }
+.paper-proposal-changes small { display: block; margin-top: 8px; color: var(--faint); font-size: 7px; }
+.paper-proposal-risk, .paper-proposal-review { margin-top: 14px; }
+.paper-risk-grid { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); }
+.paper-risk-grid > div { min-height: 61px; padding: 10px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.paper-risk-grid > div:nth-child(2n) { border-right: 0; }
+.paper-risk-grid > div:nth-last-child(-n+2) { border-bottom: 0; }
+.paper-risk-grid strong { display: block; margin-top: 8px; color: var(--ink); font: 620 13px/1 var(--display); }
+.paper-proposal-risk > p, .paper-proposal-review p { margin: 11px 0 0; color: var(--muted); font-size: 8px; line-height: 1.55; }
+.paper-proposal-risk > p strong { color: var(--ink); }
+.paper-proposal-risk .paper-stop-condition { padding: 9px 10px; color: #c1a86f; border-left: 2px solid var(--amber); background: rgba(240, 184, 74, 0.035); }
+.paper-proposal-review > strong { display: block; color: var(--amber); font: 640 14px/1.25 var(--display); }
+.paper-proposal-card[data-status="ACKNOWLEDGED_FOR_PAPER_TRIAL"] .paper-proposal-review > strong { color: var(--cyan); }
+.paper-proposal-card[data-status="DECLINED"] .paper-proposal-review > strong { color: var(--red); }
+.paper-proposal-review dl { display: grid; grid-template-columns: auto 1fr; gap: 7px 10px; margin: 12px 0 0; }
+.paper-proposal-review dt { color: var(--muted); font-size: 7px; }
+.paper-proposal-review dd { margin: 0; color: var(--ink); font-size: 8px; text-align: right; overflow-wrap: anywhere; }
+.paper-proposal-review small { display: block; margin-top: 12px; color: var(--cyan); font-size: 7px; letter-spacing: 0.07em; }
+.paper-proposal-source { margin: 0; padding: 10px 16px; color: var(--faint); border-top: 1px solid var(--line); font-size: 7px; letter-spacing: 0.04em; overflow-wrap: anywhere; }
+
 .shadow-metrics { display: grid; grid-template-columns: repeat(6, minmax(110px, 1fr)); margin-top: 14px; border: 1px solid var(--line); background: var(--panel); }
 .shadow-metrics > div { min-height: 86px; padding: 13px 14px; border-right: 1px solid var(--line); }
 .shadow-metrics > div:last-child { border-right: 0; }
@@ -489,6 +541,9 @@ tbody tr:last-child td { border-bottom: 0; }
   .promotion-summary { grid-template-columns: 1fr 1fr; }
   .promotion-summary > div:nth-child(2) { border-right: 0; }
   .promotion-summary > div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+  .paper-proposal-body { grid-template-columns: 1fr 1fr; }
+  .paper-proposal-body > section:nth-child(2) { border-right: 0; }
+  .paper-proposal-body > section:last-child { grid-column: 1 / -1; border-top: 1px solid var(--line); }
 }
 
 @media (max-width: 900px) {
@@ -519,6 +574,9 @@ tbody tr:last-child td { border-bottom: 0; }
   .shadow-asset-card { border-right: 0; }
   .promotion-card { grid-template-columns: 1fr; }
   .promotion-decision { border-right: 0; border-bottom: 1px solid var(--line); }
+  .paper-proposal-authority, .paper-proposal-summary { grid-template-columns: 1fr 1fr; }
+  .paper-proposal-authority span:nth-child(2), .paper-proposal-summary > div:nth-child(2) { border-right: 0; }
+  .paper-proposal-authority span:nth-child(-n+2), .paper-proposal-summary > div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
   .footer-bar { grid-template-columns: 1fr; text-align: center; }
   .footer-bar a { justify-self: center; }
 }
@@ -553,6 +611,11 @@ tbody tr:last-child td { border-bottom: 0; }
   .shadow-portfolio-evidence > div:nth-child(-n+4) { border-bottom: 1px solid var(--line); }
   .promotion-checks { grid-template-columns: 1fr; max-height: 420px; }
   .promotion-check { border-right: 0; }
+  .paper-proposal-heading { display: block; }
+  .paper-proposal-state { min-width: 0; margin-top: 14px; text-align: left; }
+  .paper-proposal-body { grid-template-columns: 1fr; }
+  .paper-proposal-body > section { border-right: 0; border-bottom: 1px solid var(--line); }
+  .paper-proposal-body > section:last-child { grid-column: auto; border-top: 0; border-bottom: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

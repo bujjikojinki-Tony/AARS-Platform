@@ -1,4 +1,4 @@
-# MIL-3.14 Strategy Promotion Governance Console HMI Design v4
+# MIL-3.15 Governed Paper Proposal Console HMI Design v5
 
 ## 1. Page Purpose
 
@@ -25,6 +25,8 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 13. Drill into per-asset train-selected candidates without exposing raw JSON as the primary view.
 14. Distinguish insufficient evidence from material rejection and a fully passing promotion candidate.
 15. Inspect every governance threshold, impact and recovery condition without changing strategy state.
+16. Inspect immutable before/after paper parameters, observed risk evidence, stop conditions and the terminal human review record.
+17. Confirm that acknowledgement did not apply a parameter and that no approve/apply control exists in the console.
 
 ## 4. Information Architecture
 
@@ -35,6 +37,7 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 - Lower deck: Latest Stable View, P&L attribution, cross-asset portfolio risk and Stable View differences.
 - Continuous-shadow deck: Latest Stable Snapshot, history trust, safe next step, stability trace, warning memory, daily change log and selected immutable evidence.
 - Governance card: advisory disposition, permanent authority locks, evidence window, blocking/rejection counts, ordered checks and conservative policy thresholds.
+- Paper proposal card: immutable proposal status, deterministic selection provenance, before/after changes, risk boundary, stop condition and human review record.
 
 ## 5. Layout Design
 
@@ -71,10 +74,14 @@ The desktop layout follows a flight-recorder/control-desk pattern with a persist
 - `PromotionAuthorityLockPanel`
 - `PromotionCheckEvidence`
 - `PromotionRecoveryCondition`
+- `PaperConfigurationProposalCard`
+- `ParameterDifferencePanel`
+- `PaperTrialStopCondition`
+- `ImmutableHumanReviewRecord`
 
 ## 7. Data Model
 
-The page consumes `mil3.dashboard.v2`, `mil3.portfolio.v1`, `mil3.stable-view-diff.v1`, `mil3.funding-cadence.v1`, `mil3.shadow-daily-index.v1`, `mil3.shadow-daily.v1`, `mil3.shadow-stability.v1` and `mil3.promotion-governance.v1`, while keeping display compatibility with v1 static dashboard payloads. The client rejects any execution mode other than `PAPER_ONLY`; shadow evidence is rejected unless it explicitly sets `live_execution_allowed` to `false`, and governance is rejected unless automatic strategy change is also explicitly disabled.
+The page consumes `mil3.dashboard.v2`, `mil3.portfolio.v1`, `mil3.stable-view-diff.v1`, `mil3.funding-cadence.v1`, `mil3.shadow-daily-index.v1`, `mil3.shadow-daily.v1`, `mil3.shadow-stability.v1`, `mil3.promotion-governance.v1`, `mil3.paper-configuration-proposal-index.v1` and `mil3.paper-configuration-proposal-envelope.v1`, while keeping display compatibility with v1 static dashboard payloads. The client rejects any execution mode other than `PAPER_ONLY`; shadow evidence is rejected unless it explicitly sets `live_execution_allowed` to `false`, governance is rejected unless automatic strategy change is explicitly disabled, and proposals are rejected unless application, automatic change and live execution are all explicitly disabled.
 
 ## 8. Alarm and Risk Design
 
@@ -88,13 +95,19 @@ Governance orders material `REJECT` checks before `BLOCK` and `PASS` checks. Non
 
 AARS output is presented as a recommendation with state, confidence, Bull/Base/Bear probabilities, supporting evidence, counter evidence and the transparent decision reason. Daily snapshot detail separately identifies the train-selected validation candidate and the fixed monitored portfolio policy so research selection is never presented as automatic promotion. `PROMOTION_CANDIDATE` authorizes only a separate human paper-only review. It has no execution authority or action control.
 
+MIL-3.15 proposal selection exposes its cross-asset mode and tie-break. Expected risk impact is labeled `NOT_FORECAST`. An acknowledgement is shown as an immutable human record and explicitly states that it did not apply parameters.
+
 ## 10. Degraded Mode and Recovery
 
 Missing, stale or unconfirmed data produces a prominent degraded banner. The screen states what remains permitted (inspect stable replay), what is blocked (treating the view as current) and how to recover (refresh candles and regenerate the payload). The embedded strategy demonstration payload is always degraded. Continuous-shadow sample history is never fabricated: direct-file or unavailable-API mode instead shows the explicit local recovery path.
 
+If no proposal exists, the console keeps `NO CHANGE PERMITTED` visible and explains that an explicit local proposal may be created only after promotion candidacy. If the proposal API is unavailable, no review or parameter state is inferred.
+
 ## 11. User Actions and Gates
 
 Available actions only change the inspected market, replay window, archive, strategy, trace, diff baseline, validation-strategy filter or immutable snapshot detail. Refresh reads evidence and recomputes advisory governance but does not archive or promote anything. There are no order, credential, live-mode, approval, parameter-change or execution controls. A failed switch preserves the last displayed stable evidence and raises the degraded banner.
+
+Proposal creation and terminal human review are separate explicit local commands. The browser exposes neither command as a button and performs only GET requests.
 
 ## 12. HMI Review Gate
 
@@ -121,6 +134,8 @@ python run_funding_ingest.py --db mil3_market.sqlite --days 365
 python run_scheduler.py --db mil3_market.sqlite --poll-seconds 3600 --max-cycles 1
 python run_archive.py --db mil3_market.sqlite --symbol SOLUSDT --window 90d
 python run_shadow_daily.py --db mil3_market.sqlite --validation-strategy AARS_DYNAMIC
+python run_paper_proposal.py --db mil3_market.sqlite --strategy AARS_DYNAMIC
+python run_paper_review.py --db mil3_market.sqlite --proposal-id <proposal_id> --disposition ACKNOWLEDGED_FOR_PAPER_TRIAL --reviewer local-owner --note "Paper trial only."
 python run_api.py --db mil3_market.sqlite --port 8765
 ```
 

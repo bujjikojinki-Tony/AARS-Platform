@@ -113,6 +113,33 @@ CREATE TABLE IF NOT EXISTS shadow_daily_snapshots (
 
 CREATE INDEX IF NOT EXISTS idx_shadow_daily_created
 ON shadow_daily_snapshots(created_at DESC, snapshot_id DESC);
+
+CREATE TABLE IF NOT EXISTS paper_configuration_proposals (
+    proposal_id TEXT PRIMARY KEY,
+    created_at TEXT NOT NULL,
+    target_strategy TEXT NOT NULL,
+    source_snapshot_id TEXT NOT NULL,
+    schema_version TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    FOREIGN KEY (source_snapshot_id) REFERENCES shadow_daily_snapshots(snapshot_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_paper_proposals_created
+ON paper_configuration_proposals(created_at DESC, proposal_id DESC);
+
+CREATE TABLE IF NOT EXISTS paper_proposal_reviews (
+    review_id TEXT PRIMARY KEY,
+    proposal_id TEXT NOT NULL UNIQUE,
+    reviewed_at TEXT NOT NULL,
+    disposition TEXT NOT NULL,
+    reviewer TEXT NOT NULL,
+    schema_version TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    FOREIGN KEY (proposal_id) REFERENCES paper_configuration_proposals(proposal_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_paper_reviews_reviewed
+ON paper_proposal_reviews(reviewed_at DESC, review_id DESC);
 """
 
 
@@ -672,3 +699,222 @@ class MarketStore:
             for item in reversed(metadata)
         ]
         return [(snapshot_id, payload) for snapshot_id, payload in snapshots if payload]
+
+    def archive_paper_configuration_proposal(
+        self,
+        payload: dict[str, Any],
+        *,
+        created_at: datetime | None = None,
+    ) -> str:
+        if payload.get("schema_version") != "mil3.paper-configuration-proposal.v1":
+            raise ValueError("unsupported paper proposal schema")
+        if payload.get("execution_mode") != "PAPER_ONLY":
+            raise ValueError("paper proposal must be PAPER_ONLY")
+        if payload.get("status") != "PENDING_HUMAN_REVIEW":
+            raise ValueError("paper proposal must start pending human review")
+        if payload.get("review_gate", {}).get("live_execution_allowed") is not False:
+            raise ValueError("paper proposal review gate must disallow live execution")
+        if payload.get("source_evidence", {}).get("governance_disposition") != (
+            "PROMOTION_CANDIDATE"
+        ):
+            raise ValueError("paper proposal requires promotion-candidate evidence")
+        if not payload.get("parameter_changes"):
+            raise ValueError("paper proposal must contain a parameter change")
+        authority = payload.get("authority", {})
+        if authority.get("proposal_application_allowed") is not False:
+            raise ValueError("paper proposal must explicitly disallow application")
+        if authority.get("automatic_strategy_change_allowed") is not False:
+            raise ValueError("paper proposal must lock automatic strategy changes")
+        if authority.get("live_execution_allowed") is not False:
+            raise ValueError("paper proposal must explicitly disallow live execution")
+
+        canonical = json.dumps(
+            payload, sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
+        identity_payload = dict(payload)
+        identity_payload.pop("generated_at", None)
+        identity = json.dumps(
+            identity_payload, sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
+        proposal_id = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:24]
+        created = created_at or datetime.now(timezone.utc)
+        with self.connect() as conn:
+            source = conn.execute(
+                "SELECT payload_json FROM shadow_daily_snapshots WHERE snapshot_id=?",
+                (payload["source_evidence"]["shadow_snapshot_id"],),
+            ).fetchone()
+            if source is None:
+                raise ValueError("paper proposal source snapshot is not archived")
+            source_payload = json.loads(source["payload_json"])
+            if source_payload.get("execution_mode") != "PAPER_ONLY":
+                raise ValueError("paper proposal source snapshot must be PAPER_ONLY")
+            if source_payload.get("review_gate", {}).get(
+                "live_execution_allowed"
+            ) is not False:
+                raise ValueError("paper proposal source must disallow live execution")
+            if source_payload.get("configuration", {}).get(
+                "validation_strategy"
+            ) != payload.get("target_strategy"):
+                raise ValueError("paper proposal target differs from its source snapshot")
+            conn.execute(
+                """INSERT OR IGNORE INTO paper_configuration_proposals(
+                       proposal_id, created_at, target_strategy, source_snapshot_id,
+                       schema_version, payload_json
+                   ) VALUES (?, ?, ?, ?, ?, ?)""",
+                (
+                    proposal_id,
+                    _iso(created),
+                    payload["target_strategy"],
+                    payload["source_evidence"]["shadow_snapshot_id"],
+                    payload["schema_version"],
+                    canonical,
+                ),
+            )
+        return proposal_id
+
+    def archive_paper_proposal_review(
+        self,
+        payload: dict[str, Any],
+    ) -> str:
+        if payload.get("schema_version") != "mil3.paper-proposal-review.v1":
+            raise ValueError("unsupported paper proposal review schema")
+        if payload.get("execution_mode") != "PAPER_ONLY":
+            raise ValueError("paper proposal review must be PAPER_ONLY")
+        if payload.get("acknowledgement_applies_parameters") is not False:
+            raise ValueError("paper proposal review must not apply parameters")
+        if payload.get("automatic_strategy_change_allowed") is not False:
+            raise ValueError("paper proposal review must lock automatic changes")
+        if payload.get("live_execution_allowed") is not False:
+            raise ValueError("paper proposal review must disallow live execution")
+        if payload.get("disposition") not in {
+            "ACKNOWLEDGED_FOR_PAPER_TRIAL",
+            "DECLINED",
+        }:
+            raise ValueError("unsupported paper proposal review disposition")
+        if not str(payload.get("reviewer", "")).strip() or not str(
+            payload.get("note", "")
+        ).strip():
+            raise ValueError("paper proposal review requires reviewer and note")
+        try:
+            _parse(str(payload["reviewed_at"]))
+        except (KeyError, ValueError):
+            raise ValueError("paper proposal review requires a UTC review time") from None
+        identity_payload = dict(payload)
+        identity_payload.pop("reviewed_at", None)
+        canonical = json.dumps(
+            payload, sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
+        identity = json.dumps(
+            identity_payload, sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
+        review_id = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:24]
+        with self.connect() as conn:
+            existing = conn.execute(
+                "SELECT review_id, payload_json FROM paper_proposal_reviews WHERE proposal_id=?",
+                (payload["proposal_id"],),
+            ).fetchone()
+            if existing is not None:
+                existing_payload = json.loads(existing["payload_json"])
+                existing_identity = dict(existing_payload)
+                existing_identity.pop("reviewed_at", None)
+                if existing_identity != identity_payload:
+                    raise ValueError("paper proposal already has a terminal review")
+                return str(existing["review_id"])
+            proposal = conn.execute(
+                "SELECT payload_json FROM paper_configuration_proposals WHERE proposal_id=?",
+                (payload["proposal_id"],),
+            ).fetchone()
+            if proposal is None:
+                raise ValueError("paper proposal review target is not archived")
+            proposal_payload = json.loads(proposal["payload_json"])
+            if proposal_payload.get("target_strategy") != payload.get("target_strategy"):
+                raise ValueError("paper proposal review target strategy mismatch")
+            conn.execute(
+                """INSERT INTO paper_proposal_reviews(
+                       review_id, proposal_id, reviewed_at, disposition, reviewer,
+                       schema_version, payload_json
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    review_id,
+                    payload["proposal_id"],
+                    payload["reviewed_at"],
+                    payload["disposition"],
+                    payload["reviewer"],
+                    payload["schema_version"],
+                    canonical,
+                ),
+            )
+        return review_id
+
+    def list_paper_configuration_proposals(
+        self,
+        *,
+        limit: int = 30,
+        target_strategy: str | None = None,
+    ) -> list[dict[str, Any]]:
+        if limit <= 0:
+            raise ValueError("limit must be positive")
+        where = ""
+        params: list[object] = []
+        if target_strategy:
+            where = " WHERE p.target_strategy=?"
+            params.append(target_strategy.upper())
+        params.append(limit)
+        with self.connect() as conn:
+            rows = conn.execute(
+                f"""SELECT p.proposal_id, p.created_at, p.target_strategy,
+                           p.source_snapshot_id, p.schema_version,
+                           r.review_id, r.reviewed_at, r.disposition, r.reviewer
+                    FROM paper_configuration_proposals p
+                    LEFT JOIN paper_proposal_reviews r ON r.proposal_id=p.proposal_id
+                    {where}
+                    ORDER BY p.created_at DESC, p.proposal_id DESC LIMIT ?""",
+                params,
+            ).fetchall()
+        return [
+            {
+                "proposal_id": row["proposal_id"],
+                "created_at": row["created_at"],
+                "target_strategy": row["target_strategy"],
+                "source_snapshot_id": row["source_snapshot_id"],
+                "schema_version": row["schema_version"],
+                "status": row["disposition"] or "PENDING_HUMAN_REVIEW",
+                "review_id": row["review_id"],
+                "reviewed_at": row["reviewed_at"],
+                "reviewer": row["reviewer"],
+            }
+            for row in rows
+        ]
+
+    def get_paper_configuration_proposal(
+        self, proposal_id: str
+    ) -> dict[str, Any] | None:
+        with self.connect() as conn:
+            proposal = conn.execute(
+                "SELECT payload_json FROM paper_configuration_proposals WHERE proposal_id=?",
+                (proposal_id,),
+            ).fetchone()
+            review = conn.execute(
+                "SELECT payload_json FROM paper_proposal_reviews WHERE proposal_id=?",
+                (proposal_id,),
+            ).fetchone()
+        if proposal is None:
+            return None
+        proposal_payload = json.loads(proposal["payload_json"])
+        review_payload = json.loads(review["payload_json"]) if review is not None else None
+        return {
+            "schema_version": "mil3.paper-configuration-proposal-envelope.v1",
+            "execution_mode": "PAPER_ONLY",
+            "proposal_id": proposal_id,
+            "status": (
+                review_payload["disposition"]
+                if review_payload is not None
+                else "PENDING_HUMAN_REVIEW"
+            ),
+            "proposal": proposal_payload,
+            "review": review_payload,
+            "read_only": True,
+            "proposal_application_allowed": False,
+            "automatic_strategy_change_allowed": False,
+            "live_execution_allowed": False,
+        }

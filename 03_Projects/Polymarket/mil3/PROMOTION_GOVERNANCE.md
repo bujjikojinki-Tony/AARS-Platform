@@ -78,3 +78,8 @@ python run_api.py --db mil3_market.sqlite --port 8765
 
 Governance is recalculated on read after each immutable daily snapshot. No
 separate decision row is persisted and no parameter is promoted by this flow.
+
+When the result is `PROMOTION_CANDIDATE`, MIL-3.15 can create a separate
+immutable human-review packet through an explicit local command. See
+`PAPER_CONFIGURATION_PROPOSALS.md`. Creating or acknowledging that packet still
+does not apply parameters or authorize live execution.

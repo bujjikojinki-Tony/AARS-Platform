@@ -7,6 +7,7 @@ const state = {
   shadowStability: null,
   selectedShadowSnapshot: null,
   promotionGovernance: null,
+  paperProposal: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -75,6 +76,31 @@ function validatePromotionGovernance(payload) {
   if (payload.decision?.automatic_strategy_change_allowed !== false) throw new Error("automatic strategy change was not locked");
   if (payload.decision?.live_execution_allowed !== false || payload.review_gate?.live_execution_allowed !== false) {
     throw new Error("governance evidence did not deny live execution");
+  }
+  return payload;
+}
+
+function validatePaperProposalIndex(payload) {
+  if (payload.schema_version !== "mil3.paper-configuration-proposal-index.v1") throw new Error("unsupported paper proposal index schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true) throw new Error("unsafe paper proposal index rejected");
+  if (payload.proposal_application_allowed !== false || payload.automatic_strategy_change_allowed !== false || payload.live_execution_allowed !== false) {
+    throw new Error("paper proposal index did not preserve authority locks");
+  }
+  return payload;
+}
+
+function validatePaperProposalEnvelope(payload) {
+  if (payload.schema_version !== "mil3.paper-configuration-proposal-envelope.v1") throw new Error("unsupported paper proposal envelope schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true) throw new Error("unsafe paper proposal envelope rejected");
+  if (payload.proposal_application_allowed !== false || payload.automatic_strategy_change_allowed !== false || payload.live_execution_allowed !== false) {
+    throw new Error("paper proposal envelope did not preserve authority locks");
+  }
+  const authority = payload.proposal?.authority;
+  if (authority?.proposal_application_allowed !== false || authority?.automatic_strategy_change_allowed !== false || authority?.live_execution_allowed !== false) {
+    throw new Error("paper proposal did not preserve authority locks");
+  }
+  if (payload.review && (payload.review.acknowledgement_applies_parameters !== false || payload.review.live_execution_allowed !== false)) {
+    throw new Error("paper proposal review exceeded advisory authority");
   }
   return payload;
 }
@@ -664,6 +690,81 @@ async function loadPromotionGovernance(strategy) {
   renderPromotionGovernance(validatePromotionGovernance(await response.json()));
 }
 
+function formatProposalParameter(name, value) {
+  if (name === "tactical_hedge") return value ? "ON" : "OFF";
+  if (name === "grid_spacing_pct") return formatPercent(value, 2);
+  if (name === "aars_max_abs_exposure" || name === "futures_leverage") return `${formatNumber(value, 2)}×`;
+  return String(value);
+}
+
+function renderPaperProposal(envelope) {
+  state.paperProposal = envelope;
+  const proposal = envelope.proposal;
+  const review = envelope.review;
+  const risk = proposal.expected_risk_impact;
+  const status = envelope.status;
+  const card = $(".paper-proposal-card");
+  card.dataset.status = status;
+  $("#paper-proposal-status").textContent = status.replaceAll("_", " ");
+  $("#paper-proposal-id").textContent = envelope.proposal_id;
+  $("#paper-proposal-summary").innerHTML = [
+    ["TARGET", proposal.target_strategy.replaceAll("_", " "), "paper strategy only"],
+    ["SELECTED CANDIDATE", proposal.selection.selected_candidate_id, `${proposal.selection.selection_count} / ${proposal.selection.asset_count} latest asset selections`],
+    ["PARAMETER CHANGES", proposal.parameter_changes.length, "none have been applied"],
+    ["EVIDENCE AS OF", formatDate(proposal.source_evidence.shadow_as_of), "immutable shadow snapshot"],
+  ].map(([label, value, note]) => `<div><span>${label}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></div>`).join("");
+  $("#paper-proposal-changes").innerHTML = proposal.parameter_changes.map((change) => `
+    <article>
+      <span>${escapeHtml(change.parameter.replaceAll("_", " ").toUpperCase())}</span>
+      <div><strong>${escapeHtml(formatProposalParameter(change.parameter, change.before))}</strong><i aria-hidden="true">→</i><strong>${escapeHtml(formatProposalParameter(change.parameter, change.after))}</strong></div>
+      <small>RELATIVE DELTA ${change.relative_delta === null ? "NOT APPLICABLE" : escapeHtml(formatPercent(change.relative_delta, 1, true))}</small>
+    </article>`).join("");
+  $("#paper-proposal-risk").innerHTML = `
+    <div class="paper-risk-grid">
+      <div><span>EXCESS RETURN VS BUY & HOLD</span><strong class="${trendClass(risk.observed_mean_excess_return_vs_buy_hold)}">${formatPercent(risk.observed_mean_excess_return_vs_buy_hold, 1, true)}</strong></div>
+      <div><span>MAX OBSERVED DRAWDOWN</span><strong>${formatPercent(risk.observed_max_portfolio_drawdown)}</strong></div>
+      <div><span>MAX LIQUIDATION RISK</span><strong>${formatPercent(risk.observed_max_liquidation_risk)}</strong></div>
+      <div><span>LIQUIDATION BREACHES</span><strong>${escapeHtml(risk.observed_liquidation_events)}</strong></div>
+    </div>
+    <p><strong>${escapeHtml(risk.assessment.replaceAll("_", " "))}:</strong> ${escapeHtml(risk.statement)}</p>
+    <p class="paper-stop-condition"><strong>STOP CONDITION:</strong> ${escapeHtml(proposal.review_instructions.rollback_condition)}</p>`;
+  $("#paper-proposal-review").innerHTML = review
+    ? `<strong>${escapeHtml(review.disposition.replaceAll("_", " "))}</strong>
+       <dl><dt>REVIEWER</dt><dd>${escapeHtml(review.reviewer)}</dd><dt>RECORDED</dt><dd>${escapeHtml(formatDate(review.reviewed_at))}</dd></dl>
+       <p>${escapeHtml(review.note)}</p>
+       <small>THIS RECORD DID NOT APPLY PARAMETERS.</small>`
+    : `<strong>PENDING HUMAN REVIEW</strong>
+       <p>No terminal human record is archived. Review must be recorded through the explicit local PAPER_ONLY command.</p>
+       <small>THIS SCREEN HAS NO APPROVE OR APPLY CONTROL.</small>`;
+  $("#paper-proposal-source").textContent = `SOURCE SNAPSHOT ${proposal.source_evidence.shadow_snapshot_id} · GOVERNANCE ${formatDate(proposal.source_evidence.governance_generated_at)} · ${proposal.selection.policy}`;
+}
+
+function renderPaperProposalUnavailable(error, empty = false) {
+  state.paperProposal = null;
+  $(".paper-proposal-card").dataset.status = empty ? "NO_PROPOSAL" : "UNAVAILABLE";
+  $("#paper-proposal-status").textContent = empty ? "NO ARCHIVED PROPOSAL" : "ARCHIVE UNAVAILABLE";
+  $("#paper-proposal-id").textContent = "NO PROPOSAL SELECTED";
+  $("#paper-proposal-summary").innerHTML = `<div><span>SAFE STATE</span><strong class="warning">NO CHANGE PERMITTED</strong><small>${empty ? "create only after promotion candidacy" : "restore read-only local API"}</small></div>`;
+  $("#paper-proposal-changes").innerHTML = '<p class="shadow-empty">No before/after parameter packet is available.</p>';
+  $("#paper-proposal-risk").innerHTML = '<p class="shadow-empty">Risk evidence remains unforecast and no paper parameter has been applied.</p>';
+  $("#paper-proposal-review").innerHTML = '<strong>PENDING HUMAN REVIEW</strong><p>No review can be inferred without an immutable proposal.</p>';
+  $("#paper-proposal-source").textContent = error.message;
+}
+
+async function loadPaperProposals(strategy) {
+  const response = await fetch(`/api/v1/paper-proposals?limit=30&strategy=${encodeURIComponent(strategy)}`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`paper proposal index returned ${response.status}`);
+  const index = validatePaperProposalIndex(await response.json());
+  const latest = index.proposals[0];
+  if (!latest) {
+    renderPaperProposalUnavailable(new Error("Archive a proposal locally only after MIL-3.14 reports PROMOTION CANDIDATE."), true);
+    return;
+  }
+  const detailResponse = await fetch(`/api/v1/paper-proposals/${encodeURIComponent(latest.proposal_id)}`, { cache: "no-store" });
+  if (!detailResponse.ok) throw new Error(`paper proposal detail returned ${detailResponse.status}`);
+  renderPaperProposal(validatePaperProposalEnvelope(await detailResponse.json()));
+}
+
 function validationMarkets(snapshot) {
   return snapshot.validation.markets || [snapshot.validation];
 }
@@ -725,6 +826,7 @@ function renderShadowUnavailable(error) {
   $("#shadow-timeline").innerHTML = '<p class="shadow-empty">No snapshot timeline loaded.</p>';
   renderShadowDetailUnavailable(error);
   renderPromotionUnavailable(error);
+  renderPaperProposalUnavailable(error);
 }
 
 async function loadShadowSnapshot(snapshotId) {
@@ -755,6 +857,7 @@ async function loadShadowEvidence() {
         ? loadShadowSnapshot(latestId).catch(renderShadowDetailUnavailable)
         : Promise.resolve(renderShadowDetailUnavailable(new Error("archive the first daily snapshot to populate evidence"))),
       loadPromotionGovernance(strategy).catch(renderPromotionUnavailable),
+      loadPaperProposals(strategy).catch(renderPaperProposalUnavailable),
     ]);
   } finally {
     $("#shadow-refresh").disabled = false;

@@ -110,6 +110,15 @@ separate human PAPER_ONLY review; automatic strategy change and live execution
 are always disabled. See `PROMOTION_GOVERNANCE.md` for thresholds and rejection
 bands.
 
+## MIL-3.15 governed paper proposal
+
+After and only after a `PROMOTION_CANDIDATE`, an explicit local command can
+archive an immutable proposal packet. The console shows the baseline/proposed
+parameter difference, observed risk boundary, source evidence, stop condition
+and human review state. Review outcomes are terminal and immutable, but
+acknowledgement does not apply any setting. The API remains read-only. See
+`PAPER_CONFIGURATION_PROPOSALS.md` for the commands and schema contract.
+
 ## Review interpretation
 
 The combined daily review is `DEFER` when either validation is deferred or the

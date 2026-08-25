@@ -239,3 +239,24 @@ class DashboardService:
             limit=limit, target_strategy=target_strategy
         )
         return build_promotion_governance(stability)
+
+    def list_paper_proposals(
+        self, *, limit: int = 30, target_strategy: str | None = None
+    ) -> dict[str, Any]:
+        return {
+            "schema_version": "mil3.paper-configuration-proposal-index.v1",
+            "execution_mode": "PAPER_ONLY",
+            "proposals": self.store.list_paper_configuration_proposals(
+                limit=limit, target_strategy=target_strategy
+            ),
+            "read_only": True,
+            "proposal_application_allowed": False,
+            "automatic_strategy_change_allowed": False,
+            "live_execution_allowed": False,
+        }
+
+    def paper_proposal(self, proposal_id: str) -> dict[str, Any]:
+        payload = self.store.get_paper_configuration_proposal(proposal_id)
+        if payload is None:
+            raise KeyError(f"paper proposal not found: {proposal_id}")
+        return payload
