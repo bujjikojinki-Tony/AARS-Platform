@@ -200,3 +200,32 @@ class DashboardService:
             before_id=before_id,
             after_id=after_id,
         )
+
+    def list_shadow_snapshots(
+        self, *, limit: int = 30, target_strategy: str | None = None
+    ) -> dict[str, Any]:
+        return {
+            "schema_version": "mil3.shadow-daily-index.v1",
+            "execution_mode": "PAPER_ONLY",
+            "shadow_snapshots": self.store.list_shadow_daily_snapshots(
+                limit=limit, target_strategy=target_strategy
+            ),
+            "read_only": True,
+        }
+
+    def shadow_snapshot(self, snapshot_id: str) -> dict[str, Any]:
+        payload = self.store.get_shadow_daily_snapshot(snapshot_id)
+        if payload is None:
+            raise KeyError(f"shadow snapshot not found: {snapshot_id}")
+        return payload
+
+    def shadow_stability(
+        self, *, limit: int = 90, target_strategy: str | None = None
+    ) -> dict[str, Any]:
+        # Local import avoids coupling the base dashboard path to validation code.
+        from .shadow import build_shadow_stability
+
+        snapshots = self.store.load_shadow_daily_snapshots(
+            limit=limit, target_strategy=target_strategy
+        )
+        return build_shadow_stability(snapshots)

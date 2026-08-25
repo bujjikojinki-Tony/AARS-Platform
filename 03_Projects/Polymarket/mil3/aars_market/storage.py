@@ -100,6 +100,19 @@ CREATE TABLE IF NOT EXISTS ingestion_cycles (
 
 CREATE INDEX IF NOT EXISTS idx_ingestion_cycles_finished
 ON ingestion_cycles(finished_at DESC);
+
+CREATE TABLE IF NOT EXISTS shadow_daily_snapshots (
+    snapshot_id TEXT PRIMARY KEY,
+    as_of TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    target_strategy TEXT NOT NULL,
+    symbols_json TEXT NOT NULL,
+    schema_version TEXT NOT NULL,
+    payload_json TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_shadow_daily_created
+ON shadow_daily_snapshots(created_at DESC, snapshot_id DESC);
 """
 
 
@@ -549,3 +562,113 @@ class MarketStore:
                 "SELECT payload_json FROM latest_stable_views WHERE view_id=?", (view_id,)
             ).fetchone()
         return json.loads(row["payload_json"]) if row is not None else None
+
+    def archive_shadow_daily_snapshot(
+        self,
+        payload: dict[str, Any],
+        *,
+        created_at: datetime | None = None,
+    ) -> str:
+        if payload.get("execution_mode") != "PAPER_ONLY":
+            raise ValueError("shadow snapshot must be PAPER_ONLY")
+        if payload.get("review_gate", {}).get("live_execution_allowed") is not False:
+            raise ValueError("shadow snapshot must explicitly disallow live execution")
+        canonical = json.dumps(
+            payload, sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
+
+        def evidence(value: Any) -> Any:
+            if isinstance(value, dict):
+                return {
+                    key: evidence(item)
+                    for key, item in value.items()
+                    if key != "generated_at"
+                }
+            if isinstance(value, list):
+                return [evidence(item) for item in value]
+            return value
+
+        identity = json.dumps(
+            evidence(payload), sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
+        snapshot_id = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:24]
+        created = created_at or datetime.now(timezone.utc)
+        with self.connect() as conn:
+            conn.execute(
+                """INSERT OR IGNORE INTO shadow_daily_snapshots(
+                       snapshot_id, as_of, created_at, target_strategy,
+                       symbols_json, schema_version, payload_json
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    snapshot_id,
+                    payload["as_of"],
+                    _iso(created),
+                    payload["configuration"]["validation_strategy"],
+                    json.dumps(payload["symbols"], separators=(",", ":")),
+                    payload["schema_version"],
+                    canonical,
+                ),
+            )
+        return snapshot_id
+
+    def list_shadow_daily_snapshots(
+        self,
+        *,
+        limit: int = 30,
+        target_strategy: str | None = None,
+    ) -> list[dict[str, Any]]:
+        if limit <= 0:
+            raise ValueError("limit must be positive")
+        where = ""
+        params: list[object] = []
+        if target_strategy:
+            where = " WHERE target_strategy=?"
+            params.append(target_strategy.upper())
+        params.append(limit)
+        with self.connect() as conn:
+            rows = conn.execute(
+                f"""SELECT snapshot_id, as_of, created_at, target_strategy,
+                           symbols_json, schema_version, payload_json
+                    FROM shadow_daily_snapshots{where}
+                    ORDER BY created_at DESC, snapshot_id DESC LIMIT ?""",
+                params,
+            ).fetchall()
+        result = []
+        for row in rows:
+            payload = json.loads(row["payload_json"])
+            result.append(
+                {
+                    "snapshot_id": row["snapshot_id"],
+                    "as_of": row["as_of"],
+                    "created_at": row["created_at"],
+                    "target_strategy": row["target_strategy"],
+                    "symbols": json.loads(row["symbols_json"]),
+                    "schema_version": row["schema_version"],
+                    "review_disposition": payload["review_gate"]["disposition"],
+                    "portfolio_degraded": payload["portfolio"]["summary"]["degraded"],
+                }
+            )
+        return result
+
+    def get_shadow_daily_snapshot(self, snapshot_id: str) -> dict[str, Any] | None:
+        with self.connect() as conn:
+            row = conn.execute(
+                "SELECT payload_json FROM shadow_daily_snapshots WHERE snapshot_id=?",
+                (snapshot_id,),
+            ).fetchone()
+        return json.loads(row["payload_json"]) if row is not None else None
+
+    def load_shadow_daily_snapshots(
+        self,
+        *,
+        limit: int = 90,
+        target_strategy: str | None = None,
+    ) -> list[tuple[str, dict[str, Any]]]:
+        metadata = self.list_shadow_daily_snapshots(
+            limit=limit, target_strategy=target_strategy
+        )
+        snapshots = [
+            (item["snapshot_id"], self.get_shadow_daily_snapshot(item["snapshot_id"]))
+            for item in reversed(metadata)
+        ]
+        return [(snapshot_id, payload) for snapshot_id, payload in snapshots if payload]

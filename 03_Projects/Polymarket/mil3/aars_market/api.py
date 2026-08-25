@@ -85,6 +85,25 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
                     query.get("symbol", [None])[0], query.get("interval", [None])[0], limit
                 )
                 return HTTPStatus.OK, {"stable_views": views}
+            if parsed.path == "/api/v1/shadow-snapshots":
+                limit = int(query.get("limit", ["30"])[0])
+                return HTTPStatus.OK, service.list_shadow_snapshots(
+                    limit=limit,
+                    target_strategy=query.get("strategy", [None])[0],
+                )
+            if parsed.path == "/api/v1/shadow-stability":
+                limit = int(query.get("limit", ["90"])[0])
+                return HTTPStatus.OK, service.shadow_stability(
+                    limit=limit,
+                    target_strategy=query.get("strategy", [None])[0],
+                )
+            shadow_prefix = "/api/v1/shadow-snapshots/"
+            if parsed.path.startswith(shadow_prefix):
+                snapshot_id = parsed.path[len(shadow_prefix):]
+                try:
+                    return HTTPStatus.OK, service.shadow_snapshot(snapshot_id)
+                except KeyError:
+                    return HTTPStatus.NOT_FOUND, {"error": "shadow snapshot not found"}
             prefix = "/api/v1/stable-views/"
             if parsed.path.startswith(prefix):
                 view = service.store.get_latest_stable_view(parsed.path[len(prefix):])
