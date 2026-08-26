@@ -17,7 +17,7 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
     root = str(Path(ui_root).resolve())
 
     class ReadOnlyHandler(SimpleHTTPRequestHandler):
-        server_version = "AARS-MIL3-ReadOnly/0.6"
+        server_version = "AARS-MIL3-ReadOnly/0.7"
 
         def __init__(self, *args: object, **kwargs: object) -> None:
             super().__init__(*args, directory=root, **kwargs)
@@ -139,6 +139,20 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
                 if not trial_id:
                     raise ValueError("trial_id is required")
                 return HTTPStatus.OK, service.forward_evidence_manifest(trial_id)
+            if parsed.path == "/api/v1/evidence-governance-policy":
+                return HTTPStatus.OK, service.evidence_governance_policy()
+            if parsed.path == "/api/v1/isolated-activation":
+                trial_id = query.get("trial_id", [""])[0]
+                if not trial_id:
+                    raise ValueError("trial_id is required")
+                return HTTPStatus.OK, service.isolated_activation_lifecycle(trial_id)
+            activation_review_prefix = "/api/v1/isolated-activation-reviews/"
+            if parsed.path.startswith(activation_review_prefix):
+                review_id = parsed.path[len(activation_review_prefix):]
+                try:
+                    return HTTPStatus.OK, service.isolated_activation_review(review_id)
+                except KeyError:
+                    return HTTPStatus.NOT_FOUND, {"error": "isolated activation review not found"}
             review_prefix = "/api/v1/forward-reviews/"
             if parsed.path.startswith(review_prefix):
                 review_id = parsed.path[len(review_prefix):]

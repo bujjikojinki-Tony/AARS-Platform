@@ -250,3 +250,21 @@
 | First context-integrity check expected `trial_id` inside the archived trial payload, but its identity lives in the storage envelope | 1 | Bound the top-level trial identity to stability plus every observation/review payload, while target strategy remains independently bound to the trial payload |
 - Seven MIL-3.19 backend acceptance tests now pass across lifecycle transitions, irreversible termination, stale/tampered evidence rejection, monitor gating, deterministic bundle verification, read-only APIs and explicit local CLIs.
 - The read-only lifecycle console exposes current state, permitted local actions, immutable review history, export manifest and recovery guidance without adding a browser write control.
+
+## 2026-08-26 — MIL-3.20 kickoff
+- MIL-3.19 is cleanly committed at `5663715`; the branch is nine commits ahead of origin.
+- Offline verification must operate from the exported JSON alone and must never require or mutate SQLite.
+- Retention must be scoped to a dedicated evidence directory, preserve a verifiable inventory, avoid overwriting files and prune only explicitly recognized bundle/verification artifacts.
+- Activation approval is authorization for an isolated PAPER_ONLY configuration sandbox only; it must not alter the active replay defaults, start a trial, place an order or authorize live execution.
+- The console should expose actual approval state, prerequisite failures, evidence identity, expiry/revocation state and recovery guidance, but all writes remain explicit local CLI operations.
+- Existing SQLite backup logic already demonstrates safe scoping: resolved destination, non-overwrite, temporary write plus atomic replace, integrity verification and filename-pattern-limited pruning. Evidence retention should reuse those principles without mixing database backups and evidence artifacts.
+- `DashboardService` currently owns only a `MarketStore`, so durable approval status belongs in SQLite; filesystem retention should remain an explicit offline CLI/report rather than making ordinary API GETs scan or mutate an operator-selected directory.
+- Approval should be bound to a verified bundle's combined manifest hash and raw file SHA-256. The trial configuration can be identified by a canonical hash while the approval explicitly leaves active configuration unchanged.
+- Final retention hardening must verify both bundle integrity and filename identity before an old artifact becomes eligible for pruning; matching a filename pattern alone is insufficient authority to delete a file.
+
+## MIL-3.20 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| Targeted pytest was launched from the repository root with `PYTHONPATH=.` and could not import the nested `aars_market` package | 1 | Run MIL-3 tests from `03_Projects/Polymarket/mil3`, matching the established project test command |
+| First expiry-path test referenced a nonexistent storage `_utc` helper | 1 | Reused the storage module's established `_iso` plus `_parse` normalization path |
+| Initial Mac mini documentation patch used a slightly different line wrap than the current file | 1 | Read the exact local paragraph and applied the addition against its current wrapping |

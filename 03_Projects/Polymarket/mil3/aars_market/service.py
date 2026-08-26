@@ -356,3 +356,47 @@ class DashboardService:
             "automatic_strategy_change_allowed": False,
             "live_execution_allowed": False,
         }
+
+    def evidence_governance_policy(self) -> dict[str, Any]:
+        from .evidence_offline import (
+            DEFAULT_MINIMUM_COPIES,
+            DEFAULT_RETENTION_DAYS,
+        )
+
+        return {
+            "schema_version": "mil3.evidence-governance-policy.v1",
+            "execution_mode": "PAPER_ONLY",
+            "offline_verification_required": True,
+            "strict_duplicate_key_rejection": True,
+            "retention_days": DEFAULT_RETENTION_DAYS,
+            "minimum_verified_copies": DEFAULT_MINIMUM_COPIES,
+            "prune_scope": "RECOGNIZED_FORWARD_EVIDENCE_ARTIFACTS_ONLY",
+            "read_only": True,
+            "approval_applies_configuration": False,
+            "automatic_strategy_change_allowed": False,
+            "live_execution_allowed": False,
+        }
+
+    def isolated_activation_lifecycle(
+        self, trial_id: str, *, now: datetime | None = None
+    ) -> dict[str, Any]:
+        return self.store.get_isolated_activation_lifecycle(trial_id, now=now)
+
+    def isolated_activation_review(self, review_id: str) -> dict[str, Any]:
+        payload = self.store.get_isolated_activation_review(review_id)
+        if payload is None:
+            raise KeyError(f"isolated activation review not found: {review_id}")
+        return {
+            "schema_version": "mil3.isolated-paper-activation-review-envelope.v1",
+            "execution_mode": "PAPER_ONLY",
+            "review_id": review_id,
+            "review": payload,
+            "read_only": True,
+            "isolated_paper_activation_allowed": payload["authority"][
+                "isolated_paper_activation_allowed"
+            ],
+            "approval_applies_configuration": False,
+            "shared_configuration_change_allowed": False,
+            "automatic_strategy_change_allowed": False,
+            "live_execution_allowed": False,
+        }

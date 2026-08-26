@@ -12,6 +12,7 @@ const state = {
   forwardObservation: null,
   forwardStability: null,
   forwardLifecycle: null,
+  isolatedActivation: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -208,6 +209,39 @@ function validateForwardEvidenceManifest(payload) {
     throw new Error("forward evidence manifest did not preserve authority locks");
   }
   if (!/^[0-9a-f]{64}$/.test(payload.manifest?.combined_sha256 || "")) throw new Error("forward evidence manifest hash is invalid");
+  return payload;
+}
+
+function validateEvidenceGovernancePolicy(payload) {
+  if (payload.schema_version !== "mil3.evidence-governance-policy.v1") throw new Error("unsupported evidence governance policy schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true || payload.offline_verification_required !== true) throw new Error("unsafe evidence governance policy rejected");
+  if (payload.approval_applies_configuration !== false || payload.automatic_strategy_change_allowed !== false || payload.live_execution_allowed !== false) {
+    throw new Error("evidence governance policy exceeded paper authority");
+  }
+  return payload;
+}
+
+function validateIsolatedActivationLifecycle(payload) {
+  if (payload.schema_version !== "mil3.isolated-paper-activation-lifecycle.v1") throw new Error("unsupported isolated activation lifecycle schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true) throw new Error("unsafe isolated activation lifecycle rejected");
+  if (payload.approval_applies_configuration !== false || payload.shared_configuration_change_allowed !== false || payload.automatic_strategy_change_allowed !== false || payload.live_execution_allowed !== false) {
+    throw new Error("isolated activation lifecycle exceeded sandbox authority");
+  }
+  if (payload.isolated_paper_activation_allowed !== (payload.current_state === "APPROVED")) throw new Error("isolated activation current authority differs from state");
+  return payload;
+}
+
+function validateIsolatedActivationReviewEnvelope(payload) {
+  if (payload.schema_version !== "mil3.isolated-paper-activation-review-envelope.v1") throw new Error("unsupported isolated activation review envelope schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true) throw new Error("unsafe isolated activation review rejected");
+  if (payload.approval_applies_configuration !== false || payload.shared_configuration_change_allowed !== false || payload.automatic_strategy_change_allowed !== false || payload.live_execution_allowed !== false) {
+    throw new Error("isolated activation review envelope exceeded sandbox authority");
+  }
+  const authority = payload.review?.authority;
+  if (authority?.approval_applies_configuration !== false || authority?.shared_configuration_change_allowed !== false || authority?.automatic_strategy_change_allowed !== false || authority?.live_execution_allowed !== false) {
+    throw new Error("isolated activation human review exceeded sandbox authority");
+  }
+  if (authority?.isolated_paper_activation_allowed !== (payload.review?.resulting_state === "APPROVED")) throw new Error("isolated activation review authority differs from decision");
   return payload;
 }
 
@@ -1106,6 +1140,49 @@ function renderForwardLifecycleUnavailable(error) {
   $("#forward-lifecycle-recovery").textContent = "Restore lifecycle and manifest evidence before any local human review command.";
 }
 
+function renderIsolatedActivation(lifecycle, policy, latestReviewEnvelope) {
+  state.isolatedActivation = lifecycle;
+  const current = lifecycle.current_state;
+  const latest = latestReviewEnvelope?.review;
+  $("#activation-approval-status").textContent = current.replaceAll("_", " ");
+  $("#activation-approval-status").dataset.status = current;
+  const stability = state.forwardStability;
+  const forward = state.forwardLifecycle;
+  const requirements = [
+    ["OFFLINE BUNDLE VERIFICATION", latest ? "VERIFIED RECEIPT ARCHIVED" : "REQUIRED BEFORE REVIEW", Boolean(latest)],
+    ["FORWARD STABILITY", stability?.review_gate?.disposition || "UNAVAILABLE", stability?.review_gate?.disposition === "EXTENDED_OBSERVATION_CONFIRMED"],
+    ["HUMAN FORWARD STATE", forward?.current_state || "UNAVAILABLE", forward?.current_state === "OBSERVING_ACKNOWLEDGED"],
+    ["ACTIVE WARNING CODES", stability?.summary?.warning_codes?.length ? stability.summary.warning_codes.join(", ") : "NONE", Boolean(stability) && stability.summary.warning_codes.length === 0],
+  ];
+  $("#activation-prerequisites").innerHTML = requirements.map(([label, value, passed]) => `
+    <article data-status="${passed ? "PASS" : "BLOCK"}"><span>${escapeHtml(label)}</span><strong>${passed ? "PASS" : "BLOCK"}</strong><small>${escapeHtml(value)}</small></article>`).join("");
+  $("#evidence-retention-policy").innerHTML = `
+    <strong>${escapeHtml(policy.retention_days)} DAYS · ${escapeHtml(policy.minimum_verified_copies)} VERIFIED COPIES</strong>
+    <dl><dt>VERIFY</dt><dd>run_forward_evidence_verify.py</dd><dt>BACK UP</dt><dd>run_forward_evidence_retain.py</dd><dt>PRUNE SCOPE</dt><dd>${escapeHtml(policy.prune_scope.replaceAll("_", " "))}</dd><dt>DATABASE ACCESS</dt><dd>NONE</dd></dl>
+    <p>Unknown files and the minimum verified-copy floor are preserved.</p>`;
+  $("#activation-review-history").innerHTML = lifecycle.events.length ? lifecycle.events.map((event) => `
+    <article><span>${escapeHtml(formatDate(event.reviewed_at))} · ${escapeHtml(event.reviewer)}</span><strong>${escapeHtml(event.action.replaceAll("_", " "))}</strong><small>${escapeHtml(event.resulting_state)} · ${escapeHtml(event.sandbox_id)} · ${escapeHtml(event.review_id)}</small></article>`).join("") : '<p class="shadow-empty">No isolated activation decision has been archived.</p>';
+  const expiry = latest?.valid_until ? ` Authorization expires ${formatDate(latest.valid_until)}.` : "";
+  const recovery = {
+    PENDING_HUMAN_APPROVAL: "Verify and retain the complete bundle offline, then use the explicit local review CLI. Approval remains blocked until every prerequisite passes.",
+    APPROVED: `Limited sandbox authority exists; no configuration has been applied.${expiry}`,
+    REJECTED: "Decision is terminal for this evidence bundle. Preserve evidence and start a new governed trial for reconsideration.",
+    REVOKED: "Sandbox authority was withdrawn. No configuration change or execution is permitted.",
+    EXPIRED: "Approval expired without applying configuration. A new evidence lifecycle is required.",
+  };
+  $("#activation-approval-recovery").textContent = `${recovery[current] || "Restore valid isolated approval evidence."} THIS SCREEN HAS NO APPROVE OR ACTIVATE BUTTON.`;
+}
+
+function renderIsolatedActivationUnavailable(error) {
+  state.isolatedActivation = null;
+  $("#activation-approval-status").textContent = "APPROVAL UNAVAILABLE";
+  $("#activation-approval-status").dataset.status = "UNAVAILABLE";
+  $("#activation-prerequisites").innerHTML = '<article data-status="BLOCK"><span>SAFE STATE</span><strong>BLOCK</strong><small>NO SANDBOX AUTHORITY INFERRED</small></article>';
+  $("#evidence-retention-policy").innerHTML = `<p class="shadow-empty">${escapeHtml(error.message)}</p>`;
+  $("#activation-review-history").innerHTML = '<p class="shadow-empty">No approval history is inferred.</p>';
+  $("#activation-approval-recovery").textContent = "Restore policy, lifecycle and review evidence before any local approval command.";
+}
+
 function renderForwardObservationUnavailable(error, empty = false) {
   state.forwardObservation = null;
   $(".forward-observation-card").dataset.status = empty ? "NO_OBSERVATION" : "UNAVAILABLE";
@@ -1119,6 +1196,7 @@ function renderForwardObservationUnavailable(error, empty = false) {
   $("#forward-observation-source").textContent = error.message;
   renderForwardStabilityUnavailable(error);
   renderForwardLifecycleUnavailable(error);
+  renderIsolatedActivationUnavailable(error);
 }
 
 async function loadForwardObservations(strategy) {
@@ -1130,11 +1208,13 @@ async function loadForwardObservations(strategy) {
     renderForwardObservationUnavailable(new Error("Archive a checkpoint after an eligible trial accumulates new PAPER_ONLY evidence."), true);
     return;
   }
-  const [detailResponse, stabilityResponse, lifecycleResponse, manifestResponse] = await Promise.all([
+  const [detailResponse, stabilityResponse, lifecycleResponse, manifestResponse, policyResponse, activationResponse] = await Promise.all([
     fetch(`/api/v1/forward-observations/${encodeURIComponent(latest.observation_id)}`, { cache: "no-store" }),
     fetch(`/api/v1/forward-stability?trial_id=${encodeURIComponent(latest.trial_id)}&limit=90`, { cache: "no-store" }),
     fetch(`/api/v1/forward-lifecycle?trial_id=${encodeURIComponent(latest.trial_id)}`, { cache: "no-store" }),
     fetch(`/api/v1/forward-evidence-manifest?trial_id=${encodeURIComponent(latest.trial_id)}`, { cache: "no-store" }),
+    fetch("/api/v1/evidence-governance-policy", { cache: "no-store" }),
+    fetch(`/api/v1/isolated-activation?trial_id=${encodeURIComponent(latest.trial_id)}`, { cache: "no-store" }),
   ]);
   if (!detailResponse.ok) throw new Error(`forward observation detail returned ${detailResponse.status}`);
   renderForwardObservation(validateForwardObservationEnvelope(await detailResponse.json()));
@@ -1158,6 +1238,22 @@ async function loadForwardObservations(strategy) {
       latestReviewEnvelope = validateForwardReviewEnvelope(await reviewResponse.json());
     }
     renderForwardLifecycle(lifecycle, latestReviewEnvelope, manifest);
+  }
+  if (!policyResponse.ok || !activationResponse.ok) {
+    renderIsolatedActivationUnavailable(new Error(`evidence policy/activation returned ${policyResponse.status}/${activationResponse.status}`));
+  } else {
+    const policy = validateEvidenceGovernancePolicy(await policyResponse.json());
+    const activation = validateIsolatedActivationLifecycle(await activationResponse.json());
+    let latestActivationReview = null;
+    if (activation.latest_event) {
+      const reviewResponse = await fetch(`/api/v1/isolated-activation-reviews/${encodeURIComponent(activation.latest_event.review_id)}`, { cache: "no-store" });
+      if (!reviewResponse.ok) {
+        renderIsolatedActivationUnavailable(new Error(`isolated activation review returned ${reviewResponse.status}`));
+        return;
+      }
+      latestActivationReview = validateIsolatedActivationReviewEnvelope(await reviewResponse.json());
+    }
+    renderIsolatedActivation(activation, policy, latestActivationReview);
   }
 }
 

@@ -196,6 +196,26 @@ CREATE TABLE IF NOT EXISTS forward_candidate_reviews (
 
 CREATE INDEX IF NOT EXISTS idx_forward_candidate_reviews_trial_time
 ON forward_candidate_reviews(trial_id, reviewed_at DESC, review_id DESC);
+
+CREATE TABLE IF NOT EXISTS isolated_activation_reviews (
+    review_id TEXT PRIMARY KEY,
+    trial_id TEXT NOT NULL,
+    previous_review_id TEXT,
+    reviewed_at TEXT NOT NULL,
+    action TEXT NOT NULL,
+    resulting_state TEXT NOT NULL,
+    reviewer TEXT NOT NULL,
+    sandbox_id TEXT NOT NULL,
+    valid_until TEXT,
+    bundle_combined_sha256 TEXT NOT NULL,
+    schema_version TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    FOREIGN KEY (trial_id) REFERENCES paper_trial_results(trial_id),
+    FOREIGN KEY (previous_review_id) REFERENCES isolated_activation_reviews(review_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_isolated_activation_trial_time
+ON isolated_activation_reviews(trial_id, reviewed_at DESC, review_id DESC);
 """
 
 
@@ -1516,6 +1536,240 @@ class MarketStore:
             "reviews": list(reversed(reviews)),
             "read_only": True,
             "review_action_applies_parameters": False,
+            "automatic_strategy_change_allowed": False,
+            "live_execution_allowed": False,
+        }
+
+    def archive_isolated_activation_review(self, payload: dict[str, Any]) -> str:
+        from .activation_approval import ALL_ACTIONS
+        from .evidence_export import build_forward_evidence_bundle
+
+        if payload.get("schema_version") != "mil3.isolated-paper-activation-review.v1":
+            raise ValueError("unsupported isolated activation review schema")
+        if payload.get("execution_mode") != "PAPER_ONLY":
+            raise ValueError("isolated activation review must be PAPER_ONLY")
+        action = str(payload.get("action", ""))
+        if action not in ALL_ACTIONS:
+            raise ValueError("unsupported isolated activation review action")
+        authority = payload.get("authority", {})
+        approved = payload.get("resulting_state") == "APPROVED"
+        if authority.get("isolated_paper_activation_allowed") is not approved:
+            raise ValueError("isolated activation authority differs from decision")
+        for key in (
+            "approval_applies_configuration",
+            "shared_configuration_change_allowed",
+            "automatic_strategy_change_allowed",
+            "live_execution_allowed",
+        ):
+            if authority.get(key) is not False:
+                raise ValueError("isolated activation review exceeds sandbox authority")
+        if not str(payload.get("reviewer", "")).strip() or not str(
+            payload.get("note", "")
+        ).strip():
+            raise ValueError("isolated activation review requires reviewer and note")
+        try:
+            reviewed = _parse(str(payload["reviewed_at"]))
+        except (KeyError, ValueError):
+            raise ValueError("isolated activation review time is invalid") from None
+        valid_until = None
+        if approved:
+            try:
+                valid_until = _parse(str(payload["valid_until"]))
+            except (KeyError, ValueError):
+                raise ValueError("isolated activation approval expiry is invalid") from None
+            if valid_until <= reviewed or valid_until > reviewed + timedelta(hours=168):
+                raise ValueError("isolated activation approval expiry exceeds policy")
+        elif action != "REVOKE_ISOLATED_PAPER_ACTIVATION" and payload.get("valid_until") is not None:
+            raise ValueError("rejected isolated activation must not have an expiry")
+        source = payload.get("source_evidence", {})
+        for key in (
+            "bundle_combined_sha256",
+            "bundle_file_sha256",
+            "verification_receipt_sha256",
+            "stability_sha256",
+            "configuration_sha256",
+        ):
+            digest = str(source.get(key, ""))
+            if len(digest) != 64 or not set(digest) <= set("0123456789abcdef"):
+                raise ValueError(f"isolated activation source {key} is invalid")
+        canonical = json.dumps(
+            payload, sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
+        review_id = hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:24]
+        with self.connect() as conn:
+            existing = conn.execute(
+                "SELECT payload_json FROM isolated_activation_reviews WHERE review_id=?",
+                (review_id,),
+            ).fetchone()
+            if existing is not None:
+                if existing["payload_json"] != canonical:
+                    raise ValueError("isolated activation review identity collision")
+                return review_id
+
+        lifecycle = self.get_isolated_activation_lifecycle(
+            str(payload["trial_id"]), now=reviewed
+        )
+        current_state = lifecycle["current_state"]
+        latest = lifecycle.get("latest_event")
+        expected_previous = latest["review_id"] if latest else None
+        if payload.get("previous_review_id") != expected_previous:
+            raise ValueError("isolated activation review lineage is stale")
+        if action == "REVOKE_ISOLATED_PAPER_ACTIVATION":
+            if current_state != "APPROVED" or payload.get("previous_state") != "APPROVED":
+                raise ValueError("only a current isolated approval can be revoked")
+            if payload.get("resulting_state") != "REVOKED":
+                raise ValueError("isolated activation revocation state is invalid")
+            previous_payload = self.get_isolated_activation_review(expected_previous)
+            if previous_payload is None or any(
+                payload.get(key) != previous_payload.get(key)
+                for key in ("trial_id", "target_strategy", "sandbox_id", "valid_until")
+            ):
+                raise ValueError("isolated activation revocation target changed")
+        else:
+            if current_state != "PENDING_HUMAN_APPROVAL" or expected_previous is not None:
+                raise ValueError("isolated activation trial already has a terminal decision")
+            expected_state = (
+                "APPROVED"
+                if action == "APPROVE_ISOLATED_PAPER_ACTIVATION"
+                else "REJECTED"
+            )
+            if (
+                payload.get("previous_state") != "PENDING_HUMAN_APPROVAL"
+                or payload.get("resulting_state") != expected_state
+            ):
+                raise ValueError("isolated activation decision state is invalid")
+            rebuilt = build_forward_evidence_bundle(self, str(payload["trial_id"]))
+            if rebuilt["manifest"]["combined_sha256"] != source["bundle_combined_sha256"]:
+                raise ValueError("isolated activation evidence is stale")
+            trial_configuration = rebuilt["evidence"]["trial"]["configuration"]
+            configuration_hash = hashlib.sha256(
+                json.dumps(
+                    trial_configuration,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                    allow_nan=False,
+                ).encode("utf-8")
+            ).hexdigest()
+            if (
+                payload.get("target_strategy") != rebuilt["target_strategy"]
+                or payload.get("configuration_snapshot") != trial_configuration
+                or source["configuration_sha256"] != configuration_hash
+                or source.get("latest_observation_id")
+                != rebuilt["evidence"]["observations"][-1]["observation_id"]
+                or source.get("stability_sha256")
+                != rebuilt["manifest"]["component_sha256"]["stability"]
+            ):
+                raise ValueError("isolated activation source evidence changed")
+            stability = rebuilt["evidence"]["stability"]
+            if (
+                source.get("stability_disposition")
+                != stability["review_gate"]["disposition"]
+                or source.get("warning_codes") != stability["summary"]["warning_codes"]
+            ):
+                raise ValueError("isolated activation stability evidence changed")
+            if approved and (
+                rebuilt["lifecycle_state"] != "OBSERVING_ACKNOWLEDGED"
+                or source["stability_disposition"]
+                != "EXTENDED_OBSERVATION_CONFIRMED"
+                or source["warning_codes"]
+            ):
+                raise ValueError("isolated activation approval prerequisites are not satisfied")
+
+        with self.connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            latest_row = conn.execute(
+                """SELECT review_id, reviewed_at, resulting_state, valid_until
+                   FROM isolated_activation_reviews WHERE trial_id=?
+                   ORDER BY reviewed_at DESC, review_id DESC LIMIT 1""",
+                (payload["trial_id"],),
+            ).fetchone()
+            actual_previous = latest_row["review_id"] if latest_row else None
+            if actual_previous != payload.get("previous_review_id"):
+                raise ValueError("isolated activation review lineage changed during archive")
+            if latest_row and reviewed <= _parse(latest_row["reviewed_at"]):
+                raise ValueError("isolated activation review time must advance")
+            if action != "REVOKE_ISOLATED_PAPER_ACTIVATION":
+                latest_observation = conn.execute(
+                    """SELECT observation_id FROM forward_observations WHERE trial_id=?
+                       ORDER BY observed_through DESC, observation_id DESC LIMIT 1""",
+                    (payload["trial_id"],),
+                ).fetchone()
+                if (
+                    latest_observation is None
+                    or latest_observation["observation_id"]
+                    != source.get("latest_observation_id")
+                ):
+                    raise ValueError("isolated activation evidence changed during archive")
+            conn.execute(
+                """INSERT INTO isolated_activation_reviews(
+                       review_id, trial_id, previous_review_id, reviewed_at, action,
+                       resulting_state, reviewer, sandbox_id, valid_until,
+                       bundle_combined_sha256, schema_version, payload_json
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    review_id, payload["trial_id"], payload.get("previous_review_id"),
+                    _iso(reviewed), action, payload["resulting_state"],
+                    payload["reviewer"], payload["sandbox_id"], payload.get("valid_until"),
+                    source["bundle_combined_sha256"], payload["schema_version"], canonical,
+                ),
+            )
+        return review_id
+
+    def list_isolated_activation_reviews(
+        self, trial_id: str, *, limit: int = 100
+    ) -> list[dict[str, Any]]:
+        if limit <= 0:
+            raise ValueError("limit must be positive")
+        with self.connect() as conn:
+            rows = conn.execute(
+                """SELECT review_id, trial_id, previous_review_id, reviewed_at,
+                          action, resulting_state, reviewer, sandbox_id, valid_until,
+                          bundle_combined_sha256, schema_version
+                   FROM isolated_activation_reviews WHERE trial_id=?
+                   ORDER BY reviewed_at DESC, review_id DESC LIMIT ?""",
+                (trial_id, limit),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def get_isolated_activation_review(self, review_id: str | None) -> dict[str, Any] | None:
+        if not review_id:
+            return None
+        with self.connect() as conn:
+            row = conn.execute(
+                "SELECT payload_json FROM isolated_activation_reviews WHERE review_id=?",
+                (review_id,),
+            ).fetchone()
+        return json.loads(row["payload_json"]) if row is not None else None
+
+    def get_isolated_activation_lifecycle(
+        self, trial_id: str, *, now: datetime | None = None
+    ) -> dict[str, Any]:
+        trial = self.get_paper_trial_result(trial_id)
+        if trial is None:
+            raise ValueError("isolated activation trial is not archived")
+        reviews = self.list_isolated_activation_reviews(trial_id, limit=1000000)
+        latest = reviews[0] if reviews else None
+        current_state = latest["resulting_state"] if latest else "PENDING_HUMAN_APPROVAL"
+        expired = False
+        if current_state == "APPROVED" and latest and latest["valid_until"]:
+            expired = _parse(_iso(now or datetime.now(timezone.utc))) >= _parse(
+                latest["valid_until"]
+            )
+            if expired:
+                current_state = "EXPIRED"
+        return {
+            "schema_version": "mil3.isolated-paper-activation-lifecycle.v1",
+            "execution_mode": "PAPER_ONLY",
+            "trial_id": trial_id,
+            "target_strategy": trial["trial"]["target_strategy"],
+            "current_state": current_state,
+            "expired": expired,
+            "isolated_paper_activation_allowed": current_state == "APPROVED",
+            "latest_event": latest,
+            "events": list(reversed(reviews)),
+            "read_only": True,
+            "approval_applies_configuration": False,
+            "shared_configuration_change_allowed": False,
             "automatic_strategy_change_allowed": False,
             "live_execution_allowed": False,
         }

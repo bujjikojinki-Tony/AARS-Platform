@@ -90,3 +90,5 @@ automatic_strategy_change_allowed=false
 live_execution_allowed=false
 ```
 
+After export, use the MIL-3.20 offline verifier and retention workflow before
+any isolated activation review. See `OFFLINE_EVIDENCE_AND_ACTIVATION_APPROVAL.md`.

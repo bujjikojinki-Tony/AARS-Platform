@@ -1,4 +1,4 @@
-# MIL-3.19 Human Forward Review Console HMI Design v7
+# MIL-3.20 Offline Evidence and Isolated Approval Console HMI Design v8
 
 ## 1. Page Purpose
 
@@ -33,6 +33,8 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 21. Confirm funding completeness and effective Binance cadence for each trial asset.
 22. Verify the candidate lifecycle, permitted local human action and immutable review lineage.
 23. Verify the evidence-bundle component count and combined SHA-256 before external retention.
+24. Distinguish offline verification, retention and approval as separate governed tasks.
+25. Confirm every activation prerequisite, sandbox scope, expiry and revocation state without applying configuration.
 
 ## 4. Information Architecture
 
@@ -99,10 +101,14 @@ The desktop layout follows a flight-recorder/control-desk pattern with a persist
 - `ForwardCandidateLifecycle`
 - `ImmutableForwardReviewHistory`
 - `ForwardEvidenceManifest`
+- `OfflineEvidencePrerequisitePanel`
+- `EvidenceRetentionPolicyCard`
+- `IsolatedActivationLifecycle`
+- `ImmutableActivationReviewHistory`
 
 ## 7. Data Model
 
-The page consumes `mil3.dashboard.v2`, `mil3.portfolio.v1`, `mil3.stable-view-diff.v1`, `mil3.funding-cadence.v1`, `mil3.shadow-daily-index.v1`, `mil3.shadow-daily.v1`, `mil3.shadow-stability.v1`, `mil3.promotion-governance.v1`, `mil3.paper-configuration-proposal-index.v1`, `mil3.paper-configuration-proposal-envelope.v1`, `mil3.paper-trial-result-index.v1`, `mil3.paper-trial-result-envelope.v1`, `mil3.forward-observation-index.v1`, `mil3.forward-observation-envelope.v1`, `mil3.forward-stability.v1`, `mil3.forward-candidate-lifecycle.v1`, `mil3.forward-candidate-review-envelope.v1` and `mil3.forward-evidence-manifest.v1`, while keeping display compatibility with v1 static dashboard payloads. The client rejects any execution mode other than `PAPER_ONLY`; trial, forward, stability, lifecycle, review and manifest evidence are rejected unless application, automatic change and live execution are explicitly disabled. Forward evidence must also prove the strict post-trial boundary and exclude warmup history from performance.
+The page consumes the existing MIL-3 schemas plus `mil3.evidence-governance-policy.v1`, `mil3.isolated-paper-activation-lifecycle.v1` and `mil3.isolated-paper-activation-review-envelope.v1`. The client rejects any execution mode other than `PAPER_ONLY`; trial, forward, stability, lifecycle, review, manifest and activation evidence are rejected unless configuration application, shared change, automatic change and live execution are explicitly disabled. Forward evidence must also prove the strict post-trial boundary and exclude warmup history from performance.
 
 ## 8. Alarm and Risk Design
 
@@ -140,6 +146,11 @@ If lifecycle, latest-review or manifest evidence is unavailable or violates its
 authority schema, the console states `NO HUMAN ACTION PERMITTED`. It does not
 infer a state, review or export identity. Termination is visibly irreversible.
 
+If evidence policy or isolated approval evidence is unavailable, the console
+shows `APPROVAL UNAVAILABLE`, blocks every prerequisite and infers no sandbox
+authority. Expired, rejected and revoked states state their terminal recovery
+path in text as well as color.
+
 ## 11. User Actions and Gates
 
 Available actions only change the inspected market, replay window, archive, strategy, trace, diff baseline, validation-strategy filter or immutable snapshot detail. Refresh reads evidence and recomputes advisory governance but does not archive or promote anything. There are no order, credential, live-mode, approval, parameter-change or execution controls. A failed switch preserves the last displayed stable evidence and raises the degraded banner.
@@ -151,6 +162,10 @@ Trial execution is also an explicit local command. The browser can inspect archi
 Forward acknowledgement, pause, restart, termination and complete evidence
 export are also explicit local commands. The browser can inspect lifecycle,
 review and manifest evidence only; it cannot create a review or export file.
+
+Offline verify/retain and isolated approve/reject/revoke are explicit local
+commands. The browser performs GET requests only and has no approve, activate,
+revoke or configuration control.
 
 ## 12. HMI Review Gate
 
@@ -183,6 +198,9 @@ python run_paper_trial.py --db mil3_market.sqlite --proposal-id <proposal_id>
 python run_forward_monitor.py --db mil3_market.sqlite --max-cycles 1
 python run_forward_review.py --db mil3_market.sqlite --trial-id <trial_id> --action PAUSE_PAPER_OBSERVATION --reviewer local-owner --note "Pause for review."
 python run_forward_evidence_export.py --db mil3_market.sqlite --trial-id <trial_id> --output evidence/<trial_id>.json
+python run_forward_evidence_verify.py --bundle evidence/<trial_id>.json --report evidence/<trial_id>.verification.json
+python run_forward_evidence_retain.py --bundle evidence/<trial_id>.json --archive-dir /Volumes/AARS-Evidence/forward
+python run_isolated_activation_review.py --db mil3_market.sqlite --trial-id <trial_id> --action REJECT_ISOLATED_PAPER_ACTIVATION --bundle evidence/<trial_id>.json --reviewer local-owner --note "Evidence is not ready."
 python run_api.py --db mil3_market.sqlite --port 8765
 ```
 

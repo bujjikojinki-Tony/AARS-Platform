@@ -86,6 +86,25 @@ copies. Backups on the same internal SSD protect against software mistakes, not
 disk loss. Replicate the `backups` directory to an external disk, NAS or private
 object store.
 
+Forward evidence uses a separate MIL-3.20 policy from the 30-day SQLite backup:
+365 days with at least two verified copies per trial. After exporting a bundle,
+verify it without SQLite and retain it to an encrypted external location:
+
+```bash
+.venv/bin/python run_forward_evidence_verify.py \
+  --bundle "$HOME/AARS-MIL3/evidence/<trial_id>.json" \
+  --report "$HOME/AARS-MIL3/evidence/<trial_id>.verification.json"
+.venv/bin/python run_forward_evidence_retain.py \
+  --bundle "$HOME/AARS-MIL3/evidence/<trial_id>.json" \
+  --archive-dir "/Volumes/AARS-Evidence/forward" \
+  --retention-days 365 \
+  --minimum-copies 2
+```
+
+This is an explicit operator workflow and is not added to the existing
+LaunchAgents. Confirm that the external volume is mounted and encrypted before
+running it. The retention command never deletes unknown or unverifiable files.
+
 ## Upgrade
 
 Stop the jobs before moving the repository or Python environment because the

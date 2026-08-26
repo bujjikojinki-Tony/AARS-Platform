@@ -294,6 +294,30 @@ Status: **implemented on `mil-3-live-market-paper-trading`**.
 The lifecycle, commands and evidence contract are documented in
 `mil3/HUMAN_FORWARD_REVIEW.md`.
 
+### MIL-3.20 — Offline Evidence, Retention and Isolated Activation Approval
+
+Status: **implemented on `mil-3-live-market-paper-trading`**.
+
+- Exported bundles can be verified from JSON alone with strict duplicate-key
+  rejection, complete hash reconstruction and PAPER_ONLY authority checks. No
+  SQLite access is required.
+- Verified bundles can be copied into a scoped archive with post-copy hash
+  verification, immutable sidecars and inventory receipts, a 365-day default
+  retention period and a minimum floor of two verified copies per trial.
+- Pruning is fail-safe: only recognized artifacts whose content and filename
+  identity both verify are eligible; unknown and lookalike files are preserved.
+- Immutable isolated-activation decisions support approve, reject, bounded
+  expiry and revoke. Approval requires confirmed/acknowledged warning-free
+  evidence and storage independently rebuilds current hashes before insertion.
+- Approval authorizes only a future named PAPER_ONLY sandbox. It does not apply
+  a configuration, change shared defaults, start a strategy or permit live
+  execution.
+- Policy, lifecycle and review records are available through the GET-only local
+  API and task-centered console. All decisions remain explicit local CLIs.
+
+The offline and approval contract is documented in
+`mil3/OFFLINE_EVIDENCE_AND_ACTIVATION_APPROVAL.md`.
+
 ## Initial decision policy
 
 The initial policy intentionally prefers risk control over activity:
@@ -353,6 +377,19 @@ python run_forward_evidence_export.py \
   --db mil3_market.sqlite \
   --trial-id <trial_id> \
   --output evidence/<trial_id>.json
+python run_forward_evidence_verify.py \
+  --bundle evidence/<trial_id>.json \
+  --report evidence/<trial_id>.verification.json
+python run_forward_evidence_retain.py \
+  --bundle evidence/<trial_id>.json \
+  --archive-dir /Volumes/AARS-Evidence/forward
+python run_isolated_activation_review.py \
+  --db mil3_market.sqlite \
+  --trial-id <trial_id> \
+  --action REJECT_ISOLATED_PAPER_ACTIVATION \
+  --bundle evidence/<trial_id>.json \
+  --reviewer local-owner \
+  --note "Evidence is not ready."
 python -m pytest -q
 ```
 
@@ -369,6 +406,7 @@ The ingestion and scheduler commands touch only public market-data endpoints. Re
 - MIL-3.17 deterministic tests cover strict forward boundaries, synchronized assets, warmup exclusion, dynamic funding completeness, eligible-trial enforcement, hard stops, immutable lineage, read-only API/CLI authority and UI boundary visibility.
 - MIL-3.18 deterministic tests cover minimum horizon and confirmation streaks, decay/reversal/rising-risk alarms, hard-stop precedence, lineage/cadence deferral, bounded monitoring, idempotent endpoint reuse, waiting states, read-only stability API/CLI authority and UI alarm actionability.
 - MIL-3.19 deterministic tests cover lifecycle transitions, irreversible termination, stale/tampered review rejection, monitor holds, deterministic self-verifying non-overwriting exports, read-only APIs, explicit local CLIs and UI authority gates.
+- MIL-3.20 deterministic tests cover strict offline verification, duplicate keys, safe retention and pruning, minimum-copy floors, approval prerequisites, expiry/revocation, stale/tampered evidence, read-only APIs, explicit local CLIs and UI action gates.
 
 ## Definition of Done
 

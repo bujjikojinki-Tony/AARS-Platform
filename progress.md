@@ -250,3 +250,24 @@
 - Final MIL-3.19 verification: 114 Python tests passed in 4.34 seconds; JavaScript syntax, Python compilation and diff whitespace checks passed.
 - Safety scan found only the existing API write-method rejection handlers; no credential, authenticated adapter, order submission, automatic parameter application or live-execution path was added.
 - MIL-3.19 is ready for its local milestone commit.
+
+## 2026-08-26 — MIL-3.20 started
+- Confirmed the clean MIL-3.19 baseline and recovered the persistent plan.
+- Selected database-independent verification, narrowly scoped retention, and isolated PAPER_ONLY activation approval as the bounded implementation scope.
+- Next: inspect the existing evidence, backup, proposal/trial and storage conventions before finalizing schemas.
+- Inspected existing proposal/trial review, evidence export, operations backup and read-only API conventions.
+- Chosen boundary: offline file verification and retention never touch SQLite; approval archives only a verified evidence receipt and isolated sandbox authority, never materializes or applies strategy configuration.
+- Implemented strict duplicate-key JSON loading, database-independent bundle verification reports and explicit verification CLI.
+- Implemented atomic evidence backup, post-copy hash verification, immutable sidecars/inventories, age retention with a minimum-copy floor and filename-scoped pruning.
+- Next: implement the isolated approval event model and independent storage revalidation.
+- Implemented isolated approval/rejection/revocation payloads, bounded expiry, sandbox identifiers, immutable lineage storage, current-evidence reconstruction and final-transaction source checks.
+- Added explicit local activation-review CLI plus read-only policy, lifecycle and review-detail service/API surfaces.
+- Python compilation passes; the first targeted test invocation used the wrong working directory and is being rerun from the MIL-3 root.
+- Added deterministic MIL-3.20 tests for strict offline verification, non-overwrite reports, atomic verified retention, minimum-copy pruning, unknown/lookalike preservation, approval prerequisites, rejection, bounded expiry, revocation, tamper rejection, APIs, CLIs and UI authority.
+- Added the read-only MIL-3.20 control surface with explicit prerequisite PASS/BLOCK state, retention policy, immutable approval history, expiry/revocation recovery and no browser approval/activation controls.
+- Targeted regression verification passes: 29 tests plus JavaScript syntax and diff whitespace checks.
+- Next: complete operations and milestone documentation, then run the full suite and final safety review.
+- Added the MIL-3.20 offline/retention/approval operating contract and updated main milestone, human-review, Mac mini and HMI documentation.
+- Final MIL-3.20 verification: 123 Python tests passed in 5.51 seconds; Python compilation, JavaScript syntax and diff whitespace checks passed.
+- Final safety scan found only the existing API write-method rejection handlers. No credential, authenticated adapter, order route, configuration materialization, automatic application or live execution path was added.
+- MIL-3.20 is ready for its local milestone commit.

@@ -349,3 +349,14 @@ PWB-11 Complete
 - [x] Add deterministic state-machine, tamper, monitor, export, API, CLI, and UI tests
 - [x] Update documentation, run the full suite, review, and commit
 - **Status:** complete
+
+## MIL-3.20 Offline Evidence Verification, Retention, and Isolated Activation Approval
+- [x] Define offline verification report, retention policy, and isolated approval authority contract
+- [x] Add database-independent evidence-bundle verification CLI and deterministic report
+- [x] Add scoped evidence retention/backup inventory with integrity verification and safe pruning
+- [x] Add immutable isolated PAPER_ONLY activation-approval state and storage verification
+- [x] Expose approval/retention status through read-only API and task-centered console
+- [x] Add deterministic tamper, retention, approval, API, CLI, and UI tests
+- [x] Update operations/milestone documentation and run the full suite
+- [x] Review and commit the milestone
+- **Status:** complete
