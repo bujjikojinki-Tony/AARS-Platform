@@ -232,3 +232,21 @@
 - Final hardening added review-gate authority checks, genesis/time-order lineage validation and empty-history API identity.
 - Final verification after hardening: 106 Python tests passed in 3.20 seconds; JavaScript syntax and diff whitespace checks passed.
 - MIL-3.18 is ready for its local milestone commit.
+## 2026-08-26 — MIL-3.19 started
+- Confirmed the clean MIL-3.18 baseline and recovered the persistent plan.
+- Defined the human-review state machine and evidence-export boundary while preserving read-only API and PAPER_ONLY authority.
+- Next: inspect proposal-review storage patterns, then implement review records and lifecycle enforcement.
+- Implemented append-only human review records, state transitions, review lineage, stability/source verification and monitor pause/termination enforcement.
+- Implemented self-verifying JSON evidence bundles plus explicit review/export CLIs.
+- Existing MIL-3.18 tests still pass and new modules compile.
+- Next: add read-only lifecycle/manifest APIs and deterministic MIL-3.19 acceptance tests.
+- Added read-only lifecycle, review-detail and evidence-manifest APIs.
+- Added seven deterministic MIL-3.19 backend tests; all pass.
+- Next: add the lifecycle/review/export trust surface to the read-only console, then document and run the full suite.
+- Added the MIL-3.19 read-only lifecycle console with explicit available-action gates, immutable review history, evidence-manifest trust and fail-closed unavailable states; JavaScript syntax and targeted UI/backend tests pass.
+- Hardened the final review insert against source/lineage races and made authority-lock tampering fail bundle verification.
+- Next: finish milestone documentation, run the full suite and complete the local commit.
+- Added the human-review/evidence-export operating contract and updated continuous-observation, main milestone and console HMI documentation.
+- Final MIL-3.19 verification: 114 Python tests passed in 4.34 seconds; JavaScript syntax, Python compilation and diff whitespace checks passed.
+- Safety scan found only the existing API write-method rejection handlers; no credential, authenticated adapter, order submission, automatic parameter application or live-execution path was added.
+- MIL-3.19 is ready for its local milestone commit.

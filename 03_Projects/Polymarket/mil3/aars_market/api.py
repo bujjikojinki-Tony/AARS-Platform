@@ -129,6 +129,23 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
                 return HTTPStatus.OK, service.forward_stability(
                     trial_id, limit=int(query.get("limit", ["90"])[0])
                 )
+            if parsed.path == "/api/v1/forward-lifecycle":
+                trial_id = query.get("trial_id", [""])[0]
+                if not trial_id:
+                    raise ValueError("trial_id is required")
+                return HTTPStatus.OK, service.forward_candidate_lifecycle(trial_id)
+            if parsed.path == "/api/v1/forward-evidence-manifest":
+                trial_id = query.get("trial_id", [""])[0]
+                if not trial_id:
+                    raise ValueError("trial_id is required")
+                return HTTPStatus.OK, service.forward_evidence_manifest(trial_id)
+            review_prefix = "/api/v1/forward-reviews/"
+            if parsed.path.startswith(review_prefix):
+                review_id = parsed.path[len(review_prefix):]
+                try:
+                    return HTTPStatus.OK, service.forward_candidate_review(review_id)
+                except KeyError:
+                    return HTTPStatus.NOT_FOUND, {"error": "forward candidate review not found"}
             forward_prefix = "/api/v1/forward-observations/"
             if parsed.path.startswith(forward_prefix):
                 observation_id = parsed.path[len(forward_prefix):]

@@ -176,6 +176,26 @@ ON forward_observations(created_at DESC, observation_id DESC);
 
 CREATE INDEX IF NOT EXISTS idx_forward_observations_trial_end
 ON forward_observations(trial_id, observed_through DESC);
+
+CREATE TABLE IF NOT EXISTS forward_candidate_reviews (
+    review_id TEXT PRIMARY KEY,
+    trial_id TEXT NOT NULL,
+    previous_review_id TEXT,
+    reviewed_at TEXT NOT NULL,
+    action TEXT NOT NULL,
+    resulting_state TEXT NOT NULL,
+    reviewer TEXT NOT NULL,
+    source_observation_id TEXT NOT NULL,
+    stability_sha256 TEXT NOT NULL,
+    schema_version TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    FOREIGN KEY (trial_id) REFERENCES paper_trial_results(trial_id),
+    FOREIGN KEY (previous_review_id) REFERENCES forward_candidate_reviews(review_id),
+    FOREIGN KEY (source_observation_id) REFERENCES forward_observations(observation_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_forward_candidate_reviews_trial_time
+ON forward_candidate_reviews(trial_id, reviewed_at DESC, review_id DESC);
 """
 
 
@@ -1320,6 +1340,182 @@ class MarketStore:
             "observation": json.loads(row["payload_json"]),
             "read_only": True,
             "observation_application_allowed": False,
+            "automatic_strategy_change_allowed": False,
+            "live_execution_allowed": False,
+        }
+
+    def archive_forward_candidate_review(self, payload: dict[str, Any]) -> str:
+        from .forward_review import stability_evidence_hash, transition_state
+        from .forward_stability import build_forward_stability
+
+        if payload.get("schema_version") != "mil3.forward-candidate-review.v1":
+            raise ValueError("unsupported forward candidate review schema")
+        if payload.get("execution_mode") != "PAPER_ONLY":
+            raise ValueError("forward candidate review must be PAPER_ONLY")
+        if payload.get("review_action_applies_parameters") is not False:
+            raise ValueError("forward candidate review must not apply parameters")
+        if payload.get("automatic_strategy_change_allowed") is not False:
+            raise ValueError("forward candidate review must lock automatic changes")
+        if payload.get("live_execution_allowed") is not False:
+            raise ValueError("forward candidate review must disallow live execution")
+        if not str(payload.get("reviewer", "")).strip() or not str(payload.get("note", "")).strip():
+            raise ValueError("forward candidate review requires reviewer and note")
+        try:
+            reviewed = _parse(str(payload["reviewed_at"]))
+        except (KeyError, ValueError):
+            raise ValueError("forward candidate review time is invalid") from None
+        canonical = json.dumps(
+            payload, sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
+        identity_payload = json.loads(canonical)
+        identity_payload.pop("reviewed_at", None)
+        identity = json.dumps(
+            identity_payload, sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
+        review_id = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:24]
+
+        with self.connect() as conn:
+            existing = conn.execute(
+                "SELECT payload_json FROM forward_candidate_reviews WHERE review_id=?",
+                (review_id,),
+            ).fetchone()
+            if existing is not None:
+                existing_identity = json.loads(existing["payload_json"])
+                existing_identity.pop("reviewed_at", None)
+                if existing_identity != identity_payload:
+                    raise ValueError("forward review identity collision")
+                return review_id
+            trial = conn.execute(
+                "SELECT target_strategy FROM paper_trial_results WHERE trial_id=?",
+                (payload["trial_id"],),
+            ).fetchone()
+            if trial is None:
+                raise ValueError("forward candidate review trial is not archived")
+            if payload.get("target_strategy") != trial["target_strategy"]:
+                raise ValueError("forward candidate review strategy differs from trial")
+            latest_review = conn.execute(
+                """SELECT review_id, reviewed_at, resulting_state FROM forward_candidate_reviews
+                   WHERE trial_id=? ORDER BY reviewed_at DESC, review_id DESC LIMIT 1""",
+                (payload["trial_id"],),
+            ).fetchone()
+            current_state = latest_review["resulting_state"] if latest_review else "OBSERVING"
+            expected_previous = latest_review["review_id"] if latest_review else None
+            if payload.get("previous_review_id") != expected_previous:
+                raise ValueError("forward candidate review lineage does not match latest review")
+            if latest_review and reviewed <= _parse(latest_review["reviewed_at"]):
+                raise ValueError("forward candidate review time must advance")
+            source = payload.get("source_evidence", {})
+            latest_observation = conn.execute(
+                """SELECT observation_id, observed_through, input_sha256
+                   FROM forward_observations WHERE trial_id=?
+                   ORDER BY observed_through DESC, observation_id DESC LIMIT 1""",
+                (payload["trial_id"],),
+            ).fetchone()
+            if latest_observation is None:
+                raise ValueError("forward candidate review requires observation evidence")
+            if (
+                source.get("observation_id") != latest_observation["observation_id"]
+                or source.get("observation_input_sha256") != latest_observation["input_sha256"]
+                or source.get("observed_through") != latest_observation["observed_through"]
+            ):
+                raise ValueError("forward candidate review source is not latest evidence")
+
+        observations = self.load_forward_observations(payload["trial_id"], limit=90)
+        stability = build_forward_stability(observations)
+        source = payload["source_evidence"]
+        if source.get("stability_disposition") != stability["review_gate"]["disposition"]:
+            raise ValueError("forward candidate review stability disposition is stale")
+        if source.get("stability_sha256") != stability_evidence_hash(stability):
+            raise ValueError("forward candidate review stability hash is stale")
+        if source.get("available_checkpoints") != stability["summary"]["available_checkpoints"]:
+            raise ValueError("forward candidate review checkpoint count is stale")
+        if source.get("warning_codes") != stability["summary"]["warning_codes"]:
+            raise ValueError("forward candidate review warning evidence is stale")
+        expected_state = transition_state(
+            str(current_state), str(payload.get("action", "")),
+            str(source.get("stability_disposition", "")),
+        )
+        if payload.get("previous_state") != current_state or payload.get("resulting_state") != expected_state:
+            raise ValueError("forward candidate review state transition is invalid")
+
+        with self.connect() as conn:
+            latest_review = conn.execute(
+                """SELECT review_id, reviewed_at FROM forward_candidate_reviews WHERE trial_id=?
+                   ORDER BY reviewed_at DESC, review_id DESC LIMIT 1""",
+                (payload["trial_id"],),
+            ).fetchone()
+            expected_previous = latest_review["review_id"] if latest_review else None
+            if payload.get("previous_review_id") != expected_previous:
+                raise ValueError("forward candidate review lineage changed during archive")
+            if latest_review and reviewed <= _parse(latest_review["reviewed_at"]):
+                raise ValueError("forward candidate review time changed during archive")
+            latest_observation = conn.execute(
+                """SELECT observation_id, observed_through, input_sha256
+                   FROM forward_observations WHERE trial_id=?
+                   ORDER BY observed_through DESC, observation_id DESC LIMIT 1""",
+                (payload["trial_id"],),
+            ).fetchone()
+            if latest_observation is None or (
+                source.get("observation_id") != latest_observation["observation_id"]
+                or source.get("observation_input_sha256") != latest_observation["input_sha256"]
+                or source.get("observed_through") != latest_observation["observed_through"]
+            ):
+                raise ValueError("forward candidate review source changed during archive")
+            conn.execute(
+                """INSERT INTO forward_candidate_reviews(
+                       review_id, trial_id, previous_review_id, reviewed_at, action,
+                       resulting_state, reviewer, source_observation_id,
+                       stability_sha256, schema_version, payload_json
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    review_id, payload["trial_id"], payload.get("previous_review_id"),
+                    _iso(reviewed), payload["action"], payload["resulting_state"],
+                    payload["reviewer"], source["observation_id"],
+                    source["stability_sha256"], payload["schema_version"], canonical,
+                ),
+            )
+        return review_id
+
+    def list_forward_candidate_reviews(
+        self, trial_id: str, *, limit: int = 100
+    ) -> list[dict[str, Any]]:
+        if limit <= 0:
+            raise ValueError("limit must be positive")
+        with self.connect() as conn:
+            rows = conn.execute(
+                """SELECT review_id, trial_id, previous_review_id, reviewed_at,
+                          action, resulting_state, reviewer, source_observation_id,
+                          stability_sha256, schema_version
+                   FROM forward_candidate_reviews WHERE trial_id=?
+                   ORDER BY reviewed_at DESC, review_id DESC LIMIT ?""",
+                (trial_id, limit),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def get_forward_candidate_review(self, review_id: str) -> dict[str, Any] | None:
+        with self.connect() as conn:
+            row = conn.execute(
+                "SELECT payload_json FROM forward_candidate_reviews WHERE review_id=?",
+                (review_id,),
+            ).fetchone()
+        return json.loads(row["payload_json"]) if row is not None else None
+
+    def get_forward_candidate_lifecycle(self, trial_id: str) -> dict[str, Any] | None:
+        trial = self.get_paper_trial_result(trial_id)
+        if trial is None:
+            return None
+        reviews = self.list_forward_candidate_reviews(trial_id, limit=1000000)
+        latest = reviews[0] if reviews else None
+        return {
+            "schema_version": "mil3.forward-candidate-lifecycle.v1",
+            "execution_mode": "PAPER_ONLY",
+            "trial_id": trial_id,
+            "target_strategy": trial["trial"]["target_strategy"],
+            "current_state": latest["resulting_state"] if latest else "OBSERVING",
+            "latest_review": latest,
+            "reviews": list(reversed(reviews)),
+            "read_only": True,
+            "review_action_applies_parameters": False,
             "automatic_strategy_change_allowed": False,
             "live_execution_allowed": False,
         }

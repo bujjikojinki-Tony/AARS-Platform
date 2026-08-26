@@ -270,6 +270,30 @@ Status: **implemented on `mil-3-live-market-paper-trading`**.
 
 The scheduling and governance contract is documented in `mil3/CONTINUOUS_FORWARD_OBSERVATION.md`.
 
+### MIL-3.19 — Human Forward Review and Evidence Export
+
+Status: **implemented on `mil-3-live-market-paper-trading`**.
+
+- Immutable local human-review events govern `OBSERVING`,
+  `OBSERVING_ACKNOWLEDGED`, `PAUSED` and irreversible `TERMINATED` states.
+- Acknowledgement requires confirmed extended-observation evidence; pause cannot
+  conceal a hard stop; restart requires current non-stopped, non-deferred
+  evidence.
+- Each review is lineage-chained and bound to the latest checkpoint and derived
+  stability hash. Storage independently rejects stale, changed or unauthorized
+  evidence.
+- The forward monitor does not generate checkpoints for paused or terminated
+  candidates.
+- Complete evidence exports contain the trial, every checkpoint, stability and
+  human review with per-component and combined SHA-256 verification. Existing
+  export files are never overwritten.
+- The localhost API and console expose lifecycle, review history and manifest
+  metadata read-only. Human writes remain explicit local CLI operations and no
+  review applies parameters or authorizes live execution.
+
+The lifecycle, commands and evidence contract are documented in
+`mil3/HUMAN_FORWARD_REVIEW.md`.
+
 ## Initial decision policy
 
 The initial policy intentionally prefers risk control over activity:
@@ -319,6 +343,16 @@ python run_forward_monitor.py \
   --db mil3_market.sqlite \
   --poll-seconds 3600 \
   --max-cycles 1
+python run_forward_review.py \
+  --db mil3_market.sqlite \
+  --trial-id <trial_id> \
+  --action PAUSE_PAPER_OBSERVATION \
+  --reviewer local-owner \
+  --note "Pause for human risk review."
+python run_forward_evidence_export.py \
+  --db mil3_market.sqlite \
+  --trial-id <trial_id> \
+  --output evidence/<trial_id>.json
 python -m pytest -q
 ```
 
@@ -334,6 +368,7 @@ The ingestion and scheduler commands touch only public market-data endpoints. Re
 - MIL-3.11 deterministic tests cover parameter-grid caps, chronological fold boundaries, training-only selection, strict finite JSON, common-ledger evidence, multi-asset aggregation and CLI report generation.
 - MIL-3.17 deterministic tests cover strict forward boundaries, synchronized assets, warmup exclusion, dynamic funding completeness, eligible-trial enforcement, hard stops, immutable lineage, read-only API/CLI authority and UI boundary visibility.
 - MIL-3.18 deterministic tests cover minimum horizon and confirmation streaks, decay/reversal/rising-risk alarms, hard-stop precedence, lineage/cadence deferral, bounded monitoring, idempotent endpoint reuse, waiting states, read-only stability API/CLI authority and UI alarm actionability.
+- MIL-3.19 deterministic tests cover lifecycle transitions, irreversible termination, stale/tampered review rejection, monitor holds, deterministic self-verifying non-overwriting exports, read-only APIs, explicit local CLIs and UI authority gates.
 
 ## Definition of Done
 

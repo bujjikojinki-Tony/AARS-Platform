@@ -339,3 +339,13 @@ PWB-11 Complete
 - [x] Update documentation and run the full suite
 - [x] Review and commit the milestone
 - **Status:** complete
+
+## MIL-3.19 Human Forward Review and Evidence Export
+- [x] Define immutable human review actions and candidate lifecycle transitions
+- [x] Persist lineage-chained review records with stability/source verification
+- [x] Make the monitor respect pause, termination, and governed restart state
+- [x] Add deterministic complete evidence-bundle export with component hashes
+- [x] Expose read-only review/evidence status through API and task-centered UI
+- [x] Add deterministic state-machine, tamper, monitor, export, API, CLI, and UI tests
+- [x] Update documentation, run the full suite, review, and commit
+- **Status:** complete

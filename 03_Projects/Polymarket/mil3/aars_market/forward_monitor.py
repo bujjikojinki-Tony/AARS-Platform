@@ -53,6 +53,19 @@ def run_forward_monitor_cycle(
     )
     for trial in trials:
         trial_id = str(trial["trial_id"])
+        lifecycle = store.get_forward_candidate_lifecycle(trial_id)
+        lifecycle_state = lifecycle["current_state"] if lifecycle else "OBSERVING"
+        if lifecycle_state in {"PAUSED", "TERMINATED"}:
+            records.append({
+                "trial_id": trial_id,
+                "status": lifecycle_state,
+                "reason": (
+                    "immutable human review paused forward observation"
+                    if lifecycle_state == "PAUSED"
+                    else "immutable human review terminated this candidate"
+                ),
+            })
+            continue
         latest = store.latest_forward_observation_for_trial(trial_id)
         if latest and latest["disposition"] == "STOP_FORWARD_OBSERVATION":
             records.append({

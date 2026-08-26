@@ -1,4 +1,4 @@
-# MIL-3.16 Governed Paper Trial Console HMI Design v6
+# MIL-3.19 Human Forward Review Console HMI Design v7
 
 ## 1. Page Purpose
 
@@ -31,6 +31,8 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 19. Identify hard-stop triggers before considering extended paper observation.
 20. Trace the result to its proposal, source snapshot, exact settings and per-asset evidence.
 21. Confirm funding completeness and effective Binance cadence for each trial asset.
+22. Verify the candidate lifecycle, permitted local human action and immutable review lineage.
+23. Verify the evidence-bundle component count and combined SHA-256 before external retention.
 
 ## 4. Information Architecture
 
@@ -94,10 +96,13 @@ The desktop layout follows a flight-recorder/control-desk pattern with a persist
 - `ForwardConfirmationProgress`
 - `ForwardStabilityTrace`
 - `ForwardEvidenceAlarm`
+- `ForwardCandidateLifecycle`
+- `ImmutableForwardReviewHistory`
+- `ForwardEvidenceManifest`
 
 ## 7. Data Model
 
-The page consumes `mil3.dashboard.v2`, `mil3.portfolio.v1`, `mil3.stable-view-diff.v1`, `mil3.funding-cadence.v1`, `mil3.shadow-daily-index.v1`, `mil3.shadow-daily.v1`, `mil3.shadow-stability.v1`, `mil3.promotion-governance.v1`, `mil3.paper-configuration-proposal-index.v1`, `mil3.paper-configuration-proposal-envelope.v1`, `mil3.paper-trial-result-index.v1`, `mil3.paper-trial-result-envelope.v1`, `mil3.forward-observation-index.v1`, `mil3.forward-observation-envelope.v1` and `mil3.forward-stability.v1`, while keeping display compatibility with v1 static dashboard payloads. The client rejects any execution mode other than `PAPER_ONLY`; trial, forward and stability evidence are rejected unless application, automatic change and live execution are explicitly disabled at both envelope and review-gate levels. Forward evidence must also prove the strict post-trial boundary and exclude warmup history from performance.
+The page consumes `mil3.dashboard.v2`, `mil3.portfolio.v1`, `mil3.stable-view-diff.v1`, `mil3.funding-cadence.v1`, `mil3.shadow-daily-index.v1`, `mil3.shadow-daily.v1`, `mil3.shadow-stability.v1`, `mil3.promotion-governance.v1`, `mil3.paper-configuration-proposal-index.v1`, `mil3.paper-configuration-proposal-envelope.v1`, `mil3.paper-trial-result-index.v1`, `mil3.paper-trial-result-envelope.v1`, `mil3.forward-observation-index.v1`, `mil3.forward-observation-envelope.v1`, `mil3.forward-stability.v1`, `mil3.forward-candidate-lifecycle.v1`, `mil3.forward-candidate-review-envelope.v1` and `mil3.forward-evidence-manifest.v1`, while keeping display compatibility with v1 static dashboard payloads. The client rejects any execution mode other than `PAPER_ONLY`; trial, forward, stability, lifecycle, review and manifest evidence are rejected unless application, automatic change and live execution are explicitly disabled. Forward evidence must also prove the strict post-trial boundary and exclude warmup history from performance.
 
 ## 8. Alarm and Risk Design
 
@@ -131,6 +136,10 @@ If no forward checkpoint exists, the console states that an eligible trial and n
 
 If forward stability is unavailable, the checkpoint itself may remain visible but the console states `NO PERSISTENCE CLAIM`. Stability alarms remain continuously visible in the main card and expose trigger, impact, recommended response and closure condition without dismissal or execution controls.
 
+If lifecycle, latest-review or manifest evidence is unavailable or violates its
+authority schema, the console states `NO HUMAN ACTION PERMITTED`. It does not
+infer a state, review or export identity. Termination is visibly irreversible.
+
 ## 11. User Actions and Gates
 
 Available actions only change the inspected market, replay window, archive, strategy, trace, diff baseline, validation-strategy filter or immutable snapshot detail. Refresh reads evidence and recomputes advisory governance but does not archive or promote anything. There are no order, credential, live-mode, approval, parameter-change or execution controls. A failed switch preserves the last displayed stable evidence and raises the degraded banner.
@@ -138,6 +147,10 @@ Available actions only change the inspected market, replay window, archive, stra
 Proposal creation and terminal human review are separate explicit local commands. The browser exposes neither command as a button and performs only GET requests.
 
 Trial execution is also an explicit local command. The browser can inspect archived trial evidence only; it cannot run, rerun, accept or apply a trial.
+
+Forward acknowledgement, pause, restart, termination and complete evidence
+export are also explicit local commands. The browser can inspect lifecycle,
+review and manifest evidence only; it cannot create a review or export file.
 
 ## 12. HMI Review Gate
 
@@ -167,6 +180,9 @@ python run_shadow_daily.py --db mil3_market.sqlite --validation-strategy AARS_DY
 python run_paper_proposal.py --db mil3_market.sqlite --strategy AARS_DYNAMIC
 python run_paper_review.py --db mil3_market.sqlite --proposal-id <proposal_id> --disposition ACKNOWLEDGED_FOR_PAPER_TRIAL --reviewer local-owner --note "Paper trial only."
 python run_paper_trial.py --db mil3_market.sqlite --proposal-id <proposal_id>
+python run_forward_monitor.py --db mil3_market.sqlite --max-cycles 1
+python run_forward_review.py --db mil3_market.sqlite --trial-id <trial_id> --action PAUSE_PAPER_OBSERVATION --reviewer local-owner --note "Pause for review."
+python run_forward_evidence_export.py --db mil3_market.sqlite --trial-id <trial_id> --output evidence/<trial_id>.json
 python run_api.py --db mil3_market.sqlite --port 8765
 ```
 

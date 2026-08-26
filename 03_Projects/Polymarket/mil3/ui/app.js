@@ -11,6 +11,7 @@ const state = {
   paperTrial: null,
   forwardObservation: null,
   forwardStability: null,
+  forwardLifecycle: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -175,6 +176,38 @@ function validateForwardStability(payload) {
   if (gate?.observation_application_allowed !== false || gate?.automatic_strategy_change_allowed !== false || gate?.live_execution_allowed !== false) {
     throw new Error("forward stability review gate exceeded advisory authority");
   }
+  return payload;
+}
+
+function validateForwardLifecycle(payload) {
+  if (payload.schema_version !== "mil3.forward-candidate-lifecycle.v1") throw new Error("unsupported forward lifecycle schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true) throw new Error("unsafe forward lifecycle rejected");
+  if (payload.review_action_applies_parameters !== false || payload.automatic_strategy_change_allowed !== false || payload.live_execution_allowed !== false) {
+    throw new Error("forward lifecycle did not preserve authority locks");
+  }
+  return payload;
+}
+
+function validateForwardReviewEnvelope(payload) {
+  if (payload.schema_version !== "mil3.forward-candidate-review-envelope.v1") throw new Error("unsupported forward review envelope schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true) throw new Error("unsafe forward review envelope rejected");
+  if (payload.review_action_applies_parameters !== false || payload.automatic_strategy_change_allowed !== false || payload.live_execution_allowed !== false) {
+    throw new Error("forward review envelope did not preserve authority locks");
+  }
+  const review = payload.review;
+  if (review?.review_action_applies_parameters !== false || review?.automatic_strategy_change_allowed !== false || review?.live_execution_allowed !== false) {
+    throw new Error("forward human review exceeded advisory authority");
+  }
+  return payload;
+}
+
+function validateForwardEvidenceManifest(payload) {
+  if (payload.schema_version !== "mil3.forward-evidence-manifest.v1") throw new Error("unsupported forward evidence manifest schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true || payload.evidence_export_only !== true) throw new Error("unsafe forward evidence manifest rejected");
+  if (payload.review_action_applies_parameters !== false || payload.automatic_strategy_change_allowed !== false || payload.live_execution_allowed !== false) {
+    throw new Error("forward evidence manifest did not preserve authority locks");
+  }
+  if (!/^[0-9a-f]{64}$/.test(payload.manifest?.combined_sha256 || "")) throw new Error("forward evidence manifest hash is invalid");
   return payload;
 }
 
@@ -1033,6 +1066,46 @@ function renderForwardStabilityUnavailable(error) {
   $("#forward-stability-next").textContent = "Restore the read-only stability endpoint; keep baseline and do not apply parameters.";
 }
 
+function renderForwardLifecycle(lifecycle, latestReviewEnvelope, manifest) {
+  state.forwardLifecycle = lifecycle;
+  const current = lifecycle.current_state;
+  $("#forward-lifecycle-status").textContent = current.replaceAll("_", " ");
+  $("#forward-lifecycle-status").dataset.status = current;
+  const observationConfirmed = state.forwardStability?.review_gate?.disposition === "EXTENDED_OBSERVATION_CONFIRMED";
+  const actionMap = {
+    OBSERVING: [observationConfirmed ? "ACKNOWLEDGE, PAUSE OR TERMINATE" : "PAUSE OR TERMINATE", "Acknowledgement is additionally allowed only after extended observation is confirmed."],
+    OBSERVING_ACKNOWLEDGED: ["PAUSE OR TERMINATE", "Acknowledgement remains paper-only and applies no parameters."],
+    PAUSED: ["RESTART OR TERMINATE", "Restart requires current non-stopped, non-deferred stability evidence."],
+    TERMINATED: ["NO FURTHER TRANSITION", "Termination is irreversible; begin a new governed proposal and trial lifecycle."],
+  };
+  const [available, condition] = actionMap[current] || ["NO ACTION INFERRED", "Restore valid lifecycle evidence."];
+  const latestReview = latestReviewEnvelope?.review;
+  $("#forward-lifecycle-current").innerHTML = `
+    <strong>${escapeHtml(current.replaceAll("_", " "))}</strong>
+    <dl><dt>AVAILABLE HUMAN ACTION</dt><dd>${escapeHtml(available)}</dd><dt>WRITE PATH</dt><dd>run_forward_review.py</dd><dt>LATEST REVIEWER</dt><dd>${escapeHtml(latestReview?.reviewer || "NONE")}</dd><dt>LATEST REVIEW TIME</dt><dd>${escapeHtml(latestReview ? formatDate(latestReview.reviewed_at) : "NONE")}</dd></dl>
+    <p>${escapeHtml(condition)}</p>
+    <small>THIS READ-ONLY SCREEN HAS NO REVIEW OR APPLY BUTTON.</small>`;
+  $("#forward-review-history").innerHTML = lifecycle.reviews.length ? lifecycle.reviews.map((review) => `
+    <article><span>${escapeHtml(formatDate(review.reviewed_at))} · ${escapeHtml(review.reviewer)}</span><strong>${escapeHtml(review.action.replaceAll("_", " "))}</strong><small>${escapeHtml(review.resulting_state.replaceAll("_", " "))} · ${escapeHtml(review.review_id)}</small></article>`).join("") : '<p class="shadow-empty">No human lifecycle review has been archived.</p>';
+  $("#forward-evidence-manifest").innerHTML = `
+    <strong>SHA-256 MANIFEST READY</strong>
+    <dl><dt>OBSERVATIONS</dt><dd>${escapeHtml(manifest.manifest.observation_count)}</dd><dt>HUMAN REVIEWS</dt><dd>${escapeHtml(manifest.manifest.review_count)}</dd><dt>LIFECYCLE STATE</dt><dd>${escapeHtml(manifest.lifecycle_state)}</dd><dt>COMBINED HASH</dt><dd><code>${escapeHtml(manifest.manifest.combined_sha256.slice(0, 20))}…</code></dd></dl>
+    <p>Full export is available only through run_forward_evidence_export.py. Existing files are never overwritten.</p>`;
+  $("#forward-lifecycle-recovery").textContent = current === "TERMINATED"
+    ? "Candidate terminated. Preserve the evidence bundle and start a new governed proposal/trial if research resumes."
+    : "Human actions require the explicit local CLI, reviewer identity and note. No review applies parameters or authorizes live execution.";
+}
+
+function renderForwardLifecycleUnavailable(error) {
+  state.forwardLifecycle = null;
+  $("#forward-lifecycle-status").textContent = "LIFECYCLE UNAVAILABLE";
+  $("#forward-lifecycle-status").dataset.status = "UNAVAILABLE";
+  $("#forward-lifecycle-current").innerHTML = '<strong class="warning">NO HUMAN ACTION PERMITTED</strong><p>Current lifecycle state could not be verified.</p>';
+  $("#forward-review-history").innerHTML = '<p class="shadow-empty">No review history is inferred.</p>';
+  $("#forward-evidence-manifest").innerHTML = `<p class="shadow-empty">${escapeHtml(error.message)}</p>`;
+  $("#forward-lifecycle-recovery").textContent = "Restore lifecycle and manifest evidence before any local human review command.";
+}
+
 function renderForwardObservationUnavailable(error, empty = false) {
   state.forwardObservation = null;
   $(".forward-observation-card").dataset.status = empty ? "NO_OBSERVATION" : "UNAVAILABLE";
@@ -1045,6 +1118,7 @@ function renderForwardObservationUnavailable(error, empty = false) {
   $("#forward-observation-assets").replaceChildren();
   $("#forward-observation-source").textContent = error.message;
   renderForwardStabilityUnavailable(error);
+  renderForwardLifecycleUnavailable(error);
 }
 
 async function loadForwardObservations(strategy) {
@@ -1056,9 +1130,11 @@ async function loadForwardObservations(strategy) {
     renderForwardObservationUnavailable(new Error("Archive a checkpoint after an eligible trial accumulates new PAPER_ONLY evidence."), true);
     return;
   }
-  const [detailResponse, stabilityResponse] = await Promise.all([
+  const [detailResponse, stabilityResponse, lifecycleResponse, manifestResponse] = await Promise.all([
     fetch(`/api/v1/forward-observations/${encodeURIComponent(latest.observation_id)}`, { cache: "no-store" }),
     fetch(`/api/v1/forward-stability?trial_id=${encodeURIComponent(latest.trial_id)}&limit=90`, { cache: "no-store" }),
+    fetch(`/api/v1/forward-lifecycle?trial_id=${encodeURIComponent(latest.trial_id)}`, { cache: "no-store" }),
+    fetch(`/api/v1/forward-evidence-manifest?trial_id=${encodeURIComponent(latest.trial_id)}`, { cache: "no-store" }),
   ]);
   if (!detailResponse.ok) throw new Error(`forward observation detail returned ${detailResponse.status}`);
   renderForwardObservation(validateForwardObservationEnvelope(await detailResponse.json()));
@@ -1066,6 +1142,22 @@ async function loadForwardObservations(strategy) {
     renderForwardStabilityUnavailable(new Error(`forward stability returned ${stabilityResponse.status}`));
   } else {
     renderForwardStability(validateForwardStability(await stabilityResponse.json()));
+  }
+  if (!lifecycleResponse.ok || !manifestResponse.ok) {
+    renderForwardLifecycleUnavailable(new Error(`forward lifecycle/manifest returned ${lifecycleResponse.status}/${manifestResponse.status}`));
+  } else {
+    const lifecycle = validateForwardLifecycle(await lifecycleResponse.json());
+    const manifest = validateForwardEvidenceManifest(await manifestResponse.json());
+    let latestReviewEnvelope = null;
+    if (lifecycle.latest_review) {
+      const reviewResponse = await fetch(`/api/v1/forward-reviews/${encodeURIComponent(lifecycle.latest_review.review_id)}`, { cache: "no-store" });
+      if (!reviewResponse.ok) {
+        renderForwardLifecycleUnavailable(new Error(`forward review returned ${reviewResponse.status}`));
+        return;
+      }
+      latestReviewEnvelope = validateForwardReviewEnvelope(await reviewResponse.json());
+    }
+    renderForwardLifecycle(lifecycle, latestReviewEnvelope, manifest);
   }
 }
 

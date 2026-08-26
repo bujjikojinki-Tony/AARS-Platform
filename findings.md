@@ -230,3 +230,23 @@
 - The MIL-3.18 control surface passes its targeted syntax/tests and keeps confirmation progress, current risk, checkpoint trace, alarms, recommended response and closure condition in the primary forward-observation card.
 - Final review added review-gate authority validation, genesis/non-monotonic lineage checks and a truthful empty-history stability response bound to the requested archived trial.
 - No authenticated adapter, credential handling, order call or configuration-application route was added; the new monitor only reads market/trial evidence and archives PAPER_ONLY checkpoints.
+## 2026-08-26 — MIL-3.19 kickoff
+- MIL-3.18 is cleanly committed at `c2901de`; the branch is eight commits ahead of origin.
+- Human review must be an immutable local write path distinct from the read-only HTTP API; the dashboard will display records and blocked actions but never create them.
+- Candidate lifecycle will be explicit: observing, acknowledged, paused, restarted/observing, or terminated. Termination is irreversible; restart is allowed only from pause and never bypasses stop/defer evidence.
+- Evidence export should be deterministic and self-verifying: trial, checkpoints, derived stability, reviews, per-component SHA-256 hashes and one combined manifest hash.
+- Existing proposal review establishes the right authority pattern but is terminal and one-per-proposal; MIL-3.19 needs an append-only lineage-chained event stream because pause and restart are lifecycle transitions rather than a single terminal vote.
+- The monitor already has a single per-trial gate before replay, so lifecycle enforcement can fail safely by adding one current-state lookup before the hard-stop and data checks.
+- Review storage independently rebuilds current stability from archived checkpoints and verifies its hash, disposition, checkpoint count, warning set, latest observation identity and prior review lineage before accepting an event.
+- Evidence bundle identity excludes only the derived stability generation timestamp; archived trial, checkpoints and human review payloads are hashed exactly, then covered by one combined manifest hash.
+- The final archive transaction now rechecks both review lineage/time and latest observation identity, closing the window where a concurrent checkpoint could otherwise make an already-built review stale.
+- Evidence verification treats authority locks as signed trust claims: changing export-only, parameter-application, automatic-change or live-execution authority invalidates the bundle even if evidence components are untouched.
+
+## MIL-3.19 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| One large patch used an outdated storage context and failed atomically | 1 | Split the change into focused review, storage-hardening, export and CLI patches using the current line context |
+| Full suite retained MIL-3.18's exact UI version assertion after the console advanced to 03.19 | 1 | Updated the prior stability UI test to assert the current shared console version; all MIL-3.18 functional evidence assertions remain intact |
+| First context-integrity check expected `trial_id` inside the archived trial payload, but its identity lives in the storage envelope | 1 | Bound the top-level trial identity to stability plus every observation/review payload, while target strategy remains independently bound to the trial payload |
+- Seven MIL-3.19 backend acceptance tests now pass across lifecycle transitions, irreversible termination, stale/tampered evidence rejection, monitor gating, deterministic bundle verification, read-only APIs and explicit local CLIs.
+- The read-only lifecycle console exposes current state, permitted local actions, immutable review history, export manifest and recovery guidance without adding a browser write control.

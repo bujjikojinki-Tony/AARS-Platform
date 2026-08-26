@@ -17,11 +17,12 @@ One cycle:
 1. lists archived trials with
    `ELIGIBLE_FOR_EXTENDED_PAPER_OBSERVATION`;
 2. permanently skips a trial whose latest checkpoint triggered a hard stop;
-3. builds at most one checkpoint at the latest synchronized market endpoint;
-4. reuses the existing checkpoint when no new endpoint exists;
-5. reports `WAITING` for insufficient new history;
-6. reports `DEGRADED` for funding, lineage, boundary or archive failures;
-7. never applies a proposal or calls an exchange order path.
+3. respects the immutable human lifecycle and skips paused or terminated trials;
+4. builds at most one checkpoint at the latest synchronized market endpoint;
+5. reuses the existing checkpoint when no new endpoint exists;
+6. reports `WAITING` for insufficient new history;
+7. reports `DEGRADED` for funding, lineage, boundary or archive failures;
+8. never applies a proposal or calls an exchange order path.
 
 Run one acceptance cycle:
 
@@ -103,3 +104,7 @@ observation_application_allowed=false
 automatic_strategy_change_allowed=false
 live_execution_allowed=false
 ```
+
+MIL-3.19 adds the separate human pause/restart/termination state machine and
+self-verifying evidence export. See `HUMAN_FORWARD_REVIEW.md`. It does not
+change the stability policy or grant the monitor execution authority.

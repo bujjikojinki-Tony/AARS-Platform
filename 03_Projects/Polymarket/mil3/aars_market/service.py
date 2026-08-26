@@ -317,3 +317,42 @@ class DashboardService:
             payload["trial_id"] = trial_id
             payload["target_strategy"] = trial["trial"]["target_strategy"]
         return payload
+
+    def forward_candidate_lifecycle(self, trial_id: str) -> dict[str, Any]:
+        payload = self.store.get_forward_candidate_lifecycle(trial_id)
+        if payload is None:
+            raise KeyError(f"paper trial not found: {trial_id}")
+        return payload
+
+    def forward_candidate_review(self, review_id: str) -> dict[str, Any]:
+        payload = self.store.get_forward_candidate_review(review_id)
+        if payload is None:
+            raise KeyError(f"forward candidate review not found: {review_id}")
+        return {
+            "schema_version": "mil3.forward-candidate-review-envelope.v1",
+            "execution_mode": "PAPER_ONLY",
+            "review_id": review_id,
+            "review": payload,
+            "read_only": True,
+            "review_action_applies_parameters": False,
+            "automatic_strategy_change_allowed": False,
+            "live_execution_allowed": False,
+        }
+
+    def forward_evidence_manifest(self, trial_id: str) -> dict[str, Any]:
+        from .evidence_export import build_forward_evidence_bundle
+
+        bundle = build_forward_evidence_bundle(self.store, trial_id)
+        return {
+            "schema_version": "mil3.forward-evidence-manifest.v1",
+            "execution_mode": "PAPER_ONLY",
+            "trial_id": trial_id,
+            "target_strategy": bundle["target_strategy"],
+            "lifecycle_state": bundle["lifecycle_state"],
+            "manifest": bundle["manifest"],
+            "read_only": True,
+            "evidence_export_only": True,
+            "review_action_applies_parameters": False,
+            "automatic_strategy_change_allowed": False,
+            "live_execution_allowed": False,
+        }
