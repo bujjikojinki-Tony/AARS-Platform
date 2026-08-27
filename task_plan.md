@@ -360,3 +360,14 @@ PWB-11 Complete
 - [x] Update operations/milestone documentation and run the full suite
 - [x] Review and commit the milestone
 - **Status:** complete
+
+## MIL-3.21 Isolated PAPER_ONLY Configuration Registry and Atomic Lifecycle
+- [x] Define immutable registry, one-time approval consumption, sandbox pointer and fail-safe expiry contract
+- [x] Add registry/storage models with exact configuration and authority verification
+- [x] Add atomic activate, rollback and persisted expiry/revocation reconciliation events
+- [x] Add immediate read-only effective-configuration resolution that fails safe without GET mutations
+- [x] Add explicit local registry/activation/reconciliation CLI and read-only API
+- [x] Add task-centered UI for stored pointer vs effective state, rollback target and blocking reason
+- [x] Add deterministic registry, race, expiry, revocation, rollback, API, CLI and UI tests
+- [x] Update documentation, run full verification, review and commit
+- **Status:** complete

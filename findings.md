@@ -268,3 +268,16 @@
 | Targeted pytest was launched from the repository root with `PYTHONPATH=.` and could not import the nested `aars_market` package | 1 | Run MIL-3 tests from `03_Projects/Polymarket/mil3`, matching the established project test command |
 | First expiry-path test referenced a nonexistent storage `_utc` helper | 1 | Reused the storage module's established `_iso` plus `_parse` normalization path |
 | Initial Mac mini documentation patch used a slightly different line wrap than the current file | 1 | Read the exact local paragraph and applied the addition against its current wrapping |
+
+## 2026-08-27 — MIL-3.21 kickoff
+- MIL-3.20 is cleanly committed at `23be812`; the branch is ten commits ahead of origin.
+- Registration should consume exactly one unexpired `APPROVED` review into one immutable configuration entry. The approval ID needs a database uniqueness constraint so concurrent consumers cannot duplicate it.
+- Sandbox activation is a mutable pointer plus an append-only event trail. Pointer update, version increment and activation event must commit in one SQLite transaction.
+- Read-only GET requests must not reconcile or write expiry events. Instead, effective configuration resolution must derive `EXPIRED_FAIL_SAFE` or `REVOKED_FAIL_SAFE` immediately and expose the stale stored pointer separately.
+- A later explicit reconciliation cycle can persist the already-effective invalidation event; safety must never depend on that cycle running.
+- Rollback should target the previous pointer recorded by the latest unrolled activation. If that target is missing, expired or revoked, rollback must clear to the baseline/empty state rather than revive unsafe configuration.
+- MIL-3.21 will materialize and select configuration only inside a named local sandbox registry. It will not start ReplayEngine, change shared defaults, contact an exchange or add a live execution adapter.
+- SQLite foreign keys make configuration deletion impossible while referenced by the sandbox pointer or event history; MIL-3.21 adds no deletion API, preserving rollback and audit evidence.
+- A sandbox GET can remain strictly read-only while still enforcing expiry: it exposes both `stored_configuration_id` and a separately derived `effective_configuration_id`, which becomes null immediately when approval validity fails.
+- Rollback safety is evaluated at rollback time, not activation time. An expired or revoked previous configuration is never restored; the rollback event atomically clears the pointer instead.
+- Optimistic state version, previous pointer and previous event ID are all rechecked under `BEGIN IMMEDIATE`, so a stale activation payload cannot partially update the registry.

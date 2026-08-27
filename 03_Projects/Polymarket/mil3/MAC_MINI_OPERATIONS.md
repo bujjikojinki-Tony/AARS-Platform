@@ -105,6 +105,21 @@ This is an explicit operator workflow and is not added to the existing
 LaunchAgents. Confirm that the external volume is mounted and encrypted before
 running it. The retention command never deletes unknown or unverifiable files.
 
+MIL-3.21 sandbox resolution invalidates expired or revoked approvals immediately
+on every read, without waiting for a job. Persist the corresponding pointer-clear
+event during routine maintenance with:
+
+```bash
+.venv/bin/python run_isolated_paper_config.py \
+  --db "$HOME/AARS-MIL3/data/mil3_market.sqlite" \
+  --action RECONCILE
+```
+
+This command changes only the isolated registry pointer and starts no strategy
+process. It is not installed into the existing LaunchAgents while Mac mini
+deployment remains deferred. If later scheduled, keep it as a separate narrowly
+scoped user agent; do not add it to public market-data ingestion.
+
 ## Upgrade
 
 Stop the jobs before moving the repository or Python environment because the

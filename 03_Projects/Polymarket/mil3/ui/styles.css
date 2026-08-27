@@ -592,6 +592,9 @@ tbody tr:last-child td { border-bottom: 0; }
 .forward-lifecycle-heading > strong[data-status="TERMINATED"], .forward-lifecycle-heading > strong[data-status="UNAVAILABLE"] { color: var(--red); }
 .forward-lifecycle-heading > strong[data-status="APPROVED"] { color: var(--green); }
 .forward-lifecycle-heading > strong[data-status="REJECTED"], .forward-lifecycle-heading > strong[data-status="REVOKED"], .forward-lifecycle-heading > strong[data-status="EXPIRED"] { color: var(--red); }
+.forward-lifecycle-heading > strong[data-status="ACTIVE"] { color: var(--green); }
+.forward-lifecycle-heading > strong[data-status="EMPTY"] { color: var(--amber); }
+.forward-lifecycle-heading > strong[data-status$="FAIL_SAFE"] { color: var(--red); }
 .forward-lifecycle-authority { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--line); }
 .forward-lifecycle-authority span { padding: 10px; color: var(--cyan); border-right: 1px solid var(--line); font-size: 7px; text-align: center; }
 .forward-lifecycle-authority span:last-child { border-right: 0; }
@@ -629,6 +632,20 @@ tbody tr:last-child td { border-bottom: 0; }
 .evidence-retention-policy dt { color: var(--muted); font-size: 7px; }
 .evidence-retention-policy dd { margin: 0; color: var(--ink); font-size: 7px; text-align: right; overflow-wrap: anywhere; }
 .evidence-retention-policy p { margin: 10px 0 0; color: var(--muted); font-size: 8px; line-height: 1.5; }
+.isolated-registry-deck { border-top: 1px solid var(--line); background: linear-gradient(104deg, rgba(139, 211, 111, 0.018), transparent 46%); }
+.isolated-registry-grid { display: grid; grid-template-columns: 0.9fr 1.1fr 0.9fr 1.2fr; }
+.isolated-registry-grid > section { min-width: 0; padding: 15px; border-right: 1px solid var(--line); }
+.isolated-registry-grid > section:last-child { border-right: 0; }
+.isolated-registry-grid > section > span { color: var(--green); font-size: 7px; letter-spacing: 0.08em; }
+.sandbox-pointer-summary, .sandbox-configuration-detail, .sandbox-rollback-status { margin-top: 12px; padding: 12px; border: 1px solid var(--line); border-left: 3px solid var(--green); }
+.sandbox-rollback-status { border-left-color: var(--amber); }
+.sandbox-pointer-summary > strong, .sandbox-configuration-detail > strong, .sandbox-rollback-status > strong { color: var(--green); font: 650 11px/1.25 var(--display); }
+.sandbox-rollback-status > strong { color: var(--amber); }
+.sandbox-pointer-summary dl, .sandbox-configuration-detail dl, .sandbox-rollback-status dl { display: grid; grid-template-columns: auto 1fr; gap: 7px 10px; margin: 12px 0 0; }
+.sandbox-pointer-summary dt, .sandbox-configuration-detail dt, .sandbox-rollback-status dt { color: var(--muted); font-size: 7px; }
+.sandbox-pointer-summary dd, .sandbox-configuration-detail dd, .sandbox-rollback-status dd { margin: 0; color: var(--ink); font-size: 7px; text-align: right; overflow-wrap: anywhere; }
+.sandbox-pointer-summary p, .sandbox-configuration-detail p, .sandbox-rollback-status p { margin: 10px 0 0; color: var(--muted); font-size: 8px; line-height: 1.5; }
+.sandbox-configuration-detail code { color: var(--green); font-size: 7px; }
 
 .shadow-metrics { display: grid; grid-template-columns: repeat(6, minmax(110px, 1fr)); margin-top: 14px; border: 1px solid var(--line); background: var(--panel); }
 .shadow-metrics > div { min-height: 86px; padding: 13px 14px; border-right: 1px solid var(--line); }
@@ -729,6 +746,9 @@ tbody tr:last-child td { border-bottom: 0; }
   .activation-approval-grid { grid-template-columns: 1fr 1fr; }
   .activation-approval-grid > section:nth-child(2) { border-right: 0; }
   .activation-approval-grid > section:last-child { grid-column: 1 / -1; border-top: 1px solid var(--line); }
+  .isolated-registry-grid { grid-template-columns: 1fr 1fr; }
+  .isolated-registry-grid > section:nth-child(2n) { border-right: 0; }
+  .isolated-registry-grid > section:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
 }
 
 @media (max-width: 900px) {
@@ -841,6 +861,9 @@ tbody tr:last-child td { border-bottom: 0; }
   .activation-approval-grid { grid-template-columns: 1fr; }
   .activation-approval-grid > section { border-right: 0; border-bottom: 1px solid var(--line); }
   .activation-approval-grid > section:last-child { grid-column: auto; border-top: 0; border-bottom: 0; }
+  .isolated-registry-grid { grid-template-columns: 1fr; }
+  .isolated-registry-grid > section { border-right: 0; border-bottom: 1px solid var(--line); }
+  .isolated-registry-grid > section:last-child { border-bottom: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

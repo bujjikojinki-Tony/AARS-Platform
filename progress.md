@@ -271,3 +271,22 @@
 - Final MIL-3.20 verification: 123 Python tests passed in 5.51 seconds; Python compilation, JavaScript syntax and diff whitespace checks passed.
 - Final safety scan found only the existing API write-method rejection handlers. No credential, authenticated adapter, order route, configuration materialization, automatic application or live execution path was added.
 - MIL-3.20 is ready for its local milestone commit.
+
+## 2026-08-27 — MIL-3.21 started
+- Confirmed the clean MIL-3.20 baseline and recovered the persistent plan.
+- Defined a one-time approval-consumption registry, versioned sandbox pointer, append-only activation events and read-only fail-safe resolution boundary.
+- Next: implement schema/domain/storage first, then exercise atomic activation, rollback and expiry behavior before adding API/UI.
+- Added immutable approved-configuration registry entries with unique approval consumption and exact approval/configuration/source verification.
+- Added versioned sandbox pointers and append-only ACTIVATE, ROLLBACK and fail-safe invalidation events committed under one immediate SQLite transaction.
+- Added read-only sandbox resolution that immediately suppresses expired/revoked/mismatched stored pointers without mutating on GET.
+- Added explicit reconciliation storage workflow for persisting already-effective invalidation states.
+- Existing MIL-3.20 tests remain green and new modules compile.
+- Added one explicit local CLI for REGISTER, ACTIVATE, ROLLBACK and RECONCILE plus GET-only registry, configuration, sandbox and event APIs.
+- Added the MIL-3.21 console surface with stored/effective separation, immutable configuration identity, rollback target validity, atomic event trail and fail-safe recovery instructions.
+- Added nine deterministic MIL-3.21 tests for one-time approval consumption, inert registration, optimistic race rejection, monotonic events, atomic activation/rollback, immediate expiry/revocation suppression, persisted reconciliation, API, CLI and UI gates.
+- Targeted regression verification passes: 38 tests plus Python compilation, JavaScript syntax and diff whitespace checks.
+- Next: document the registry lifecycle and Mac mini reconciliation model, then run the full suite and final safety review.
+- Added the isolated PAPER_ONLY registry operating contract and updated the main milestone, approval, Mac mini and HMI documentation.
+- Final MIL-3.21 verification: 132 Python tests passed in 6.52 seconds; Python compilation, JavaScript syntax and diff whitespace checks passed.
+- Final safety review confirmed the new service/API paths are read-only and found no order submission, strategy-process start, shared-configuration mutation or live-execution authority.
+- MIL-3.21 is ready for its local milestone commit.

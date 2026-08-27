@@ -318,6 +318,31 @@ Status: **implemented on `mil-3-live-market-paper-trading`**.
 The offline and approval contract is documented in
 `mil3/OFFLINE_EVIDENCE_AND_ACTIVATION_APPROVAL.md`.
 
+### MIL-3.21 — Isolated PAPER_ONLY Configuration Registry
+
+Status: **implemented on `mil-3-live-market-paper-trading`**.
+
+- A current unexpired MIL-3.20 approval can be consumed exactly once into an
+  immutable, inert configuration registry entry bound to its full payload and
+  SHA-256.
+- Each named sandbox has a versioned stored pointer plus append-only atomic
+  events. Activation verifies state version, previous pointer/event, approval,
+  expiry, sandbox ownership and authority under one SQLite transaction.
+- Rollback consumes the latest unrolled activation once and revalidates its
+  target. Unsafe rollback targets fail safe to the empty baseline.
+- Read-only resolution separates stored pointer from effective configuration.
+  Expired, revoked or mismatched approvals immediately return no effective
+  configuration without mutating on GET.
+- Explicit reconciliation can append the fail-safe invalidation event and clear
+  the stored pointer. Effective invalidation does not depend on reconciliation.
+- Registry selection starts no process, changes no shared configuration and has
+  no connection to exchange credentials, orders or live execution.
+- The GET-only API and console expose stored/effective state, configuration
+  identity, rollback gates, blocking reason and the atomic event trail.
+
+The registry and atomic lifecycle are documented in
+`mil3/ISOLATED_PAPER_CONFIGURATION_REGISTRY.md`.
+
 ## Initial decision policy
 
 The initial policy intentionally prefers risk control over activity:
@@ -390,6 +415,20 @@ python run_isolated_activation_review.py \
   --bundle evidence/<trial_id>.json \
   --reviewer local-owner \
   --note "Evidence is not ready."
+python run_isolated_paper_config.py \
+  --db mil3_market.sqlite \
+  --action REGISTER \
+  --trial-id <trial_id>
+python run_isolated_paper_config.py \
+  --db mil3_market.sqlite \
+  --action ACTIVATE \
+  --configuration-id <configuration_id> \
+  --sandbox-id aars-paper-sandbox \
+  --operator local-owner \
+  --note "Select isolated registry pointer."
+python run_isolated_paper_config.py \
+  --db mil3_market.sqlite \
+  --action RECONCILE
 python -m pytest -q
 ```
 
@@ -407,6 +446,7 @@ The ingestion and scheduler commands touch only public market-data endpoints. Re
 - MIL-3.18 deterministic tests cover minimum horizon and confirmation streaks, decay/reversal/rising-risk alarms, hard-stop precedence, lineage/cadence deferral, bounded monitoring, idempotent endpoint reuse, waiting states, read-only stability API/CLI authority and UI alarm actionability.
 - MIL-3.19 deterministic tests cover lifecycle transitions, irreversible termination, stale/tampered review rejection, monitor holds, deterministic self-verifying non-overwriting exports, read-only APIs, explicit local CLIs and UI authority gates.
 - MIL-3.20 deterministic tests cover strict offline verification, duplicate keys, safe retention and pruning, minimum-copy floors, approval prerequisites, expiry/revocation, stale/tampered evidence, read-only APIs, explicit local CLIs and UI action gates.
+- MIL-3.21 deterministic tests cover unique approval consumption, inert registration, optimistic races, monotonic events, atomic activation/rollback, immediate expiry/revocation suppression, reconciliation, read-only APIs, explicit local CLIs and UI stored/effective separation.
 
 ## Definition of Done
 

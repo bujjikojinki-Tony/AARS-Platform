@@ -1,4 +1,4 @@
-# MIL-3.20 Offline Evidence and Isolated Approval Console HMI Design v8
+# MIL-3.21 Isolated Configuration Registry Console HMI Design v9
 
 ## 1. Page Purpose
 
@@ -35,6 +35,8 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 23. Verify the evidence-bundle component count and combined SHA-256 before external retention.
 24. Distinguish offline verification, retention and approval as separate governed tasks.
 25. Confirm every activation prerequisite, sandbox scope, expiry and revocation state without applying configuration.
+26. Distinguish the stored sandbox pointer from the currently effective configuration.
+27. Verify state version, atomic event lineage, rollback target validity and fail-safe invalidation reason.
 
 ## 4. Information Architecture
 
@@ -105,10 +107,14 @@ The desktop layout follows a flight-recorder/control-desk pattern with a persist
 - `EvidenceRetentionPolicyCard`
 - `IsolatedActivationLifecycle`
 - `ImmutableActivationReviewHistory`
+- `StoredEffectiveConfigurationPanel`
+- `ImmutableRegistryEntryCard`
+- `RollbackGatePanel`
+- `AtomicSandboxEventTrail`
 
 ## 7. Data Model
 
-The page consumes the existing MIL-3 schemas plus `mil3.evidence-governance-policy.v1`, `mil3.isolated-paper-activation-lifecycle.v1` and `mil3.isolated-paper-activation-review-envelope.v1`. The client rejects any execution mode other than `PAPER_ONLY`; trial, forward, stability, lifecycle, review, manifest and activation evidence are rejected unless configuration application, shared change, automatic change and live execution are explicitly disabled. Forward evidence must also prove the strict post-trial boundary and exclude warmup history from performance.
+The page consumes the existing MIL-3 schemas plus `mil3.isolated-paper-configuration-index.v1`, `mil3.isolated-paper-sandbox-view.v1` and `mil3.isolated-paper-sandbox-event-index.v1`. The client rejects any execution mode other than `PAPER_ONLY`; configuration and sandbox evidence must prove that no strategy process starts and shared, automatic and live authority remain disabled. An effective configuration is accepted only when the sandbox state is exactly `ACTIVE`; all fail-safe states require a null effective configuration.
 
 ## 8. Alarm and Risk Design
 
@@ -151,6 +157,11 @@ shows `APPROVAL UNAVAILABLE`, blocks every prerequisite and infers no sandbox
 authority. Expired, rejected and revoked states state their terminal recovery
 path in text as well as color.
 
+If registry, sandbox or pointer-event evidence is unavailable, the console
+shows `REGISTRY UNAVAILABLE`, infers no effective configuration and blocks
+rollback. A stored pointer remains visible for audit when expiry or revocation
+makes it ineffective.
+
 ## 11. User Actions and Gates
 
 Available actions only change the inspected market, replay window, archive, strategy, trace, diff baseline, validation-strategy filter or immutable snapshot detail. Refresh reads evidence and recomputes advisory governance but does not archive or promote anything. There are no order, credential, live-mode, approval, parameter-change or execution controls. A failed switch preserves the last displayed stable evidence and raises the degraded banner.
@@ -166,6 +177,9 @@ review and manifest evidence only; it cannot create a review or export file.
 Offline verify/retain and isolated approve/reject/revoke are explicit local
 commands. The browser performs GET requests only and has no approve, activate,
 revoke or configuration control.
+
+Registry REGISTER, ACTIVATE, ROLLBACK and RECONCILE are explicit local commands.
+The browser cannot mutate the sandbox pointer or start a strategy process.
 
 ## 12. HMI Review Gate
 
@@ -201,6 +215,9 @@ python run_forward_evidence_export.py --db mil3_market.sqlite --trial-id <trial_
 python run_forward_evidence_verify.py --bundle evidence/<trial_id>.json --report evidence/<trial_id>.verification.json
 python run_forward_evidence_retain.py --bundle evidence/<trial_id>.json --archive-dir /Volumes/AARS-Evidence/forward
 python run_isolated_activation_review.py --db mil3_market.sqlite --trial-id <trial_id> --action REJECT_ISOLATED_PAPER_ACTIVATION --bundle evidence/<trial_id>.json --reviewer local-owner --note "Evidence is not ready."
+python run_isolated_paper_config.py --db mil3_market.sqlite --action REGISTER --trial-id <trial_id>
+python run_isolated_paper_config.py --db mil3_market.sqlite --action ACTIVATE --configuration-id <configuration_id> --sandbox-id aars-paper-sandbox --operator local-owner --note "Select isolated pointer."
+python run_isolated_paper_config.py --db mil3_market.sqlite --action RECONCILE
 python run_api.py --db mil3_market.sqlite --port 8765
 ```
 

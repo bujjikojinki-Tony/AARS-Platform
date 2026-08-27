@@ -216,6 +216,55 @@ CREATE TABLE IF NOT EXISTS isolated_activation_reviews (
 
 CREATE INDEX IF NOT EXISTS idx_isolated_activation_trial_time
 ON isolated_activation_reviews(trial_id, reviewed_at DESC, review_id DESC);
+
+CREATE TABLE IF NOT EXISTS isolated_paper_configurations (
+    configuration_id TEXT PRIMARY KEY,
+    sandbox_id TEXT NOT NULL,
+    trial_id TEXT NOT NULL,
+    approval_review_id TEXT NOT NULL UNIQUE,
+    registered_at TEXT NOT NULL,
+    valid_until TEXT NOT NULL,
+    target_strategy TEXT NOT NULL,
+    configuration_sha256 TEXT NOT NULL,
+    schema_version TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    FOREIGN KEY (trial_id) REFERENCES paper_trial_results(trial_id),
+    FOREIGN KEY (approval_review_id) REFERENCES isolated_activation_reviews(review_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_isolated_paper_config_sandbox_time
+ON isolated_paper_configurations(sandbox_id, registered_at DESC, configuration_id DESC);
+
+CREATE TABLE IF NOT EXISTS isolated_paper_sandboxes (
+    sandbox_id TEXT PRIMARY KEY,
+    active_configuration_id TEXT,
+    state_version INTEGER NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (active_configuration_id) REFERENCES isolated_paper_configurations(configuration_id)
+);
+
+CREATE TABLE IF NOT EXISTS isolated_paper_sandbox_events (
+    event_id TEXT PRIMARY KEY,
+    sandbox_id TEXT NOT NULL,
+    previous_event_id TEXT,
+    event_at TEXT NOT NULL,
+    action TEXT NOT NULL,
+    previous_configuration_id TEXT,
+    next_configuration_id TEXT,
+    state_version INTEGER NOT NULL,
+    rollback_of_event_id TEXT UNIQUE,
+    operator TEXT NOT NULL,
+    schema_version TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    FOREIGN KEY (sandbox_id) REFERENCES isolated_paper_sandboxes(sandbox_id),
+    FOREIGN KEY (previous_event_id) REFERENCES isolated_paper_sandbox_events(event_id),
+    FOREIGN KEY (previous_configuration_id) REFERENCES isolated_paper_configurations(configuration_id),
+    FOREIGN KEY (next_configuration_id) REFERENCES isolated_paper_configurations(configuration_id),
+    FOREIGN KEY (rollback_of_event_id) REFERENCES isolated_paper_sandbox_events(event_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_isolated_sandbox_events_time
+ON isolated_paper_sandbox_events(sandbox_id, event_at DESC, event_id DESC);
 """
 
 
@@ -1769,6 +1818,489 @@ class MarketStore:
             "events": list(reversed(reviews)),
             "read_only": True,
             "approval_applies_configuration": False,
+            "shared_configuration_change_allowed": False,
+            "automatic_strategy_change_allowed": False,
+            "live_execution_allowed": False,
+        }
+
+    def archive_isolated_paper_configuration(self, payload: dict[str, Any]) -> str:
+        from .isolated_config import canonical_sha256
+
+        if payload.get("schema_version") != "mil3.isolated-paper-configuration.v1":
+            raise ValueError("unsupported isolated paper configuration schema")
+        if payload.get("execution_mode") != "PAPER_ONLY":
+            raise ValueError("isolated paper configuration must be PAPER_ONLY")
+        authority = payload.get("authority", {})
+        if (
+            authority.get("registry_entry_inert") is not True
+            or authority.get("atomic_sandbox_activation_allowed") is not True
+        ):
+            raise ValueError("isolated paper configuration is not an inert registry entry")
+        for key in (
+            "shared_configuration_change_allowed",
+            "automatic_strategy_change_allowed",
+            "live_execution_allowed",
+        ):
+            if authority.get(key) is not False:
+                raise ValueError("isolated paper configuration exceeds registry authority")
+        try:
+            registered = _parse(str(payload["registered_at"]))
+            valid_until = _parse(str(payload["valid_until"]))
+        except (KeyError, ValueError):
+            raise ValueError("isolated paper configuration time is invalid") from None
+        if registered >= valid_until:
+            raise ValueError("isolated paper configuration approval already expired")
+        configuration = payload.get("configuration")
+        configuration_sha256 = canonical_sha256(configuration)
+        if payload.get("configuration_sha256") != configuration_sha256:
+            raise ValueError("isolated paper configuration hash differs from payload")
+        identity = {
+            "trial_id": payload.get("trial_id"),
+            "approval_review_id": payload.get("approval_review_id"),
+            "sandbox_id": payload.get("sandbox_id"),
+            "configuration_sha256": configuration_sha256,
+        }
+        configuration_id = canonical_sha256(identity)[:24]
+        if payload.get("configuration_id") != configuration_id:
+            raise ValueError("isolated paper configuration identity is invalid")
+        canonical = json.dumps(
+            payload, sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
+        with self.connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            existing = conn.execute(
+                "SELECT payload_json FROM isolated_paper_configurations WHERE configuration_id=?",
+                (configuration_id,),
+            ).fetchone()
+            if existing is not None:
+                existing_identity = json.loads(existing["payload_json"])
+                incoming_identity = json.loads(canonical)
+                existing_identity.pop("registered_at", None)
+                incoming_identity.pop("registered_at", None)
+                if existing_identity != incoming_identity:
+                    raise ValueError("isolated paper configuration identity collision")
+                return configuration_id
+            consumed = conn.execute(
+                "SELECT configuration_id FROM isolated_paper_configurations WHERE approval_review_id=?",
+                (payload["approval_review_id"],),
+            ).fetchone()
+            if consumed is not None:
+                raise ValueError("isolated activation approval was already consumed")
+            approval_row = conn.execute(
+                "SELECT payload_json FROM isolated_activation_reviews WHERE review_id=?",
+                (payload["approval_review_id"],),
+            ).fetchone()
+            latest_approval = conn.execute(
+                """SELECT review_id, resulting_state FROM isolated_activation_reviews
+                   WHERE trial_id=? ORDER BY reviewed_at DESC, review_id DESC LIMIT 1""",
+                (payload["trial_id"],),
+            ).fetchone()
+            if approval_row is None or latest_approval is None:
+                raise ValueError("isolated paper configuration approval is unavailable")
+            approval = json.loads(approval_row["payload_json"])
+            if (
+                latest_approval["review_id"] != payload["approval_review_id"]
+                or latest_approval["resulting_state"] != "APPROVED"
+                or approval.get("action") != "APPROVE_ISOLATED_PAPER_ACTIVATION"
+                or approval.get("valid_until") != payload.get("valid_until")
+                or approval.get("sandbox_id") != payload.get("sandbox_id")
+                or approval.get("target_strategy") != payload.get("target_strategy")
+                or approval.get("configuration_snapshot") != configuration
+                or approval.get("source_evidence") != payload.get("source_evidence")
+            ):
+                raise ValueError("isolated paper configuration differs from current approval")
+            if registered < _parse(approval["reviewed_at"]):
+                raise ValueError("isolated paper configuration predates its approval")
+            conn.execute(
+                """INSERT INTO isolated_paper_configurations(
+                       configuration_id, sandbox_id, trial_id, approval_review_id,
+                       registered_at, valid_until, target_strategy,
+                       configuration_sha256, schema_version, payload_json
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    configuration_id, payload["sandbox_id"], payload["trial_id"],
+                    payload["approval_review_id"], _iso(registered), _iso(valid_until),
+                    payload["target_strategy"], configuration_sha256,
+                    payload["schema_version"], canonical,
+                ),
+            )
+        return configuration_id
+
+    def list_isolated_paper_configurations(
+        self, *, sandbox_id: str | None = None, limit: int = 100
+    ) -> list[dict[str, Any]]:
+        if limit <= 0:
+            raise ValueError("limit must be positive")
+        where = " WHERE sandbox_id=?" if sandbox_id else ""
+        params: list[Any] = [sandbox_id] if sandbox_id else []
+        params.append(limit)
+        with self.connect() as conn:
+            rows = conn.execute(
+                f"""SELECT configuration_id, sandbox_id, trial_id, approval_review_id,
+                           registered_at, valid_until, target_strategy,
+                           configuration_sha256, schema_version
+                    FROM isolated_paper_configurations{where}
+                    ORDER BY registered_at DESC, configuration_id DESC LIMIT ?""",
+                params,
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def get_isolated_paper_configuration(
+        self, configuration_id: str | None
+    ) -> dict[str, Any] | None:
+        if not configuration_id:
+            return None
+        with self.connect() as conn:
+            row = conn.execute(
+                "SELECT payload_json FROM isolated_paper_configurations WHERE configuration_id=?",
+                (configuration_id,),
+            ).fetchone()
+        return json.loads(row["payload_json"]) if row is not None else None
+
+    @staticmethod
+    def _isolated_configuration_validity(
+        conn: sqlite3.Connection,
+        configuration_id: str | None,
+        at: datetime,
+    ) -> tuple[bool, str, sqlite3.Row | None]:
+        if configuration_id is None:
+            return True, "BASELINE_EMPTY", None
+        config = conn.execute(
+            """SELECT configuration_id, sandbox_id, trial_id, approval_review_id,
+                      valid_until, payload_json
+               FROM isolated_paper_configurations WHERE configuration_id=?""",
+            (configuration_id,),
+        ).fetchone()
+        if config is None:
+            return False, "CONFIGURATION_MISSING", None
+        if at >= _parse(config["valid_until"]):
+            return False, "APPROVAL_EXPIRED", config
+        latest = conn.execute(
+            """SELECT review_id, resulting_state FROM isolated_activation_reviews
+               WHERE trial_id=? ORDER BY reviewed_at DESC, review_id DESC LIMIT 1""",
+            (config["trial_id"],),
+        ).fetchone()
+        if latest is None or latest["review_id"] != config["approval_review_id"]:
+            if latest is not None and latest["resulting_state"] == "REVOKED":
+                return False, "APPROVAL_REVOKED", config
+            return False, "APPROVAL_MISMATCH", config
+        if latest["resulting_state"] != "APPROVED":
+            return False, "APPROVAL_REVOKED", config
+        return True, "CURRENT", config
+
+    def resolve_isolated_paper_sandbox(
+        self, sandbox_id: str, *, now: datetime | None = None
+    ) -> dict[str, Any]:
+        evaluated = _parse(_iso(now or datetime.now(timezone.utc)))
+        with self.connect() as conn:
+            sandbox = conn.execute(
+                """SELECT sandbox_id, active_configuration_id, state_version, updated_at
+                   FROM isolated_paper_sandboxes WHERE sandbox_id=?""",
+                (sandbox_id,),
+            ).fetchone()
+            latest_event = conn.execute(
+                """SELECT event_id, event_at, action, previous_configuration_id,
+                          next_configuration_id, state_version, operator
+                   FROM isolated_paper_sandbox_events WHERE sandbox_id=?
+                   ORDER BY state_version DESC, event_id DESC LIMIT 1""",
+                (sandbox_id,),
+            ).fetchone()
+            stored_id = sandbox["active_configuration_id"] if sandbox else None
+            valid, reason, config_row = self._isolated_configuration_validity(
+                conn, stored_id, evaluated
+            )
+            rollback = None
+            if latest_event is not None and latest_event["action"] == "ACTIVATE":
+                rolled_back = conn.execute(
+                    "SELECT event_id FROM isolated_paper_sandbox_events WHERE rollback_of_event_id=?",
+                    (latest_event["event_id"],),
+                ).fetchone()
+                if rolled_back is None and latest_event["next_configuration_id"] == stored_id:
+                    target = latest_event["previous_configuration_id"]
+                    target_valid, _, _ = self._isolated_configuration_validity(
+                        conn, target, evaluated
+                    )
+                    rollback = {
+                        "event_id": latest_event["event_id"],
+                        "previous_configuration_id": target,
+                        "safe_rollback_configuration_id": target if target_valid else None,
+                        "target_fails_safe_to_empty": not target_valid,
+                    }
+        if stored_id is None:
+            effective_state = "EMPTY"
+            blocking_reason = "No isolated configuration is active."
+            effective_id = None
+        elif valid:
+            effective_state = "ACTIVE"
+            blocking_reason = "None; isolated PAPER_ONLY registry pointer is current."
+            effective_id = stored_id
+        else:
+            effective_state = {
+                "APPROVAL_EXPIRED": "EXPIRED_FAIL_SAFE",
+                "APPROVAL_REVOKED": "REVOKED_FAIL_SAFE",
+                "APPROVAL_MISMATCH": "APPROVAL_MISMATCH_FAIL_SAFE",
+                "CONFIGURATION_MISSING": "CONFIGURATION_MISSING_FAIL_SAFE",
+            }[reason]
+            blocking_reason = (
+                f"Stored pointer is ignored because {reason.replace('_', ' ').lower()}."
+            )
+            effective_id = None
+        configuration = (
+            json.loads(config_row["payload_json"]) if config_row is not None else None
+        )
+        return {
+            "schema_version": "mil3.isolated-paper-sandbox-view.v1",
+            "execution_mode": "PAPER_ONLY",
+            "evaluated_at": evaluated.isoformat(),
+            "sandbox_id": sandbox_id,
+            "state_version": sandbox["state_version"] if sandbox else 0,
+            "stored_configuration_id": stored_id,
+            "effective_configuration_id": effective_id,
+            "effective_state": effective_state,
+            "blocking_reason": blocking_reason,
+            "updated_at": sandbox["updated_at"] if sandbox else None,
+            "latest_event_id": latest_event["event_id"] if latest_event else None,
+            "latest_event": dict(latest_event) if latest_event else None,
+            "stored_configuration": configuration,
+            "effective_configuration": configuration if effective_id else None,
+            "rollback_candidate": rollback,
+            "read_only": True,
+            "starts_strategy_process": False,
+            "shared_configuration_change_allowed": False,
+            "automatic_strategy_change_allowed": False,
+            "live_execution_allowed": False,
+        }
+
+    def archive_isolated_paper_sandbox_event(self, payload: dict[str, Any]) -> str:
+        from .isolated_config import canonical_sha256
+
+        if payload.get("schema_version") != "mil3.isolated-paper-sandbox-event.v1":
+            raise ValueError("unsupported isolated paper sandbox event schema")
+        if payload.get("execution_mode") != "PAPER_ONLY":
+            raise ValueError("isolated paper sandbox event must be PAPER_ONLY")
+        action = str(payload.get("action", ""))
+        allowed_actions = {
+            "ACTIVATE", "ROLLBACK", "INVALIDATE_EXPIRED",
+            "INVALIDATE_REVOKED", "INVALIDATE_APPROVAL_MISMATCH",
+        }
+        if action not in allowed_actions:
+            raise ValueError("unsupported isolated paper sandbox action")
+        authority = payload.get("authority", {})
+        if (
+            authority.get("isolated_registry_pointer_change_only") is not True
+            or authority.get("starts_strategy_process") is not False
+            or authority.get("shared_configuration_change_allowed") is not False
+            or authority.get("automatic_strategy_change_allowed") is not False
+            or authority.get("live_execution_allowed") is not False
+        ):
+            raise ValueError("isolated paper sandbox event exceeds pointer authority")
+        if not str(payload.get("operator", "")).strip() or not str(
+            payload.get("note", "")
+        ).strip():
+            raise ValueError("isolated paper sandbox event requires operator and note")
+        try:
+            event_at = _parse(str(payload["event_at"]))
+            expected_version = int(payload["expected_state_version"])
+        except (KeyError, ValueError, TypeError):
+            raise ValueError("isolated paper sandbox event context is invalid") from None
+        identity = dict(payload)
+        supplied_event_id = str(identity.pop("event_id", ""))
+        expected_event_id = canonical_sha256(identity)[:24]
+        if supplied_event_id != expected_event_id:
+            raise ValueError("isolated paper sandbox event identity is invalid")
+        canonical = json.dumps(
+            payload, sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
+        sandbox_id = str(payload.get("sandbox_id", ""))
+        with self.connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            existing = conn.execute(
+                "SELECT payload_json FROM isolated_paper_sandbox_events WHERE event_id=?",
+                (supplied_event_id,),
+            ).fetchone()
+            if existing is not None:
+                if existing["payload_json"] != canonical:
+                    raise ValueError("isolated paper sandbox event identity collision")
+                return supplied_event_id
+            sandbox = conn.execute(
+                """SELECT active_configuration_id, state_version FROM isolated_paper_sandboxes
+                   WHERE sandbox_id=?""",
+                (sandbox_id,),
+            ).fetchone()
+            if sandbox is None:
+                if action != "ACTIVATE" or expected_version != 0:
+                    raise ValueError("isolated paper sandbox is not initialized")
+                conn.execute(
+                    """INSERT INTO isolated_paper_sandboxes(
+                           sandbox_id, active_configuration_id, state_version, updated_at
+                       ) VALUES (?, NULL, 0, ?)""",
+                    (sandbox_id, _iso(event_at)),
+                )
+                current_id = None
+                current_version = 0
+            else:
+                current_id = sandbox["active_configuration_id"]
+                current_version = int(sandbox["state_version"])
+            latest = conn.execute(
+                """SELECT event_id, event_at, action, previous_configuration_id,
+                          next_configuration_id, state_version
+                   FROM isolated_paper_sandbox_events WHERE sandbox_id=?
+                   ORDER BY state_version DESC, event_id DESC LIMIT 1""",
+                (sandbox_id,),
+            ).fetchone()
+            latest_id = latest["event_id"] if latest else None
+            if latest is not None and event_at <= _parse(latest["event_at"]):
+                raise ValueError("isolated paper sandbox event time must advance")
+            if (
+                current_version != expected_version
+                or current_id != payload.get("previous_configuration_id")
+                or latest_id != payload.get("previous_event_id")
+            ):
+                raise ValueError("isolated paper sandbox state changed before commit")
+            next_id = payload.get("next_configuration_id")
+            rollback_of = payload.get("rollback_of_event_id")
+            if action == "ACTIVATE":
+                valid, reason, config = self._isolated_configuration_validity(
+                    conn, str(next_id) if next_id else None, event_at
+                )
+                if not valid or config is None:
+                    raise ValueError(f"isolated configuration is not activatable: {reason}")
+                if config["sandbox_id"] != sandbox_id:
+                    raise ValueError("isolated configuration belongs to another sandbox")
+                config_payload = json.loads(config["payload_json"])
+                if event_at < _parse(config_payload["registered_at"]):
+                    raise ValueError("isolated activation predates configuration registration")
+                if next_id == current_id:
+                    raise ValueError("isolated configuration is already the stored pointer")
+                if rollback_of is not None:
+                    raise ValueError("activation must not consume a rollback target")
+            elif action == "ROLLBACK":
+                if not rollback_of:
+                    raise ValueError("rollback requires its source activation event")
+                activation = conn.execute(
+                    """SELECT action, previous_configuration_id, next_configuration_id
+                       FROM isolated_paper_sandbox_events WHERE event_id=? AND sandbox_id=?""",
+                    (rollback_of, sandbox_id),
+                ).fetchone()
+                already = conn.execute(
+                    "SELECT event_id FROM isolated_paper_sandbox_events WHERE rollback_of_event_id=?",
+                    (rollback_of,),
+                ).fetchone()
+                if (
+                    activation is None or activation["action"] != "ACTIVATE"
+                    or activation["next_configuration_id"] != current_id or already is not None
+                ):
+                    raise ValueError("rollback source is not the current unrolled activation")
+                target = activation["previous_configuration_id"]
+                target_valid, _, _ = self._isolated_configuration_validity(
+                    conn, target, event_at
+                )
+                safe_target = target if target_valid else None
+                if next_id != safe_target:
+                    raise ValueError("rollback target changed before commit")
+            else:
+                valid, reason, _ = self._isolated_configuration_validity(
+                    conn, current_id, event_at
+                )
+                expected_action = {
+                    "APPROVAL_EXPIRED": "INVALIDATE_EXPIRED",
+                    "APPROVAL_REVOKED": "INVALIDATE_REVOKED",
+                    "APPROVAL_MISMATCH": "INVALIDATE_APPROVAL_MISMATCH",
+                }.get(reason)
+                if valid or expected_action != action or next_id is not None:
+                    raise ValueError("fail-safe invalidation no longer matches current state")
+                if rollback_of is not None:
+                    raise ValueError("invalidation must not consume a rollback target")
+            next_version = current_version + 1
+            updated = conn.execute(
+                """UPDATE isolated_paper_sandboxes
+                   SET active_configuration_id=?, state_version=?, updated_at=?
+                   WHERE sandbox_id=? AND state_version=?""",
+                (next_id, next_version, _iso(event_at), sandbox_id, current_version),
+            )
+            if updated.rowcount != 1:
+                raise ValueError("isolated paper sandbox pointer update lost its race")
+            conn.execute(
+                """INSERT INTO isolated_paper_sandbox_events(
+                       event_id, sandbox_id, previous_event_id, event_at, action,
+                       previous_configuration_id, next_configuration_id, state_version,
+                       rollback_of_event_id, operator, schema_version, payload_json
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    supplied_event_id, sandbox_id, payload.get("previous_event_id"),
+                    _iso(event_at), action, current_id, next_id, next_version,
+                    rollback_of, payload["operator"], payload["schema_version"], canonical,
+                ),
+            )
+        return supplied_event_id
+
+    def list_isolated_paper_sandbox_events(
+        self, sandbox_id: str, *, limit: int = 100
+    ) -> list[dict[str, Any]]:
+        if limit <= 0:
+            raise ValueError("limit must be positive")
+        with self.connect() as conn:
+            rows = conn.execute(
+                """SELECT event_id, sandbox_id, previous_event_id, event_at, action,
+                          previous_configuration_id, next_configuration_id, state_version,
+                          rollback_of_event_id, operator, schema_version
+                   FROM isolated_paper_sandbox_events WHERE sandbox_id=?
+                   ORDER BY state_version DESC, event_id DESC LIMIT ?""",
+                (sandbox_id, limit),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def get_isolated_paper_sandbox_event(self, event_id: str) -> dict[str, Any] | None:
+        with self.connect() as conn:
+            row = conn.execute(
+                "SELECT payload_json FROM isolated_paper_sandbox_events WHERE event_id=?",
+                (event_id,),
+            ).fetchone()
+        return json.loads(row["payload_json"]) if row is not None else None
+
+    def reconcile_isolated_paper_sandboxes(
+        self, *, now: datetime | None = None
+    ) -> dict[str, Any]:
+        from .isolated_config import build_fail_safe_invalidation_event
+
+        evaluated = _parse(_iso(now or datetime.now(timezone.utc)))
+        with self.connect() as conn:
+            sandbox_ids = [
+                row["sandbox_id"]
+                for row in conn.execute(
+                    "SELECT sandbox_id FROM isolated_paper_sandboxes ORDER BY sandbox_id"
+                ).fetchall()
+            ]
+        records: list[dict[str, Any]] = []
+        for sandbox_id in sandbox_ids:
+            view = self.resolve_isolated_paper_sandbox(sandbox_id, now=evaluated)
+            if view["effective_state"] not in {
+                "EXPIRED_FAIL_SAFE", "REVOKED_FAIL_SAFE",
+                "APPROVAL_MISMATCH_FAIL_SAFE",
+            }:
+                records.append({"sandbox_id": sandbox_id, "status": "NO_CHANGE"})
+                continue
+            try:
+                event = build_fail_safe_invalidation_event(view, event_at=evaluated)
+                event_id = self.archive_isolated_paper_sandbox_event(event)
+                records.append({
+                    "sandbox_id": sandbox_id,
+                    "status": "INVALIDATED",
+                    "event_id": event_id,
+                    "reason": view["effective_state"],
+                })
+            except ValueError as exc:
+                records.append({
+                    "sandbox_id": sandbox_id,
+                    "status": "DEGRADED",
+                    "reason": str(exc),
+                })
+        return {
+            "schema_version": "mil3.isolated-paper-reconciliation.v1",
+            "execution_mode": "PAPER_ONLY",
+            "evaluated_at": evaluated.isoformat(),
+            "records": records,
+            "configuration_process_started": False,
             "shared_configuration_change_allowed": False,
             "automatic_strategy_change_allowed": False,
             "live_execution_allowed": False,

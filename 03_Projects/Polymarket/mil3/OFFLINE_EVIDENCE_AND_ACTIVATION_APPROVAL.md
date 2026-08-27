@@ -109,6 +109,10 @@ MIL-3.20 intentionally contains no configuration materialization or activation
 runner. A later milestone must define the isolated sandbox itself before this
 authorization can be consumed.
 
+MIL-3.21 now defines that isolated registry and consumes the approval without
+starting a process or changing shared configuration. See
+`ISOLATED_PAPER_CONFIGURATION_REGISTRY.md`.
+
 ## Read-only inspection
 
 ```text
@@ -120,4 +124,3 @@ GET /api/v1/isolated-activation-reviews/{review_id}
 The console shows prerequisite blocks, retention policy, current/expired state
 and immutable review history. It has no approve, activate, revoke or execution
 button.
-

@@ -13,6 +13,7 @@ const state = {
   forwardStability: null,
   forwardLifecycle: null,
   isolatedActivation: null,
+  isolatedSandbox: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -242,6 +243,37 @@ function validateIsolatedActivationReviewEnvelope(payload) {
     throw new Error("isolated activation human review exceeded sandbox authority");
   }
   if (authority?.isolated_paper_activation_allowed !== (payload.review?.resulting_state === "APPROVED")) throw new Error("isolated activation review authority differs from decision");
+  return payload;
+}
+
+function validateIsolatedConfigurationIndex(payload) {
+  if (payload.schema_version !== "mil3.isolated-paper-configuration-index.v1") throw new Error("unsupported isolated configuration index schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true || payload.registry_entries_inert !== true) throw new Error("unsafe isolated configuration index rejected");
+  if (payload.starts_strategy_process !== false || payload.shared_configuration_change_allowed !== false || payload.automatic_strategy_change_allowed !== false || payload.live_execution_allowed !== false) {
+    throw new Error("isolated configuration index exceeded registry authority");
+  }
+  return payload;
+}
+
+function validateIsolatedSandbox(payload) {
+  if (payload.schema_version !== "mil3.isolated-paper-sandbox-view.v1") throw new Error("unsupported isolated sandbox schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true) throw new Error("unsafe isolated sandbox rejected");
+  if (payload.starts_strategy_process !== false || payload.shared_configuration_change_allowed !== false || payload.automatic_strategy_change_allowed !== false || payload.live_execution_allowed !== false) {
+    throw new Error("isolated sandbox exceeded pointer authority");
+  }
+  const effective = payload.effective_state === "ACTIVE";
+  if ((payload.effective_configuration_id !== null) !== effective || (payload.effective_configuration !== null) !== effective) {
+    throw new Error("isolated sandbox effective configuration differs from fail-safe state");
+  }
+  return payload;
+}
+
+function validateIsolatedSandboxEventIndex(payload) {
+  if (payload.schema_version !== "mil3.isolated-paper-sandbox-event-index.v1") throw new Error("unsupported isolated sandbox event index schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true) throw new Error("unsafe isolated sandbox events rejected");
+  if (payload.starts_strategy_process !== false || payload.shared_configuration_change_allowed !== false || payload.automatic_strategy_change_allowed !== false || payload.live_execution_allowed !== false) {
+    throw new Error("isolated sandbox events exceeded pointer authority");
+  }
   return payload;
 }
 
@@ -1183,6 +1215,50 @@ function renderIsolatedActivationUnavailable(error) {
   $("#activation-approval-recovery").textContent = "Restore policy, lifecycle and review evidence before any local approval command.";
 }
 
+function renderIsolatedRegistry(configurationIndex, sandbox, eventIndex) {
+  state.isolatedSandbox = sandbox;
+  const current = sandbox.effective_state;
+  $("#sandbox-effective-status").textContent = current.replaceAll("_", " ");
+  $("#sandbox-effective-status").dataset.status = current;
+  $("#sandbox-pointer-summary").innerHTML = `
+    <strong>${escapeHtml(current.replaceAll("_", " "))}</strong>
+    <dl><dt>STORED POINTER</dt><dd>${escapeHtml(sandbox.stored_configuration_id || "EMPTY")}</dd><dt>EFFECTIVE CONFIG</dt><dd>${escapeHtml(sandbox.effective_configuration_id || "NONE")}</dd><dt>STATE VERSION</dt><dd>${escapeHtml(sandbox.state_version)}</dd><dt>EVALUATED</dt><dd>${escapeHtml(formatDate(sandbox.evaluated_at))}</dd></dl>
+    <p>${escapeHtml(sandbox.blocking_reason)}</p>`;
+  const config = sandbox.stored_configuration;
+  $("#sandbox-configuration-detail").innerHTML = config ? `
+    <strong>${escapeHtml(config.target_strategy)} · ${escapeHtml(config.configuration_id)}</strong>
+    <dl><dt>SANDBOX</dt><dd>${escapeHtml(config.sandbox_id)}</dd><dt>APPROVAL</dt><dd>${escapeHtml(config.approval_review_id)}</dd><dt>VALID UNTIL</dt><dd>${escapeHtml(formatDate(config.valid_until))}</dd><dt>CONFIG SHA-256</dt><dd><code>${escapeHtml(config.configuration_sha256.slice(0, 20))}…</code></dd></dl>
+    <p>Registry entry is immutable and inert. Selection changes only the isolated pointer.</p>` : `
+    <strong>NO STORED CONFIGURATION</strong><p>${escapeHtml(configurationIndex.configurations.length)} immutable registry entries are available for this sandbox.</p>`;
+  const rollback = sandbox.rollback_candidate;
+  $("#sandbox-rollback-status").innerHTML = rollback ? `
+    <strong>ROLLBACK AVAILABLE</strong>
+    <dl><dt>ACTIVATION EVENT</dt><dd>${escapeHtml(rollback.event_id)}</dd><dt>RECORDED TARGET</dt><dd>${escapeHtml(rollback.previous_configuration_id || "EMPTY BASELINE")}</dd><dt>SAFE TARGET NOW</dt><dd>${escapeHtml(rollback.safe_rollback_configuration_id || "EMPTY BASELINE")}</dd></dl>
+    <p>${rollback.target_fails_safe_to_empty ? "Recorded target is no longer valid; rollback will clear the pointer." : "Target remains within current isolated approval authority."}</p>` : '<strong>ROLLBACK BLOCKED</strong><p>No current unrolled activation exists.</p>';
+  $("#sandbox-event-history").innerHTML = eventIndex.events.length ? eventIndex.events.map((event) => `
+    <article><span>VERSION ${escapeHtml(event.state_version)} · ${escapeHtml(formatDate(event.event_at))} · ${escapeHtml(event.operator)}</span><strong>${escapeHtml(event.action.replaceAll("_", " "))}</strong><small>${escapeHtml(event.previous_configuration_id || "EMPTY")} → ${escapeHtml(event.next_configuration_id || "EMPTY")} · ${escapeHtml(event.event_id)}</small></article>`).join("") : '<p class="shadow-empty">No atomic sandbox pointer event has been archived.</p>';
+  const recovery = {
+    EMPTY: "Register and activate only through run_isolated_paper_config.py after current approval is verified.",
+    ACTIVE: "The isolated pointer is effective, but no strategy process was started. Rollback remains an explicit local CLI action.",
+    EXPIRED_FAIL_SAFE: "Stored pointer is already ineffective. Run RECONCILE to persist the fail-safe invalidation event.",
+    REVOKED_FAIL_SAFE: "Revoked approval makes the stored pointer ineffective immediately. Run RECONCILE to persist invalidation.",
+    APPROVAL_MISMATCH_FAIL_SAFE: "Approval lineage changed. Keep the pointer ineffective and reconcile before further work.",
+    CONFIGURATION_MISSING_FAIL_SAFE: "Registry integrity is degraded. Preserve the database and investigate before any action.",
+  };
+  $("#sandbox-registry-recovery").textContent = `${recovery[current] || "Restore valid registry evidence."} THIS SCREEN HAS NO REGISTER, ACTIVATE OR ROLLBACK BUTTON.`;
+}
+
+function renderIsolatedRegistryUnavailable(error) {
+  state.isolatedSandbox = null;
+  $("#sandbox-effective-status").textContent = "REGISTRY UNAVAILABLE";
+  $("#sandbox-effective-status").dataset.status = "UNAVAILABLE";
+  $("#sandbox-pointer-summary").innerHTML = '<strong class="warning">NO EFFECTIVE CONFIGURATION INFERRED</strong><p>Stored and effective state could not be separated safely.</p>';
+  $("#sandbox-configuration-detail").innerHTML = `<p class="shadow-empty">${escapeHtml(error.message)}</p>`;
+  $("#sandbox-rollback-status").innerHTML = '<strong>ROLLBACK BLOCKED</strong><p>No rollback target is inferred.</p>';
+  $("#sandbox-event-history").innerHTML = '<p class="shadow-empty">No pointer event history is inferred.</p>';
+  $("#sandbox-registry-recovery").textContent = "Restore registry, sandbox and event evidence; shared configuration and live execution remain prohibited.";
+}
+
 function renderForwardObservationUnavailable(error, empty = false) {
   state.forwardObservation = null;
   $(".forward-observation-card").dataset.status = empty ? "NO_OBSERVATION" : "UNAVAILABLE";
@@ -1197,6 +1273,7 @@ function renderForwardObservationUnavailable(error, empty = false) {
   renderForwardStabilityUnavailable(error);
   renderForwardLifecycleUnavailable(error);
   renderIsolatedActivationUnavailable(error);
+  renderIsolatedRegistryUnavailable(error);
 }
 
 async function loadForwardObservations(strategy) {
@@ -1241,6 +1318,7 @@ async function loadForwardObservations(strategy) {
   }
   if (!policyResponse.ok || !activationResponse.ok) {
     renderIsolatedActivationUnavailable(new Error(`evidence policy/activation returned ${policyResponse.status}/${activationResponse.status}`));
+    renderIsolatedRegistryUnavailable(new Error("isolated approval evidence is unavailable"));
   } else {
     const policy = validateEvidenceGovernancePolicy(await policyResponse.json());
     const activation = validateIsolatedActivationLifecycle(await activationResponse.json());
@@ -1254,6 +1332,21 @@ async function loadForwardObservations(strategy) {
       latestActivationReview = validateIsolatedActivationReviewEnvelope(await reviewResponse.json());
     }
     renderIsolatedActivation(activation, policy, latestActivationReview);
+    const sandboxId = latestActivationReview?.review?.sandbox_id || "aars-paper-sandbox";
+    const [configurationResponse, sandboxResponse, eventResponse] = await Promise.all([
+      fetch(`/api/v1/isolated-configurations?sandbox_id=${encodeURIComponent(sandboxId)}&limit=100`, { cache: "no-store" }),
+      fetch(`/api/v1/isolated-sandbox?sandbox_id=${encodeURIComponent(sandboxId)}`, { cache: "no-store" }),
+      fetch(`/api/v1/isolated-sandbox-events?sandbox_id=${encodeURIComponent(sandboxId)}&limit=100`, { cache: "no-store" }),
+    ]);
+    if (!configurationResponse.ok || !sandboxResponse.ok || !eventResponse.ok) {
+      renderIsolatedRegistryUnavailable(new Error(`registry/sandbox/events returned ${configurationResponse.status}/${sandboxResponse.status}/${eventResponse.status}`));
+    } else {
+      renderIsolatedRegistry(
+        validateIsolatedConfigurationIndex(await configurationResponse.json()),
+        validateIsolatedSandbox(await sandboxResponse.json()),
+        validateIsolatedSandboxEventIndex(await eventResponse.json()),
+      );
+    }
   }
 }
 

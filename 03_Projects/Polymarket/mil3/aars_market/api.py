@@ -17,7 +17,7 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
     root = str(Path(ui_root).resolve())
 
     class ReadOnlyHandler(SimpleHTTPRequestHandler):
-        server_version = "AARS-MIL3-ReadOnly/0.7"
+        server_version = "AARS-MIL3-ReadOnly/0.8"
 
         def __init__(self, *args: object, **kwargs: object) -> None:
             super().__init__(*args, directory=root, **kwargs)
@@ -146,6 +146,37 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
                 if not trial_id:
                     raise ValueError("trial_id is required")
                 return HTTPStatus.OK, service.isolated_activation_lifecycle(trial_id)
+            if parsed.path == "/api/v1/isolated-configurations":
+                return HTTPStatus.OK, service.list_isolated_configurations(
+                    sandbox_id=query.get("sandbox_id", [None])[0],
+                    limit=int(query.get("limit", ["100"])[0]),
+                )
+            if parsed.path == "/api/v1/isolated-sandbox":
+                sandbox_id = query.get("sandbox_id", [""])[0]
+                if not sandbox_id:
+                    raise ValueError("sandbox_id is required")
+                return HTTPStatus.OK, service.isolated_sandbox(sandbox_id)
+            if parsed.path == "/api/v1/isolated-sandbox-events":
+                sandbox_id = query.get("sandbox_id", [""])[0]
+                if not sandbox_id:
+                    raise ValueError("sandbox_id is required")
+                return HTTPStatus.OK, service.list_isolated_sandbox_events(
+                    sandbox_id, limit=int(query.get("limit", ["100"])[0])
+                )
+            sandbox_event_prefix = "/api/v1/isolated-sandbox-events/"
+            if parsed.path.startswith(sandbox_event_prefix):
+                event_id = parsed.path[len(sandbox_event_prefix):]
+                try:
+                    return HTTPStatus.OK, service.isolated_sandbox_event(event_id)
+                except KeyError:
+                    return HTTPStatus.NOT_FOUND, {"error": "isolated sandbox event not found"}
+            configuration_prefix = "/api/v1/isolated-configurations/"
+            if parsed.path.startswith(configuration_prefix):
+                configuration_id = parsed.path[len(configuration_prefix):]
+                try:
+                    return HTTPStatus.OK, service.isolated_configuration(configuration_id)
+                except KeyError:
+                    return HTTPStatus.NOT_FOUND, {"error": "isolated configuration not found"}
             activation_review_prefix = "/api/v1/isolated-activation-reviews/"
             if parsed.path.startswith(activation_review_prefix):
                 review_id = parsed.path[len(activation_review_prefix):]

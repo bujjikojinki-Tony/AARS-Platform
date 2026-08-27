@@ -253,7 +253,7 @@ def test_forward_stability_ui_keeps_progress_alarms_and_authority_visible():
     html = (ui_root / "index.html").read_text(encoding="utf-8")
     javascript = (ui_root / "app.js").read_text(encoding="utf-8")
     css = (ui_root / "styles.css").read_text(encoding="utf-8")
-    assert "AARS // 03.20" in html
+    assert "AARS // 03.21" in html
     assert 'id="forward-stability-status"' in html
     assert 'id="forward-stability-progress"' in html
     assert 'id="forward-stability-alarms"' in html

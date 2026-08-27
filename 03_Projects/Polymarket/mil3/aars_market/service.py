@@ -400,3 +400,75 @@ class DashboardService:
             "automatic_strategy_change_allowed": False,
             "live_execution_allowed": False,
         }
+
+    def list_isolated_configurations(
+        self, *, sandbox_id: str | None = None, limit: int = 100
+    ) -> dict[str, Any]:
+        return {
+            "schema_version": "mil3.isolated-paper-configuration-index.v1",
+            "execution_mode": "PAPER_ONLY",
+            "configurations": self.store.list_isolated_paper_configurations(
+                sandbox_id=sandbox_id, limit=limit
+            ),
+            "read_only": True,
+            "registry_entries_inert": True,
+            "starts_strategy_process": False,
+            "shared_configuration_change_allowed": False,
+            "automatic_strategy_change_allowed": False,
+            "live_execution_allowed": False,
+        }
+
+    def isolated_configuration(self, configuration_id: str) -> dict[str, Any]:
+        payload = self.store.get_isolated_paper_configuration(configuration_id)
+        if payload is None:
+            raise KeyError(f"isolated paper configuration not found: {configuration_id}")
+        return {
+            "schema_version": "mil3.isolated-paper-configuration-envelope.v1",
+            "execution_mode": "PAPER_ONLY",
+            "configuration_id": configuration_id,
+            "configuration": payload,
+            "read_only": True,
+            "registry_entry_inert": True,
+            "starts_strategy_process": False,
+            "shared_configuration_change_allowed": False,
+            "automatic_strategy_change_allowed": False,
+            "live_execution_allowed": False,
+        }
+
+    def isolated_sandbox(
+        self, sandbox_id: str, *, now: datetime | None = None
+    ) -> dict[str, Any]:
+        return self.store.resolve_isolated_paper_sandbox(sandbox_id, now=now)
+
+    def list_isolated_sandbox_events(
+        self, sandbox_id: str, *, limit: int = 100
+    ) -> dict[str, Any]:
+        return {
+            "schema_version": "mil3.isolated-paper-sandbox-event-index.v1",
+            "execution_mode": "PAPER_ONLY",
+            "sandbox_id": sandbox_id,
+            "events": list(reversed(self.store.list_isolated_paper_sandbox_events(
+                sandbox_id, limit=limit
+            ))),
+            "read_only": True,
+            "starts_strategy_process": False,
+            "shared_configuration_change_allowed": False,
+            "automatic_strategy_change_allowed": False,
+            "live_execution_allowed": False,
+        }
+
+    def isolated_sandbox_event(self, event_id: str) -> dict[str, Any]:
+        payload = self.store.get_isolated_paper_sandbox_event(event_id)
+        if payload is None:
+            raise KeyError(f"isolated paper sandbox event not found: {event_id}")
+        return {
+            "schema_version": "mil3.isolated-paper-sandbox-event-envelope.v1",
+            "execution_mode": "PAPER_ONLY",
+            "event_id": event_id,
+            "event": payload,
+            "read_only": True,
+            "starts_strategy_process": False,
+            "shared_configuration_change_allowed": False,
+            "automatic_strategy_change_allowed": False,
+            "live_execution_allowed": False,
+        }
