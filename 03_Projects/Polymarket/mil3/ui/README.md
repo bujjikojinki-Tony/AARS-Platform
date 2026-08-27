@@ -1,4 +1,4 @@
-# MIL-3.21 Isolated Configuration Registry Console HMI Design v9
+# MIL-3.22 Governed Isolated Runtime Console HMI Design v10
 
 ## 1. Page Purpose
 
@@ -28,6 +28,9 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 16. Inspect immutable before/after paper parameters, observed risk evidence, stop conditions and the terminal human review record.
 17. Confirm that acknowledgement did not apply a parameter and that no approve/apply control exists in the console.
 18. Compare the baseline and proposed configuration on identical hashed trial inputs.
+19. Distinguish stored runtime status from current effective runtime authority.
+20. Confirm kill-switch state, heartbeat age, lease deadline, fencing version and stop cause.
+21. Review immutable runtime and kill-switch events plus the exact local recovery path.
 19. Identify hard-stop triggers before considering extended paper observation.
 20. Trace the result to its proposal, source snapshot, exact settings and per-asset evidence.
 21. Confirm funding completeness and effective Binance cadence for each trial asset.
@@ -162,6 +165,11 @@ shows `REGISTRY UNAVAILABLE`, infers no effective configuration and blocks
 rollback. A stored pointer remains visible for audit when expiry or revocation
 makes it ineffective.
 
+If runtime evidence is unavailable, the console shows `RUNTIME UNAVAILABLE`,
+infers the kill switch as armed and permits no runtime action. If a stored
+RUNNING session loses its lease or authority, the fail-safe effective state and
+stop cause remain visible until explicit reconciliation persists the stop.
+
 ## 11. User Actions and Gates
 
 Available actions only change the inspected market, replay window, archive, strategy, trace, diff baseline, validation-strategy filter or immutable snapshot detail. Refresh reads evidence and recomputes advisory governance but does not archive or promote anything. There are no order, credential, live-mode, approval, parameter-change or execution controls. A failed switch preserves the last displayed stable evidence and raises the degraded banner.
@@ -180,6 +188,10 @@ revoke or configuration control.
 
 Registry REGISTER, ACTIVATE, ROLLBACK and RECONCILE are explicit local commands.
 The browser cannot mutate the sandbox pointer or start a strategy process.
+
+Runtime RUN, STOP, ARM_KILL, CLEAR_KILL and RECONCILE are explicit local
+commands. The browser cannot acquire a lease, renew a heartbeat or change the
+kill switch. Clearing the kill switch never restarts a stopped session.
 
 ## 12. HMI Review Gate
 
@@ -218,6 +230,9 @@ python run_isolated_activation_review.py --db mil3_market.sqlite --trial-id <tri
 python run_isolated_paper_config.py --db mil3_market.sqlite --action REGISTER --trial-id <trial_id>
 python run_isolated_paper_config.py --db mil3_market.sqlite --action ACTIVATE --configuration-id <configuration_id> --sandbox-id aars-paper-sandbox --operator local-owner --note "Select isolated pointer."
 python run_isolated_paper_config.py --db mil3_market.sqlite --action RECONCILE
+python run_isolated_paper_runtime.py --db mil3_market.sqlite --action CLEAR_KILL --sandbox-id aars-paper-sandbox --operator local-owner --note "Initialize runtime control."
+python run_isolated_paper_runtime.py --db mil3_market.sqlite --action RUN --sandbox-id aars-paper-sandbox --max-cycles 1
+python run_isolated_paper_runtime.py --db mil3_market.sqlite --action RECONCILE
 python run_api.py --db mil3_market.sqlite --port 8765
 ```
 

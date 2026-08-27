@@ -472,3 +472,60 @@ class DashboardService:
             "automatic_strategy_change_allowed": False,
             "live_execution_allowed": False,
         }
+
+    def isolated_runtime(self, sandbox_id: str, *, limit: int = 100) -> dict[str, Any]:
+        sessions = self.store.list_isolated_paper_runtime_sessions(
+            sandbox_id, limit=limit
+        )
+        return {
+            "schema_version": "mil3.isolated-paper-runtime-index.v1",
+            "execution_mode": "PAPER_ONLY",
+            "sandbox_id": sandbox_id,
+            "kill_switch": self.store.isolated_paper_runtime_kill_switch(sandbox_id),
+            "sessions": sessions,
+            "latest_session": sessions[0] if sessions else None,
+            "read_only": True,
+            "browser_control_allowed": False,
+            "configuration_consumption_only": True,
+            "replay_started": False,
+            "order_path_present": False,
+            "shared_configuration_change_allowed": False,
+            "automatic_strategy_change_allowed": False,
+            "live_execution_allowed": False,
+        }
+
+    def isolated_runtime_session(self, session_id: str) -> dict[str, Any]:
+        return self.store.resolve_isolated_paper_runtime_session(session_id)
+
+    def isolated_runtime_events(
+        self, session_id: str, *, limit: int = 100
+    ) -> dict[str, Any]:
+        return {
+            "schema_version": "mil3.isolated-paper-runtime-event-index.v1",
+            "execution_mode": "PAPER_ONLY",
+            "session_id": session_id,
+            "events": list(reversed(self.store.list_isolated_paper_runtime_events(
+                session_id, limit=limit
+            ))),
+            "read_only": True,
+            "browser_control_allowed": False,
+            "replay_started": False,
+            "order_path_present": False,
+            "live_execution_allowed": False,
+        }
+
+    def isolated_runtime_kill_events(
+        self, sandbox_id: str, *, limit: int = 100
+    ) -> dict[str, Any]:
+        return {
+            "schema_version": "mil3.isolated-paper-runtime-kill-event-index.v1",
+            "execution_mode": "PAPER_ONLY",
+            "sandbox_id": sandbox_id,
+            "events": list(reversed(self.store.list_isolated_paper_runtime_kill_events(
+                sandbox_id, limit=limit
+            ))),
+            "read_only": True,
+            "browser_control_allowed": False,
+            "starts_runtime": False,
+            "live_execution_allowed": False,
+        }

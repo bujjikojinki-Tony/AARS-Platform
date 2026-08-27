@@ -14,6 +14,7 @@ const state = {
   forwardLifecycle: null,
   isolatedActivation: null,
   isolatedSandbox: null,
+  isolatedRuntime: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -273,6 +274,41 @@ function validateIsolatedSandboxEventIndex(payload) {
   if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true) throw new Error("unsafe isolated sandbox events rejected");
   if (payload.starts_strategy_process !== false || payload.shared_configuration_change_allowed !== false || payload.automatic_strategy_change_allowed !== false || payload.live_execution_allowed !== false) {
     throw new Error("isolated sandbox events exceeded pointer authority");
+  }
+  return payload;
+}
+
+function validateIsolatedRuntime(payload) {
+  if (payload.schema_version !== "mil3.isolated-paper-runtime-index.v1") throw new Error("unsupported isolated runtime schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true || payload.browser_control_allowed !== false) throw new Error("unsafe isolated runtime rejected");
+  if (payload.configuration_consumption_only !== true || payload.replay_started !== false || payload.order_path_present !== false || payload.live_execution_allowed !== false) {
+    throw new Error("isolated runtime exceeded consumption-only authority");
+  }
+  if (payload.kill_switch?.schema_version !== "mil3.isolated-paper-runtime-kill-switch.v1" || payload.kill_switch?.read_only !== true || payload.kill_switch?.browser_control_allowed !== false) {
+    throw new Error("isolated runtime kill switch authority is invalid");
+  }
+  const latest = payload.latest_session;
+  if (latest && (latest.schema_version !== "mil3.isolated-paper-runtime-session-view.v1" || latest.read_only !== true || latest.browser_control_allowed !== false || latest.live_execution_allowed !== false)) {
+    throw new Error("isolated runtime session authority is invalid");
+  }
+  if (latest?.effective_status === "RUNNING" && (latest.stored_status !== "RUNNING" || payload.kill_switch.effective_state !== "CLEAR")) {
+    throw new Error("isolated runtime effective state differs from stored authority");
+  }
+  return payload;
+}
+
+function validateIsolatedRuntimeEventIndex(payload) {
+  if (payload.schema_version !== "mil3.isolated-paper-runtime-event-index.v1") throw new Error("unsupported isolated runtime event schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true || payload.browser_control_allowed !== false || payload.replay_started !== false || payload.order_path_present !== false || payload.live_execution_allowed !== false) {
+    throw new Error("isolated runtime events exceeded read-only authority");
+  }
+  return payload;
+}
+
+function validateIsolatedRuntimeKillEventIndex(payload) {
+  if (payload.schema_version !== "mil3.isolated-paper-runtime-kill-event-index.v1") throw new Error("unsupported runtime kill event schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true || payload.browser_control_allowed !== false || payload.starts_runtime !== false || payload.live_execution_allowed !== false) {
+    throw new Error("runtime kill events exceeded stop-only authority");
   }
   return payload;
 }
@@ -1259,6 +1295,51 @@ function renderIsolatedRegistryUnavailable(error) {
   $("#sandbox-registry-recovery").textContent = "Restore registry, sandbox and event evidence; shared configuration and live execution remain prohibited.";
 }
 
+function renderIsolatedRuntime(runtime, eventIndex, killEventIndex) {
+  state.isolatedRuntime = runtime;
+  const session = runtime.latest_session;
+  const status = session?.effective_status || "NO_SESSION";
+  const kill = runtime.kill_switch;
+  $("#runtime-effective-status").textContent = status.replaceAll("_", " ");
+  $("#runtime-effective-status").dataset.status = status;
+  $("#runtime-kill-switch").innerHTML = `
+    <strong data-status="${escapeHtml(kill.effective_state)}">${escapeHtml(kill.effective_state)}</strong>
+    <dl><dt>INITIALIZED</dt><dd>${kill.initialized ? "YES" : "NO · FAIL SAFE"}</dd><dt>STATE VERSION</dt><dd>${escapeHtml(kill.state_version)}</dd><dt>CHANGED</dt><dd>${escapeHtml(kill.changed_at ? formatDate(kill.changed_at) : "—")}</dd></dl>
+    <p>${escapeHtml(kill.blocking_reason)}</p>`;
+  $("#runtime-session-summary").innerHTML = session ? `
+    <strong>${escapeHtml(session.effective_status.replaceAll("_", " "))}</strong>
+    <dl><dt>SESSION</dt><dd>${escapeHtml(session.session_id)}</dd><dt>WORKER</dt><dd>${escapeHtml(session.worker_id)}</dd><dt>STORED STATUS</dt><dd>${escapeHtml(session.stored_status)}</dd><dt>EFFECTIVE STATUS</dt><dd>${escapeHtml(session.effective_status)}</dd><dt>CONFIGURATION</dt><dd>${escapeHtml(session.configuration_id)}</dd><dt>SANDBOX VERSION</dt><dd>${escapeHtml(session.sandbox_state_version)}</dd></dl>
+    <p>${escapeHtml(session.blocking_reason)}</p>` : '<strong>NO SESSION</strong><p>No isolated runtime lease has been acquired.</p>';
+  $("#runtime-lease-health").innerHTML = session ? `
+    <strong>${session.effective_status === "RUNNING" ? "LEASE CURRENT" : "LEASE NOT EFFECTIVE"}</strong>
+    <dl><dt>LAST HEARTBEAT</dt><dd>${escapeHtml(formatDate(session.last_heartbeat_at))}</dd><dt>HEARTBEAT AGE</dt><dd>${escapeHtml(Math.round(session.heartbeat_age_seconds))} s</dd><dt>LEASE EXPIRES</dt><dd>${escapeHtml(formatDate(session.lease_expires_at))}</dd><dt>SESSION VERSION</dt><dd>${escapeHtml(session.session_version)}</dd></dl>
+    <p>Every renewal revalidates the fencing token, pointer version, configuration hash, approval and kill switch.</p>` : '<strong>NO LEASE</strong><p>Runtime remains stopped until an explicit local bounded command acquires a lease.</p>';
+  $("#runtime-event-history").innerHTML = eventIndex.events.length ? eventIndex.events.slice().reverse().map((event) => `
+    <article><span>VERSION ${escapeHtml(event.session_version)} · ${escapeHtml(formatDate(event.event_at))} · ${escapeHtml(event.operator)}</span><strong>${escapeHtml(event.action)}</strong><small>${escapeHtml(event.reason)} · ${escapeHtml(event.event_id)}</small></article>`).join("") : '<p class="shadow-empty">No runtime session events are archived.</p>';
+  $("#runtime-kill-history").innerHTML = killEventIndex.events.length ? killEventIndex.events.slice().reverse().map((event) => `
+    <article><span>VERSION ${escapeHtml(event.state_version)} · ${escapeHtml(formatDate(event.event_at))} · ${escapeHtml(event.operator)}</span><strong>${escapeHtml(event.action)} → ${escapeHtml(event.resulting_state)}</strong><small>${escapeHtml(event.note)} · ${escapeHtml(event.event_id)}</small></article>`).join("") : '<p class="shadow-empty">Kill switch is uninitialized and therefore ARMED by default.</p>';
+  const recovery = status === "RUNNING"
+    ? "Monitor heartbeat age and configuration identity. ARM_KILL remains the immediate local stop path."
+    : kill.effective_state === "ARMED"
+      ? "Review the stop cause, then use CLEAR_KILL locally only when restart prerequisites are satisfied. Clearing never restarts a session."
+      : status === "NO_SESSION" || status === "STOPPED"
+        ? "Use the bounded local RUN command only while the registry configuration remains effective."
+        : "The stored session is already ineffective. Run RECONCILE locally to persist the fail-safe stop before any new acquisition.";
+  $("#runtime-recovery").textContent = `${recovery} THIS SCREEN HAS NO RUN, STOP OR KILL-SWITCH BUTTON.`;
+}
+
+function renderIsolatedRuntimeUnavailable(error) {
+  state.isolatedRuntime = null;
+  $("#runtime-effective-status").textContent = "RUNTIME UNAVAILABLE";
+  $("#runtime-effective-status").dataset.status = "UNAVAILABLE";
+  $("#runtime-kill-switch").innerHTML = '<strong data-status="ARMED">INFERRED ARMED</strong><p>No runtime permission is inferred without kill-switch evidence.</p>';
+  $("#runtime-session-summary").innerHTML = '<strong>NO EFFECTIVE SESSION</strong><p>Stored and effective runtime state cannot be verified.</p>';
+  $("#runtime-lease-health").innerHTML = `<strong>LEASE UNTRUSTED</strong><p>${escapeHtml(error.message)}</p>`;
+  $("#runtime-event-history").innerHTML = '<p class="shadow-empty">No runtime history is inferred.</p>';
+  $("#runtime-kill-history").innerHTML = '<p class="shadow-empty">No kill-switch history is inferred.</p>';
+  $("#runtime-recovery").textContent = "Restore read-only runtime evidence; runtime, replay and order activity remain blocked.";
+}
+
 function renderForwardObservationUnavailable(error, empty = false) {
   state.forwardObservation = null;
   $(".forward-observation-card").dataset.status = empty ? "NO_OBSERVATION" : "UNAVAILABLE";
@@ -1274,6 +1355,7 @@ function renderForwardObservationUnavailable(error, empty = false) {
   renderForwardLifecycleUnavailable(error);
   renderIsolatedActivationUnavailable(error);
   renderIsolatedRegistryUnavailable(error);
+  renderIsolatedRuntimeUnavailable(error);
 }
 
 async function loadForwardObservations(strategy) {
@@ -1319,6 +1401,7 @@ async function loadForwardObservations(strategy) {
   if (!policyResponse.ok || !activationResponse.ok) {
     renderIsolatedActivationUnavailable(new Error(`evidence policy/activation returned ${policyResponse.status}/${activationResponse.status}`));
     renderIsolatedRegistryUnavailable(new Error("isolated approval evidence is unavailable"));
+    renderIsolatedRuntimeUnavailable(new Error("isolated runtime authority is unavailable"));
   } else {
     const policy = validateEvidenceGovernancePolicy(await policyResponse.json());
     const activation = validateIsolatedActivationLifecycle(await activationResponse.json());
@@ -1340,12 +1423,43 @@ async function loadForwardObservations(strategy) {
     ]);
     if (!configurationResponse.ok || !sandboxResponse.ok || !eventResponse.ok) {
       renderIsolatedRegistryUnavailable(new Error(`registry/sandbox/events returned ${configurationResponse.status}/${sandboxResponse.status}/${eventResponse.status}`));
+      renderIsolatedRuntimeUnavailable(new Error("registry evidence is unavailable"));
     } else {
       renderIsolatedRegistry(
         validateIsolatedConfigurationIndex(await configurationResponse.json()),
         validateIsolatedSandbox(await sandboxResponse.json()),
         validateIsolatedSandboxEventIndex(await eventResponse.json()),
       );
+      const [runtimeResponse, killEventResponse] = await Promise.all([
+        fetch(`/api/v1/isolated-runtime?sandbox_id=${encodeURIComponent(sandboxId)}&limit=100`, { cache: "no-store" }),
+        fetch(`/api/v1/isolated-runtime-kill-events?sandbox_id=${encodeURIComponent(sandboxId)}&limit=100`, { cache: "no-store" }),
+      ]);
+      if (!runtimeResponse.ok || !killEventResponse.ok) {
+        renderIsolatedRuntimeUnavailable(new Error(`runtime/kill-events returned ${runtimeResponse.status}/${killEventResponse.status}`));
+      } else {
+        const runtime = validateIsolatedRuntime(await runtimeResponse.json());
+        const killEvents = validateIsolatedRuntimeKillEventIndex(await killEventResponse.json());
+        let runtimeEvents = validateIsolatedRuntimeEventIndex({
+          schema_version: "mil3.isolated-paper-runtime-event-index.v1",
+          execution_mode: "PAPER_ONLY",
+          session_id: null,
+          events: [],
+          read_only: true,
+          browser_control_allowed: false,
+          replay_started: false,
+          order_path_present: false,
+          live_execution_allowed: false,
+        });
+        if (runtime.latest_session) {
+          const runtimeEventResponse = await fetch(`/api/v1/isolated-runtime-events?session_id=${encodeURIComponent(runtime.latest_session.session_id)}&limit=100`, { cache: "no-store" });
+          if (!runtimeEventResponse.ok) {
+            renderIsolatedRuntimeUnavailable(new Error(`runtime events returned ${runtimeEventResponse.status}`));
+            return;
+          }
+          runtimeEvents = validateIsolatedRuntimeEventIndex(await runtimeEventResponse.json());
+        }
+        renderIsolatedRuntime(runtime, runtimeEvents, killEvents);
+      }
     }
   }
 }

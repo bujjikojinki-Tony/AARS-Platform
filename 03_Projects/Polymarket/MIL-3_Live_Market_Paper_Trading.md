@@ -343,6 +343,30 @@ Status: **implemented on `mil-3-live-market-paper-trading`**.
 The registry and atomic lifecycle are documented in
 `mil3/ISOLATED_PAPER_CONFIGURATION_REGISTRY.md`.
 
+### MIL-3.22 — Governed Isolated PAPER_ONLY Runtime
+
+Status: **implemented on `mil-3-live-market-paper-trading`**.
+
+- Runtime acquisition consumes only the registry's current effective
+  configuration and binds the session to its ID, SHA-256 and sandbox version.
+- An opaque fencing token and a 5–300 second renewable lease prevent stale
+  workers from retaining authority. Tokens are hashed in storage and omitted
+  from every read-only API response.
+- The sandbox kill switch fails safe to ARMED until explicitly cleared. ARM
+  atomically stops every running session; CLEAR never restarts one.
+- Heartbeats revalidate kill switch, lease, sandbox pointer/version, approval
+  lineage/expiry and configuration hash before recording consumption.
+- Read-only resolution immediately derives fail-safe states without GET writes;
+  worker heartbeat or explicit reconciliation persists the stop event.
+- The bounded worker records configuration-governance consumption only. It does
+  not start replay, calculate paper orders, contact an exchange or expose live
+  execution.
+- The GET-only API and console expose stored/effective session state, heartbeat
+  age, lease deadline, stop cause and immutable runtime/kill-switch events.
+
+The runtime authority and recovery contract is documented in
+`mil3/GOVERNED_ISOLATED_PAPER_RUNTIME.md`.
+
 ## Initial decision policy
 
 The initial policy intentionally prefers risk control over activity:
@@ -429,6 +453,20 @@ python run_isolated_paper_config.py \
 python run_isolated_paper_config.py \
   --db mil3_market.sqlite \
   --action RECONCILE
+python run_isolated_paper_runtime.py \
+  --db mil3_market.sqlite \
+  --action CLEAR_KILL \
+  --sandbox-id aars-paper-sandbox \
+  --operator local-owner \
+  --note "Initialize governed runtime control."
+python run_isolated_paper_runtime.py \
+  --db mil3_market.sqlite \
+  --action RUN \
+  --sandbox-id aars-paper-sandbox \
+  --max-cycles 1
+python run_isolated_paper_runtime.py \
+  --db mil3_market.sqlite \
+  --action RECONCILE
 python -m pytest -q
 ```
 
@@ -447,6 +485,7 @@ The ingestion and scheduler commands touch only public market-data endpoints. Re
 - MIL-3.19 deterministic tests cover lifecycle transitions, irreversible termination, stale/tampered review rejection, monitor holds, deterministic self-verifying non-overwriting exports, read-only APIs, explicit local CLIs and UI authority gates.
 - MIL-3.20 deterministic tests cover strict offline verification, duplicate keys, safe retention and pruning, minimum-copy floors, approval prerequisites, expiry/revocation, stale/tampered evidence, read-only APIs, explicit local CLIs and UI action gates.
 - MIL-3.21 deterministic tests cover unique approval consumption, inert registration, optimistic races, monotonic events, atomic activation/rollback, immediate expiry/revocation suppression, reconciliation, read-only APIs, explicit local CLIs and UI stored/effective separation.
+- MIL-3.22 deterministic tests cover fail-safe kill-switch initialization, fenced lease acquisition, token rejection, heartbeat renewal, lease timeout, pointer-version fencing, atomic takeover, kill-switch stop, bounded completion, read-only APIs, explicit local CLI and UI stored/effective runtime separation.
 
 ## Definition of Done
 

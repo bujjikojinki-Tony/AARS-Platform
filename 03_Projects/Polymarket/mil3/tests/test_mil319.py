@@ -235,7 +235,7 @@ def test_forward_lifecycle_ui_is_read_only_and_exposes_gates_and_export_trust():
     html = (ui_root / "index.html").read_text(encoding="utf-8")
     javascript = (ui_root / "app.js").read_text(encoding="utf-8")
     css = (ui_root / "styles.css").read_text(encoding="utf-8")
-    assert "AARS // 03.21" in html
+    assert "AARS // 03.22" in html
     assert 'id="forward-lifecycle-status"' in html
     assert 'id="forward-review-history"' in html
     assert 'id="forward-evidence-manifest"' in html

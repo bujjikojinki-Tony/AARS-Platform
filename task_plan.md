@@ -371,3 +371,14 @@ PWB-11 Complete
 - [x] Add deterministic registry, race, expiry, revocation, rollback, API, CLI and UI tests
 - [x] Update documentation, run full verification, review and commit
 - **Status:** complete
+
+## MIL-3.22 Governed Isolated PAPER Runtime
+- [x] Define runtime lease, heartbeat, stop, kill-switch and fail-safe authority contract
+- [x] Add append-only runtime sessions/events with atomic lease acquisition and fencing
+- [x] Add a bounded PAPER_ONLY runtime worker that consumes only effective configuration
+- [x] Enforce automatic stop on expiry, revocation, pointer change, lease loss or kill switch
+- [x] Add explicit local lifecycle CLI plus read-only service/API surfaces
+- [x] Add task-centered runtime HMI with actual state, lease freshness, blockers and recovery
+- [x] Add deterministic concurrency, timeout, kill-switch, API, CLI and UI tests
+- [x] Update documentation, run full verification, review and commit
+- **Status:** complete

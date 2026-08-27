@@ -125,3 +125,7 @@ The console shows stored versus effective identity, state version, current
 blocking reason, immutable configuration evidence, safe rollback target and the
 atomic event trail. It has no register, activate, rollback or execution button.
 
+The only runtime consumer permitted after this registry is the fenced
+MIL-3.22 PAPER_ONLY layer described in
+`GOVERNED_ISOLATED_PAPER_RUNTIME.md`. It must consume
+`effective_configuration`, never the raw stored pointer.

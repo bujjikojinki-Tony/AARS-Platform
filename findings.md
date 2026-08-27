@@ -281,3 +281,21 @@
 - A sandbox GET can remain strictly read-only while still enforcing expiry: it exposes both `stored_configuration_id` and a separately derived `effective_configuration_id`, which becomes null immediately when approval validity fails.
 - Rollback safety is evaluated at rollback time, not activation time. An expired or revoked previous configuration is never restored; the rollback event atomically clears the pointer instead.
 - Optimistic state version, previous pointer and previous event ID are all rechecked under `BEGIN IMMEDIATE`, so a stale activation payload cannot partially update the registry.
+
+## 2026-08-27 — MIL-3.22 kickoff
+- MIL-3.21 exposes a strict read-only `effective_configuration_id`; expiry, revocation and approval mismatch already suppress it immediately without waiting for reconciliation.
+- The runtime must bind each session to sandbox ID, configuration ID, configuration hash and sandbox state version. A pointer change therefore fences the old worker even if its approval remains valid.
+- Runtime authority will be represented by a short renewable lease plus an opaque fencing token. Heartbeats must revalidate the effective configuration and token inside one `BEGIN IMMEDIATE` transaction.
+- Kill switch is sandbox-scoped persistent state, defaults fail-safe, and can only be armed or cleared by an explicit local CLI with operator and note. The read-only HTTP API will expose but never change it.
+- A bounded runtime cycle will record governed configuration consumption and health only. It will not call ReplayEngine, an exchange adapter, an order function, or any live execution path.
+- UI design must distinguish requested/leased state from effective runtime state, show heartbeat age and stop cause, and keep kill-switch/recovery guidance visible without browser write controls.
+- Runtime event versions and kill-switch event versions have database uniqueness constraints, making each append-only state transition unambiguous.
+- Kill-switch ARM rejects timestamps older than a running session's latest heartbeat so the atomic stop trail cannot move backward.
+- Runtime effective-state diagnosis checks kill authority, pointer/configuration authority and then lease freshness, preserving the most useful root-cause evidence.
+
+## MIL-3.22 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| Initial combined planning patch referenced a nonexistent MIL-3.21 error heading and failed atomically | 1 | Applied the plan/progress update against exact current context and appended findings separately |
+| First MIL-3.22 compile command used repository-relative source paths while already running from the nested MIL-3 root | 1 | Rerun compilation with `aars_market/...` paths from the MIL-3 root |
+| Combined runtime UI patch assumed a standalone `.isolated-registry-deck` CSS selector that the current stylesheet does not contain | 1 | Split HTML and CSS edits, then append runtime styles against the actual stylesheet tail |

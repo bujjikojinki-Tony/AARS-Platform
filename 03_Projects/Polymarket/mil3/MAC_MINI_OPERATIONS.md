@@ -120,6 +120,21 @@ process. It is not installed into the existing LaunchAgents while Mac mini
 deployment remains deferred. If later scheduled, keep it as a separate narrowly
 scoped user agent; do not add it to public market-data ingestion.
 
+MIL-3.22 runtime safety is also immediate on read: an expired lease, armed kill
+switch, changed pointer, expired/revoked approval or configuration mismatch makes
+a stored RUNNING session ineffective. Persist any derived stop during maintenance:
+
+```bash
+.venv/bin/python run_isolated_paper_runtime.py \
+  --db "$HOME/AARS-MIL3/data/mil3_market.sqlite" \
+  --action RECONCILE
+```
+
+Do not install the runtime worker as a LaunchAgent while deployment is deferred.
+Before future scheduling, define a separate user-level job with a bounded lease,
+an explicit kill-switch-clear procedure and no dependency on exchange credentials.
+Never combine runtime control with public-data ingestion or the read-only API.
+
 ## Upgrade
 
 Stop the jobs before moving the repository or Python environment because the

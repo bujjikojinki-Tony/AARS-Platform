@@ -645,6 +645,20 @@ tbody tr:last-child td { border-bottom: 0; }
 .sandbox-pointer-summary dt, .sandbox-configuration-detail dt, .sandbox-rollback-status dt { color: var(--muted); font-size: 7px; }
 .sandbox-pointer-summary dd, .sandbox-configuration-detail dd, .sandbox-rollback-status dd { margin: 0; color: var(--ink); font-size: 7px; text-align: right; overflow-wrap: anywhere; }
 .sandbox-pointer-summary p, .sandbox-configuration-detail p, .sandbox-rollback-status p { margin: 10px 0 0; color: var(--muted); font-size: 8px; line-height: 1.5; }
+.isolated-runtime-deck { border-top: 1px solid var(--line); background: linear-gradient(104deg, rgba(82, 194, 255, 0.025), transparent 50%); }
+.isolated-runtime-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.isolated-runtime-grid > section { min-width: 0; padding: 15px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.isolated-runtime-grid > section:nth-child(3), .isolated-runtime-grid > section:last-child { border-right: 0; }
+.isolated-runtime-grid > section:nth-child(n+4) { border-bottom: 0; }
+.isolated-runtime-grid > section > span { color: var(--blue); font-size: 7px; letter-spacing: 0.08em; }
+.runtime-kill-switch, .runtime-session-summary, .runtime-lease-health { margin-top: 12px; padding: 12px; border: 1px solid var(--line); border-left: 3px solid var(--blue); }
+.runtime-kill-switch > strong, .runtime-session-summary > strong, .runtime-lease-health > strong { color: var(--blue); font: 650 11px/1.25 var(--display); }
+.runtime-kill-switch dl, .runtime-session-summary dl, .runtime-lease-health dl { display: grid; grid-template-columns: auto 1fr; gap: 7px 10px; margin: 12px 0 0; }
+.runtime-kill-switch dt, .runtime-session-summary dt, .runtime-lease-health dt { color: var(--muted); font-size: 7px; }
+.runtime-kill-switch dd, .runtime-session-summary dd, .runtime-lease-health dd { margin: 0; color: var(--ink); font-size: 7px; text-align: right; overflow-wrap: anywhere; }
+.runtime-kill-switch p, .runtime-session-summary p, .runtime-lease-health p { margin: 10px 0 0; color: var(--muted); font-size: 8px; line-height: 1.5; }
+#runtime-effective-status[data-status="RUNNING"], .runtime-kill-switch [data-status="CLEAR"] { color: var(--green); }
+#runtime-effective-status[data-status*="FAIL_SAFE"], #runtime-effective-status[data-status="UNAVAILABLE"], .runtime-kill-switch [data-status="ARMED"] { color: var(--red); }
 .sandbox-configuration-detail code { color: var(--green); font-size: 7px; }
 
 .shadow-metrics { display: grid; grid-template-columns: repeat(6, minmax(110px, 1fr)); margin-top: 14px; border: 1px solid var(--line); background: var(--panel); }
@@ -864,6 +878,10 @@ tbody tr:last-child td { border-bottom: 0; }
   .isolated-registry-grid { grid-template-columns: 1fr; }
   .isolated-registry-grid > section { border-right: 0; border-bottom: 1px solid var(--line); }
   .isolated-registry-grid > section:last-child { border-bottom: 0; }
+  .isolated-runtime-grid { grid-template-columns: 1fr; }
+  .isolated-runtime-grid > section { border-right: 0; border-bottom: 1px solid var(--line); }
+  .isolated-runtime-grid > section:nth-child(n+4) { border-bottom: 1px solid var(--line); }
+  .isolated-runtime-grid > section:last-child { border-bottom: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

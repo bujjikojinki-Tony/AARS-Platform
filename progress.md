@@ -290,3 +290,21 @@
 - Final MIL-3.21 verification: 132 Python tests passed in 6.52 seconds; Python compilation, JavaScript syntax and diff whitespace checks passed.
 - Final safety review confirmed the new service/API paths are read-only and found no order submission, strategy-process start, shared-configuration mutation or live-execution authority.
 - MIL-3.21 is ready for its local milestone commit.
+
+## 2026-08-27 — MIL-3.22 started
+- Confirmed the clean MIL-3.21 baseline at `4b56298`; the branch is eleven commits ahead of origin.
+- Scoped the milestone to a fenced, leased PAPER_ONLY runtime that consumes only the registry's effective configuration and cannot reach an execution adapter.
+- Next: inspect registry, monitor and storage conventions, then define session/event invariants before implementation.
+- Added fail-safe-by-default sandbox kill switches, immutable kill events, fenced runtime sessions and append-only runtime lifecycle events.
+- Added atomic acquisition/takeover, token-checked heartbeat renewal, manual stop, derived fail-safe state and explicit reconciliation.
+- Added a bounded local worker that consumes only effective configuration identity and never starts replay or an order path.
+- First MIL-3.22 backend regression pass: 14 MIL-3.21/3.22 tests passed.
+- Next: expose the explicit local lifecycle CLI and read-only API, then build the runtime trust surface in the console.
+- Added explicit RUN, STOP, ARM_KILL, CLEAR_KILL and RECONCILE local CLI actions plus GET-only runtime/session/event API surfaces.
+- Added the runtime HMI for actual versus stored status, kill-switch authority, lease/heartbeat trust, immutable histories and recovery; browser write controls remain absent.
+- Targeted MIL-3.13/3.18–3.22 regression verification passes: 46 tests plus JavaScript syntax.
+- Added the MIL-3.22 runtime contract and updated registry, milestone, Mac mini and HMI operations documentation.
+- Next: run the full suite, inspect safety boundaries and close the local milestone commit.
+- Final MIL-3.22 verification after audit hardening: 140 Python tests passed in 7.68 seconds; Python compilation, JavaScript syntax and diff whitespace checks passed.
+- Final safety scan found only the existing API write-method rejection handlers. New runtime service/API paths are read-only and no credential, signed request, replay start, order path or live-execution authority was added.
+- MIL-3.22 is ready for its local milestone commit.

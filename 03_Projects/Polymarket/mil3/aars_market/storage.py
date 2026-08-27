@@ -265,6 +265,74 @@ CREATE TABLE IF NOT EXISTS isolated_paper_sandbox_events (
 
 CREATE INDEX IF NOT EXISTS idx_isolated_sandbox_events_time
 ON isolated_paper_sandbox_events(sandbox_id, event_at DESC, event_id DESC);
+
+CREATE TABLE IF NOT EXISTS isolated_paper_runtime_kill_switches (
+    sandbox_id TEXT PRIMARY KEY,
+    armed INTEGER NOT NULL CHECK (armed IN (0, 1)),
+    state_version INTEGER NOT NULL,
+    changed_at TEXT NOT NULL,
+    latest_event_id TEXT
+);
+
+CREATE TABLE IF NOT EXISTS isolated_paper_runtime_kill_events (
+    event_id TEXT PRIMARY KEY,
+    sandbox_id TEXT NOT NULL,
+    action TEXT NOT NULL,
+    event_at TEXT NOT NULL,
+    operator TEXT NOT NULL,
+    note TEXT NOT NULL,
+    state_version INTEGER NOT NULL,
+    payload_json TEXT NOT NULL,
+    FOREIGN KEY (sandbox_id) REFERENCES isolated_paper_runtime_kill_switches(sandbox_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_isolated_runtime_kill_events_time
+ON isolated_paper_runtime_kill_events(sandbox_id, state_version DESC, event_id DESC);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_isolated_runtime_kill_event_version
+ON isolated_paper_runtime_kill_events(sandbox_id, state_version);
+
+CREATE TABLE IF NOT EXISTS isolated_paper_runtime_sessions (
+    session_id TEXT PRIMARY KEY,
+    sandbox_id TEXT NOT NULL,
+    configuration_id TEXT NOT NULL,
+    configuration_sha256 TEXT NOT NULL,
+    sandbox_state_version INTEGER NOT NULL,
+    worker_id TEXT NOT NULL,
+    fencing_token_sha256 TEXT NOT NULL,
+    started_at TEXT NOT NULL,
+    last_heartbeat_at TEXT NOT NULL,
+    lease_expires_at TEXT NOT NULL,
+    status TEXT NOT NULL,
+    stop_reason TEXT,
+    session_version INTEGER NOT NULL,
+    ended_at TEXT,
+    FOREIGN KEY (configuration_id) REFERENCES isolated_paper_configurations(configuration_id)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_isolated_runtime_one_running_sandbox
+ON isolated_paper_runtime_sessions(sandbox_id) WHERE status='RUNNING';
+
+CREATE INDEX IF NOT EXISTS idx_isolated_runtime_sessions_time
+ON isolated_paper_runtime_sessions(sandbox_id, started_at DESC, session_id DESC);
+
+CREATE TABLE IF NOT EXISTS isolated_paper_runtime_events (
+    event_id TEXT PRIMARY KEY,
+    session_id TEXT NOT NULL,
+    sandbox_id TEXT NOT NULL,
+    event_at TEXT NOT NULL,
+    action TEXT NOT NULL,
+    session_version INTEGER NOT NULL,
+    reason TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    FOREIGN KEY (session_id) REFERENCES isolated_paper_runtime_sessions(session_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_isolated_runtime_events_time
+ON isolated_paper_runtime_events(session_id, session_version DESC, event_id DESC);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_isolated_runtime_event_version
+ON isolated_paper_runtime_events(session_id, session_version);
 """
 
 
@@ -2303,5 +2371,582 @@ class MarketStore:
             "configuration_process_started": False,
             "shared_configuration_change_allowed": False,
             "automatic_strategy_change_allowed": False,
+            "live_execution_allowed": False,
+        }
+
+    @staticmethod
+    def _runtime_event_conn(
+        conn: sqlite3.Connection,
+        session: sqlite3.Row,
+        *,
+        action: str,
+        event_at: datetime,
+        version: int,
+        reason: str,
+        operator: str,
+        note: str,
+    ) -> str:
+        from .isolated_config import canonical_sha256
+
+        payload = {
+            "schema_version": "mil3.isolated-paper-runtime-event.v1",
+            "execution_mode": "PAPER_ONLY",
+            "session_id": session["session_id"],
+            "sandbox_id": session["sandbox_id"],
+            "configuration_id": session["configuration_id"],
+            "configuration_sha256": session["configuration_sha256"],
+            "sandbox_state_version": int(session["sandbox_state_version"]),
+            "worker_id": session["worker_id"],
+            "event_at": _iso(event_at),
+            "action": action,
+            "session_version": version,
+            "reason": reason,
+            "operator": operator,
+            "note": note,
+            "authority": {
+                "configuration_consumption_only": True,
+                "replay_started": False,
+                "order_path_present": False,
+                "shared_configuration_change_allowed": False,
+                "automatic_strategy_change_allowed": False,
+                "live_execution_allowed": False,
+            },
+        }
+        event_id = canonical_sha256(payload)[:24]
+        payload["event_id"] = event_id
+        conn.execute(
+            """INSERT INTO isolated_paper_runtime_events(
+                   event_id, session_id, sandbox_id, event_at, action,
+                   session_version, reason, payload_json
+               ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                event_id, session["session_id"], session["sandbox_id"],
+                _iso(event_at), action, version, reason,
+                json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False),
+            ),
+        )
+        return event_id
+
+    @classmethod
+    def _stop_runtime_conn(
+        cls,
+        conn: sqlite3.Connection,
+        session: sqlite3.Row,
+        *,
+        stopped_at: datetime,
+        reason: str,
+        operator: str,
+        note: str,
+    ) -> str:
+        if session["status"] != "RUNNING":
+            raise ValueError("isolated paper runtime session is not running")
+        version = int(session["session_version"]) + 1
+        updated = conn.execute(
+            """UPDATE isolated_paper_runtime_sessions
+               SET status='STOPPED', stop_reason=?, session_version=?, ended_at=?
+               WHERE session_id=? AND status='RUNNING' AND session_version=?""",
+            (reason, version, _iso(stopped_at), session["session_id"], session["session_version"]),
+        )
+        if updated.rowcount != 1:
+            raise ValueError("isolated paper runtime stop lost its race")
+        return cls._runtime_event_conn(
+            conn, session, action="STOP", event_at=stopped_at,
+            version=version, reason=reason, operator=operator, note=note,
+        )
+
+    def isolated_paper_runtime_kill_switch(self, sandbox_id: str) -> dict[str, Any]:
+        with self.connect() as conn:
+            row = conn.execute(
+                """SELECT sandbox_id, armed, state_version, changed_at, latest_event_id
+                   FROM isolated_paper_runtime_kill_switches WHERE sandbox_id=?""",
+                (sandbox_id,),
+            ).fetchone()
+        initialized = row is not None
+        return {
+            "schema_version": "mil3.isolated-paper-runtime-kill-switch.v1",
+            "execution_mode": "PAPER_ONLY",
+            "sandbox_id": sandbox_id,
+            "initialized": initialized,
+            "armed": bool(row["armed"]) if row else True,
+            "effective_state": "ARMED" if row is None or row["armed"] else "CLEAR",
+            "state_version": int(row["state_version"]) if row else 0,
+            "changed_at": row["changed_at"] if row else None,
+            "latest_event_id": row["latest_event_id"] if row else None,
+            "blocking_reason": (
+                "Kill switch is not initialized and therefore fails safe to ARMED."
+                if row is None else
+                "Kill switch is armed; runtime acquisition and renewal are blocked."
+                if row["armed"] else
+                "Kill switch is explicitly clear."
+            ),
+            "read_only": True,
+            "browser_control_allowed": False,
+            "live_execution_allowed": False,
+        }
+
+    def set_isolated_paper_runtime_kill_switch(
+        self,
+        sandbox_id: str,
+        *,
+        action: str,
+        operator: str,
+        note: str,
+        now: datetime | None = None,
+    ) -> str:
+        from .isolated_config import canonical_sha256
+
+        normalized_action = action.upper()
+        if normalized_action not in {"ARM", "CLEAR"}:
+            raise ValueError("runtime kill-switch action must be ARM or CLEAR")
+        if not operator.strip() or not note.strip():
+            raise ValueError("runtime kill-switch operator and note are required")
+        event_at = _parse(_iso(now or datetime.now(timezone.utc)))
+        desired = normalized_action == "ARM"
+        with self.connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            row = conn.execute(
+                """SELECT sandbox_id, armed, state_version, changed_at, latest_event_id
+                   FROM isolated_paper_runtime_kill_switches WHERE sandbox_id=?""",
+                (sandbox_id,),
+            ).fetchone()
+            current = bool(row["armed"]) if row else True
+            version = int(row["state_version"]) if row else 0
+            if current == desired and row is not None:
+                raise ValueError("runtime kill switch is already in the requested state")
+            if row is not None and event_at <= _parse(row["changed_at"]):
+                raise ValueError("runtime kill-switch event time must advance")
+            sessions = conn.execute(
+                """SELECT * FROM isolated_paper_runtime_sessions
+                   WHERE sandbox_id=? AND status='RUNNING'""",
+                (sandbox_id,),
+            ).fetchall()
+            if desired and any(
+                event_at < _parse(session["last_heartbeat_at"]) for session in sessions
+            ):
+                raise ValueError("runtime kill-switch event cannot predate a running heartbeat")
+            payload = {
+                "schema_version": "mil3.isolated-paper-runtime-kill-event.v1",
+                "execution_mode": "PAPER_ONLY",
+                "sandbox_id": sandbox_id,
+                "action": normalized_action,
+                "event_at": _iso(event_at),
+                "operator": operator.strip(),
+                "note": note.strip(),
+                "previous_state": "ARMED" if current else "CLEAR",
+                "resulting_state": "ARMED" if desired else "CLEAR",
+                "state_version": version + 1,
+                "authority": {
+                    "stops_isolated_paper_runtime_only": True,
+                    "starts_runtime": False,
+                    "browser_control_allowed": False,
+                    "live_execution_allowed": False,
+                },
+            }
+            event_id = canonical_sha256(payload)[:24]
+            payload["event_id"] = event_id
+            if row is None:
+                conn.execute(
+                    """INSERT INTO isolated_paper_runtime_kill_switches(
+                           sandbox_id, armed, state_version, changed_at, latest_event_id
+                       ) VALUES (?, ?, ?, ?, ?)""",
+                    (sandbox_id, int(desired), version + 1, _iso(event_at), event_id),
+                )
+            else:
+                conn.execute(
+                    """UPDATE isolated_paper_runtime_kill_switches
+                       SET armed=?, state_version=?, changed_at=?, latest_event_id=?
+                       WHERE sandbox_id=? AND state_version=?""",
+                    (int(desired), version + 1, _iso(event_at), event_id, sandbox_id, version),
+                )
+            conn.execute(
+                """INSERT INTO isolated_paper_runtime_kill_events(
+                       event_id, sandbox_id, action, event_at, operator, note,
+                       state_version, payload_json
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    event_id, sandbox_id, normalized_action, _iso(event_at),
+                    operator.strip(), note.strip(), version + 1,
+                    json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False),
+                ),
+            )
+            if desired:
+                for session in sessions:
+                    self._stop_runtime_conn(
+                        conn, session, stopped_at=event_at,
+                        reason="KILL_SWITCH_ARMED", operator=operator.strip(),
+                        note=note.strip(),
+                    )
+        return event_id
+
+    def list_isolated_paper_runtime_kill_events(
+        self, sandbox_id: str, *, limit: int = 100
+    ) -> list[dict[str, Any]]:
+        if limit <= 0:
+            raise ValueError("limit must be positive")
+        with self.connect() as conn:
+            rows = conn.execute(
+                """SELECT payload_json FROM isolated_paper_runtime_kill_events
+                   WHERE sandbox_id=? ORDER BY state_version DESC, event_id DESC LIMIT ?""",
+                (sandbox_id, limit),
+            ).fetchall()
+        return [json.loads(row["payload_json"]) for row in rows]
+
+    def acquire_isolated_paper_runtime(
+        self,
+        sandbox_id: str,
+        *,
+        worker_id: str,
+        fencing_token_sha256: str,
+        lease_seconds: int,
+        now: datetime | None = None,
+    ) -> dict[str, Any]:
+        from .isolated_config import canonical_sha256
+
+        if not worker_id.strip():
+            raise ValueError("runtime worker_id is required")
+        if len(fencing_token_sha256) != 64:
+            raise ValueError("runtime fencing token hash is invalid")
+        if not 5 <= lease_seconds <= 300:
+            raise ValueError("runtime lease seconds must be between 5 and 300")
+        started = _parse(_iso(now or datetime.now(timezone.utc)))
+        with self.connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            kill = conn.execute(
+                "SELECT armed FROM isolated_paper_runtime_kill_switches WHERE sandbox_id=?",
+                (sandbox_id,),
+            ).fetchone()
+            if kill is None or bool(kill["armed"]):
+                raise ValueError("runtime kill switch is not explicitly clear")
+            sandbox = conn.execute(
+                """SELECT active_configuration_id, state_version
+                   FROM isolated_paper_sandboxes WHERE sandbox_id=?""",
+                (sandbox_id,),
+            ).fetchone()
+            if sandbox is None or sandbox["active_configuration_id"] is None:
+                raise ValueError("runtime requires an effective isolated configuration")
+            configuration_id = str(sandbox["active_configuration_id"])
+            valid, reason, config = self._isolated_configuration_validity(
+                conn, configuration_id, started
+            )
+            if not valid or config is None:
+                raise ValueError(f"runtime configuration is not effective: {reason}")
+            existing = conn.execute(
+                """SELECT * FROM isolated_paper_runtime_sessions
+                   WHERE sandbox_id=? AND status='RUNNING'""",
+                (sandbox_id,),
+            ).fetchone()
+            if existing is not None:
+                existing_state, existing_reason = self._runtime_effective_state_conn(
+                    conn, existing, started
+                )
+                if existing_state != "RUNNING":
+                    self._stop_runtime_conn(
+                        conn, existing, stopped_at=started, reason=existing_reason,
+                        operator="aars-runtime-acquirer",
+                        note="Fence stale session before acquiring a new lease.",
+                    )
+                else:
+                    raise ValueError("sandbox already has a running leased session")
+            config_payload = json.loads(config["payload_json"])
+            identity = {
+                "sandbox_id": sandbox_id,
+                "configuration_id": configuration_id,
+                "configuration_sha256": config_payload["configuration_sha256"],
+                "sandbox_state_version": int(sandbox["state_version"]),
+                "worker_id": worker_id.strip(),
+                "started_at": _iso(started),
+                "fencing_token_sha256": fencing_token_sha256,
+            }
+            session_id = canonical_sha256(identity)[:24]
+            lease_expires = min(
+                started + timedelta(seconds=lease_seconds),
+                _parse(config_payload["valid_until"]),
+            )
+            conn.execute(
+                """INSERT INTO isolated_paper_runtime_sessions(
+                       session_id, sandbox_id, configuration_id, configuration_sha256,
+                       sandbox_state_version, worker_id, fencing_token_sha256,
+                       started_at, last_heartbeat_at, lease_expires_at, status,
+                       stop_reason, session_version, ended_at
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'RUNNING', NULL, 1, NULL)""",
+                (
+                    session_id, sandbox_id, configuration_id,
+                    config_payload["configuration_sha256"], int(sandbox["state_version"]),
+                    worker_id.strip(), fencing_token_sha256, _iso(started), _iso(started),
+                    _iso(lease_expires),
+                ),
+            )
+            session = conn.execute(
+                "SELECT * FROM isolated_paper_runtime_sessions WHERE session_id=?",
+                (session_id,),
+            ).fetchone()
+            self._runtime_event_conn(
+                conn, session, action="START", event_at=started,
+                version=1, reason="EFFECTIVE_CONFIGURATION_LEASED",
+                operator=worker_id.strip(), note="Acquire fenced PAPER_ONLY runtime lease.",
+            )
+        return {
+            "schema_version": "mil3.isolated-paper-runtime-acquisition.v1",
+            "execution_mode": "PAPER_ONLY",
+            "session_id": session_id,
+            "sandbox_id": sandbox_id,
+            "configuration_id": configuration_id,
+            "configuration_sha256": config_payload["configuration_sha256"],
+            "sandbox_state_version": int(sandbox["state_version"]),
+            "worker_id": worker_id.strip(),
+            "lease_expires_at": _iso(lease_expires),
+            "configuration_consumption_only": True,
+            "replay_started": False,
+            "order_path_present": False,
+            "live_execution_allowed": False,
+        }
+
+    @staticmethod
+    def _runtime_effective_state_conn(
+        conn: sqlite3.Connection, session: sqlite3.Row, at: datetime
+    ) -> tuple[str, str]:
+        if session["status"] != "RUNNING":
+            return str(session["status"]), str(session["stop_reason"] or "SESSION_STOPPED")
+        kill = conn.execute(
+            "SELECT armed FROM isolated_paper_runtime_kill_switches WHERE sandbox_id=?",
+            (session["sandbox_id"],),
+        ).fetchone()
+        if kill is None or bool(kill["armed"]):
+            return "KILL_SWITCH_FAIL_SAFE", "KILL_SWITCH_ARMED_OR_UNINITIALIZED"
+        sandbox = conn.execute(
+            """SELECT active_configuration_id, state_version FROM isolated_paper_sandboxes
+               WHERE sandbox_id=?""",
+            (session["sandbox_id"],),
+        ).fetchone()
+        if (
+            sandbox is None
+            or sandbox["active_configuration_id"] != session["configuration_id"]
+            or int(sandbox["state_version"]) != int(session["sandbox_state_version"])
+        ):
+            return "POINTER_CHANGED_FAIL_SAFE", "SANDBOX_POINTER_OR_VERSION_CHANGED"
+        valid, reason, config = MarketStore._isolated_configuration_validity(
+            conn, session["configuration_id"], at
+        )
+        if not valid or config is None:
+            return f"{reason}_FAIL_SAFE", reason
+        config_payload = json.loads(config["payload_json"])
+        if config_payload.get("configuration_sha256") != session["configuration_sha256"]:
+            return "CONFIGURATION_HASH_FAIL_SAFE", "CONFIGURATION_HASH_CHANGED"
+        if at >= _parse(session["lease_expires_at"]):
+            return "LEASE_EXPIRED_FAIL_SAFE", "LEASE_EXPIRED"
+        return "RUNNING", "LEASE_AND_CONFIGURATION_CURRENT"
+
+    def resolve_isolated_paper_runtime_session(
+        self, session_id: str, *, now: datetime | None = None
+    ) -> dict[str, Any]:
+        evaluated = _parse(_iso(now or datetime.now(timezone.utc)))
+        with self.connect() as conn:
+            session = conn.execute(
+                "SELECT * FROM isolated_paper_runtime_sessions WHERE session_id=?",
+                (session_id,),
+            ).fetchone()
+            if session is None:
+                raise KeyError(f"isolated paper runtime session not found: {session_id}")
+            effective, reason = self._runtime_effective_state_conn(conn, session, evaluated)
+        heartbeat_age = max(
+            0.0, (evaluated - _parse(session["last_heartbeat_at"])).total_seconds()
+        )
+        return {
+            "schema_version": "mil3.isolated-paper-runtime-session-view.v1",
+            "execution_mode": "PAPER_ONLY",
+            "evaluated_at": _iso(evaluated),
+            "session_id": session_id,
+            "sandbox_id": session["sandbox_id"],
+            "configuration_id": session["configuration_id"],
+            "configuration_sha256": session["configuration_sha256"],
+            "sandbox_state_version": int(session["sandbox_state_version"]),
+            "worker_id": session["worker_id"],
+            "stored_status": session["status"],
+            "effective_status": effective,
+            "blocking_reason": reason,
+            "started_at": session["started_at"],
+            "last_heartbeat_at": session["last_heartbeat_at"],
+            "heartbeat_age_seconds": heartbeat_age,
+            "lease_expires_at": session["lease_expires_at"],
+            "session_version": int(session["session_version"]),
+            "ended_at": session["ended_at"],
+            "read_only": True,
+            "configuration_consumption_only": True,
+            "replay_started": False,
+            "order_path_present": False,
+            "browser_control_allowed": False,
+            "live_execution_allowed": False,
+        }
+
+    def list_isolated_paper_runtime_sessions(
+        self, sandbox_id: str, *, limit: int = 100, now: datetime | None = None
+    ) -> list[dict[str, Any]]:
+        if limit <= 0:
+            raise ValueError("limit must be positive")
+        with self.connect() as conn:
+            rows = conn.execute(
+                """SELECT session_id FROM isolated_paper_runtime_sessions
+                   WHERE sandbox_id=? ORDER BY started_at DESC, session_id DESC LIMIT ?""",
+                (sandbox_id, limit),
+            ).fetchall()
+        return [
+            self.resolve_isolated_paper_runtime_session(row["session_id"], now=now)
+            for row in rows
+        ]
+
+    def heartbeat_isolated_paper_runtime(
+        self,
+        session_id: str,
+        *,
+        fencing_token_sha256: str,
+        lease_seconds: int,
+        now: datetime | None = None,
+    ) -> dict[str, Any]:
+        import hmac
+
+        if not 5 <= lease_seconds <= 300:
+            raise ValueError("runtime lease seconds must be between 5 and 300")
+        heartbeat = _parse(_iso(now or datetime.now(timezone.utc)))
+        stopped = False
+        with self.connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            session = conn.execute(
+                "SELECT * FROM isolated_paper_runtime_sessions WHERE session_id=?",
+                (session_id,),
+            ).fetchone()
+            if session is None:
+                raise KeyError(f"isolated paper runtime session not found: {session_id}")
+            if not hmac.compare_digest(
+                str(session["fencing_token_sha256"]), fencing_token_sha256
+            ):
+                raise ValueError("runtime fencing token was rejected")
+            if session["status"] != "RUNNING":
+                raise ValueError("isolated paper runtime session is not running")
+            if heartbeat < _parse(session["last_heartbeat_at"]):
+                raise ValueError("runtime heartbeat cannot move backward")
+            effective, reason = self._runtime_effective_state_conn(conn, session, heartbeat)
+            if effective != "RUNNING":
+                self._stop_runtime_conn(
+                    conn, session, stopped_at=heartbeat, reason=reason,
+                    operator=session["worker_id"],
+                    note="Heartbeat detected a fail-safe stop condition.",
+                )
+                stopped = True
+            else:
+                config_row = conn.execute(
+                    "SELECT payload_json FROM isolated_paper_configurations WHERE configuration_id=?",
+                    (session["configuration_id"],),
+                ).fetchone()
+                if config_row is None:
+                    raise ValueError("runtime configuration payload is unavailable")
+                config = json.loads(config_row["payload_json"])
+                version = int(session["session_version"]) + 1
+                lease_expires = min(
+                    heartbeat + timedelta(seconds=lease_seconds),
+                    _parse(config["valid_until"]),
+                )
+                updated = conn.execute(
+                    """UPDATE isolated_paper_runtime_sessions
+                       SET last_heartbeat_at=?, lease_expires_at=?, session_version=?
+                       WHERE session_id=? AND status='RUNNING' AND session_version=?""",
+                    (
+                        _iso(heartbeat), _iso(lease_expires), version,
+                        session_id, session["session_version"],
+                    ),
+                )
+                if updated.rowcount != 1:
+                    raise ValueError("runtime heartbeat lost its fencing race")
+                self._runtime_event_conn(
+                    conn, session, action="HEARTBEAT", event_at=heartbeat,
+                    version=version, reason="EFFECTIVE_CONFIGURATION_CONSUMED",
+                    operator=session["worker_id"],
+                    note="Renew fenced lease after effective configuration verification.",
+                )
+        view = self.resolve_isolated_paper_runtime_session(session_id, now=heartbeat)
+        return {
+            **view,
+            "configuration_consumed": not stopped,
+            "paper_calculation_performed": False,
+        }
+
+    def stop_isolated_paper_runtime(
+        self,
+        session_id: str,
+        *,
+        operator: str,
+        note: str,
+        reason: str = "MANUAL_STOP",
+        now: datetime | None = None,
+    ) -> str | None:
+        if not operator.strip() or not note.strip():
+            raise ValueError("runtime stop operator and note are required")
+        stopped_at = _parse(_iso(now or datetime.now(timezone.utc)))
+        with self.connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            session = conn.execute(
+                "SELECT * FROM isolated_paper_runtime_sessions WHERE session_id=?",
+                (session_id,),
+            ).fetchone()
+            if session is None:
+                raise KeyError(f"isolated paper runtime session not found: {session_id}")
+            if session["status"] != "RUNNING":
+                return None
+            if stopped_at < _parse(session["last_heartbeat_at"]):
+                raise ValueError("runtime stop cannot predate the latest heartbeat")
+            return self._stop_runtime_conn(
+                conn, session, stopped_at=stopped_at, reason=reason,
+                operator=operator.strip(), note=note.strip(),
+            )
+
+    def list_isolated_paper_runtime_events(
+        self, session_id: str, *, limit: int = 100
+    ) -> list[dict[str, Any]]:
+        if limit <= 0:
+            raise ValueError("limit must be positive")
+        with self.connect() as conn:
+            rows = conn.execute(
+                """SELECT payload_json FROM isolated_paper_runtime_events
+                   WHERE session_id=? ORDER BY session_version DESC, event_id DESC LIMIT ?""",
+                (session_id, limit),
+            ).fetchall()
+        return [json.loads(row["payload_json"]) for row in rows]
+
+    def reconcile_isolated_paper_runtime_sessions(
+        self, *, now: datetime | None = None
+    ) -> dict[str, Any]:
+        evaluated = _parse(_iso(now or datetime.now(timezone.utc)))
+        with self.connect() as conn:
+            session_ids = [
+                row["session_id"]
+                for row in conn.execute(
+                    "SELECT session_id FROM isolated_paper_runtime_sessions WHERE status='RUNNING'"
+                ).fetchall()
+            ]
+        records = []
+        for session_id in session_ids:
+            view = self.resolve_isolated_paper_runtime_session(session_id, now=evaluated)
+            if view["effective_status"] == "RUNNING":
+                records.append({"session_id": session_id, "status": "NO_CHANGE"})
+                continue
+            event_id = self.stop_isolated_paper_runtime(
+                session_id,
+                operator="aars-runtime-reconciler",
+                note="Persist derived fail-safe runtime stop.",
+                reason=view["blocking_reason"],
+                now=evaluated,
+            )
+            records.append({
+                "session_id": session_id,
+                "status": "STOPPED" if event_id else "ALREADY_STOPPED",
+                "reason": view["effective_status"],
+                "event_id": event_id,
+            })
+        return {
+            "schema_version": "mil3.isolated-paper-runtime-reconciliation.v1",
+            "execution_mode": "PAPER_ONLY",
+            "evaluated_at": _iso(evaluated),
+            "records": records,
+            "replay_started": False,
+            "order_path_present": False,
             "live_execution_allowed": False,
         }
