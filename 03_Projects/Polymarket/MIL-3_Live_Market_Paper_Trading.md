@@ -367,6 +367,31 @@ Status: **implemented on `mil-3-live-market-paper-trading`**.
 The runtime authority and recovery contract is documented in
 `mil3/GOVERNED_ISOLATED_PAPER_RUNTIME.md`.
 
+### MIL-3.23 — Deterministic Snapshot-to-Paper Ledger Runtime
+
+Status: **implemented on `mil-3-live-market-paper-trading`**.
+
+- Every valid runtime cycle selects the latest synchronized stored-candle
+  boundary at or before cycle time and hashes candles, funding and cadence
+  evidence per asset.
+- Cycle identity is configuration/boundary based, so duplicate calls and crash
+  recovery converge on one logical calculation across runtime sessions.
+- `RESERVED` checkpoints, deterministic cumulative ReplayEngine results and
+  append-only `RESERVE/RECOVER/COMMIT` events provide explicit recovery state.
+- Commit rebuilds the reserved snapshot under a write lock. Source drift or
+  changed lease/configuration authority blocks the result.
+- Ledger result insertion and the `COMMITTED` checkpoint transition are atomic;
+  a failure cannot leave an effective partial result.
+- Committed cycles form a monotonic chain and repeated boundaries reuse the
+  existing content-addressed result without double application.
+- The GET-only API and console expose boundary/hash trust, checkpoint owner and
+  attempts, ledger attribution, idempotency and recovery evidence.
+- All calculations remain PAPER_ONLY using local public-market rows and the
+  existing simulated accounting engine; no external order request exists.
+
+The calculation, checkpoint and recovery contract is documented in
+`mil3/DETERMINISTIC_RUNTIME_PAPER_LEDGER.md`.
+
 ## Initial decision policy
 
 The initial policy intentionally prefers risk control over activity:
@@ -486,6 +511,7 @@ The ingestion and scheduler commands touch only public market-data endpoints. Re
 - MIL-3.20 deterministic tests cover strict offline verification, duplicate keys, safe retention and pruning, minimum-copy floors, approval prerequisites, expiry/revocation, stale/tampered evidence, read-only APIs, explicit local CLIs and UI action gates.
 - MIL-3.21 deterministic tests cover unique approval consumption, inert registration, optimistic races, monotonic events, atomic activation/rollback, immediate expiry/revocation suppression, reconciliation, read-only APIs, explicit local CLIs and UI stored/effective separation.
 - MIL-3.22 deterministic tests cover fail-safe kill-switch initialization, fenced lease acquisition, token rejection, heartbeat renewal, lease timeout, pointer-version fencing, atomic takeover, kill-switch stop, bounded completion, read-only APIs, explicit local CLI and UI stored/effective runtime separation.
+- MIL-3.23 deterministic tests cover synchronized content-addressed snapshots, cumulative paper ledgers, atomic reserve/commit, duplicate reuse, crash recovery, stale-owner fencing, source drift, result tampering, monotonic checkpoint chains, read-only APIs, bounded CLI and UI commit/recovery evidence.
 
 ## Definition of Done
 

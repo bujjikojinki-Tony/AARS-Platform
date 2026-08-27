@@ -243,6 +243,8 @@ def test_bounded_runtime_consumes_configuration_without_replay_or_orders(
         token_factory=lambda: TOKEN,
     )
     assert result["paper_configuration_consumed"] is True
+    assert result["paper_ledger_cycles_committed"] == 0
+    assert all(cycle["paper_cycle"]["status"] == "WAITING" for cycle in result["cycles"])
     assert len(result["cycles"]) == 2
     assert result["final_status"] == "STOPPED"
     assert result["replay_started"] is False
@@ -317,6 +319,7 @@ def test_runtime_cli_is_explicit_bounded_and_paper_only(tmp_path: Path, monkeypa
     result = json.loads(completed.stdout)
     assert result["final_status"] == "STOPPED"
     assert result["paper_configuration_consumed"] is True
+    assert result["paper_ledger_cycles_committed"] == 1
     assert result["replay_started"] is False
     assert result["order_path_present"] is False
     assert result["live_execution_allowed"] is False
@@ -332,14 +335,14 @@ def test_mil322_ui_exposes_actual_runtime_lease_kill_and_recovery_state():
     html = (ui_root / "index.html").read_text(encoding="utf-8")
     javascript = (ui_root / "app.js").read_text(encoding="utf-8")
     css = (ui_root / "styles.css").read_text(encoding="utf-8")
-    assert "AARS // 03.22" in html
+    assert "AARS // 03.23" in html
     assert 'id="runtime-effective-status"' in html
     assert 'id="runtime-kill-switch"' in html
     assert 'id="runtime-session-summary"' in html
     assert 'id="runtime-lease-health"' in html
     assert 'id="runtime-event-history"' in html
     assert 'id="runtime-kill-history"' in html
-    assert "THIS SCREEN HAS NO RUN, STOP OR KILL-SWITCH BUTTON" in javascript
+    assert "THIS SCREEN HAS NO RUN, STOP, RECOVER OR KILL-SWITCH BUTTON" in javascript
     assert "/api/v1/isolated-runtime?sandbox_id=${encodeURIComponent(sandboxId)}" in javascript
     assert "/api/v1/isolated-runtime-kill-events?sandbox_id=${encodeURIComponent(sandboxId)}" in javascript
     assert "isolated runtime effective state differs from stored authority" in javascript

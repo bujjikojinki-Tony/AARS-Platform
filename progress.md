@@ -308,3 +308,23 @@
 - Final MIL-3.22 verification after audit hardening: 140 Python tests passed in 7.68 seconds; Python compilation, JavaScript syntax and diff whitespace checks passed.
 - Final safety scan found only the existing API write-method rejection handlers. New runtime service/API paths are read-only and no credential, signed request, replay start, order path or live-execution authority was added.
 - MIL-3.22 is ready for its local milestone commit.
+
+## 2026-08-27 — MIL-3.23 started
+- Confirmed the clean MIL-3.22 baseline at `a70b93a`; the branch is twelve commits ahead of origin.
+- Scoped the milestone to deterministic read-only market snapshots, idempotent paper calculations, atomic checkpoint commits and crash-safe resume under the MIL-3.22 fenced lease.
+- Next: inspect replay/paper-ledger configuration and calculation contracts, then define the smallest deterministic cycle payload before storage work.
+- Added synchronized content-addressed runtime market snapshots built only from stored candles, funding and cadence observations.
+- Added deterministic cumulative paper-ledger calculation by reusing the unified ReplayEngine and approved proposed-strategy settings.
+- Added unique cycle checkpoints, append-only RESERVE/RECOVER/COMMIT events and atomic ledger-result/checkpoint commit under the fenced lease.
+- Added duplicate committed-cycle reuse, stale-owner recovery, source-drift rejection and monotonic checkpoint chaining.
+- Integrated paper calculation into each leased runtime heartbeat; insufficient data reports WAITING without relaxing runtime authority.
+- Initial MIL-3.22/3.23 backend verification passes: 12 tests.
+- Next: add read-only checkpoint/result APIs and the snapshot/commit/recovery HMI evidence surface.
+- Added GET-only cycle index/detail, checkpoint event and paper-ledger result APIs; the existing bounded RUN CLI now performs the governed calculation.
+- Added the MIL-3.23 HMI surface for checkpoint status/owner/attempts, snapshot hashes, cumulative ledger attribution and RESERVE/RECOVER/COMMIT history.
+- Added deterministic tests for duplicate reuse, crash takeover, source drift, tampered results, monotonic cycle chaining, API non-mutation and UI authority.
+- Added the MIL-3.23 calculation/recovery contract and updated runtime, main milestone, Mac mini and HMI documentation.
+- Next: run the full suite, audit atomicity and execution boundaries, then complete the local milestone commit.
+- Final MIL-3.23 verification after finite-JSON hardening: 146 Python tests passed in 15.14 seconds; Python compilation, JavaScript syntax and diff whitespace checks passed.
+- Final safety scan found only the existing API write-method rejection handlers. New checkpoint/result HTTP paths are read-only and no credential, signed request, external order request or live-execution authority was added.
+- MIL-3.23 is ready for its local milestone commit.

@@ -135,6 +135,14 @@ Before future scheduling, define a separate user-level job with a bounded lease,
 an explicit kill-switch-clear procedure and no dependency on exchange credentials.
 Never combine runtime control with public-data ingestion or the read-only API.
 
+MIL-3.23 adds no new LaunchAgent. When the bounded runtime is invoked manually,
+each heartbeat selects a synchronized local market boundary, reserves an
+idempotent checkpoint and atomically commits a cumulative paper ledger. After a
+process crash, do not edit checkpoint rows: let the old lease expire, verify the
+kill switch and registry state, then run the same bounded command. The new
+fenced session will recover the RESERVED cycle only after the previous owner is
+ineffective. Preserve the database if source-drift validation blocks recovery.
+
 ## Upgrade
 
 Stop the jobs before moving the repository or Python environment because the

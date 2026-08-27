@@ -529,3 +529,60 @@ class DashboardService:
             "starts_runtime": False,
             "live_execution_allowed": False,
         }
+
+    def isolated_runtime_cycles(
+        self, sandbox_id: str, *, limit: int = 100
+    ) -> dict[str, Any]:
+        cycles = self.store.list_isolated_paper_runtime_cycles(
+            sandbox_id, limit=limit
+        )
+        return {
+            "schema_version": "mil3.isolated-paper-runtime-cycle-index.v1",
+            "execution_mode": "PAPER_ONLY",
+            "sandbox_id": sandbox_id,
+            "cycles": cycles,
+            "latest_cycle": cycles[0] if cycles else None,
+            "read_only": True,
+            "market_source_read_only": True,
+            "paper_orders_created": False,
+            "order_path_present": False,
+            "live_execution_allowed": False,
+        }
+
+    def isolated_runtime_cycle(self, cycle_id: str) -> dict[str, Any]:
+        payload = self.store.get_isolated_paper_runtime_cycle(cycle_id)
+        if payload is None:
+            raise KeyError(f"isolated paper runtime cycle not found: {cycle_id}")
+        return payload
+
+    def isolated_runtime_cycle_events(
+        self, cycle_id: str, *, limit: int = 100
+    ) -> dict[str, Any]:
+        return {
+            "schema_version": "mil3.isolated-paper-runtime-cycle-event-index.v1",
+            "execution_mode": "PAPER_ONLY",
+            "cycle_id": cycle_id,
+            "events": list(reversed(self.store.list_isolated_paper_runtime_cycle_events(
+                cycle_id, limit=limit
+            ))),
+            "read_only": True,
+            "paper_orders_created": False,
+            "order_path_present": False,
+            "live_execution_allowed": False,
+        }
+
+    def isolated_paper_ledger_result(self, result_id: str) -> dict[str, Any]:
+        payload = self.store.get_isolated_paper_ledger_result(result_id)
+        if payload is None:
+            raise KeyError(f"isolated paper ledger result not found: {result_id}")
+        return {
+            "schema_version": "mil3.isolated-paper-ledger-result-envelope.v1",
+            "execution_mode": "PAPER_ONLY",
+            "result_id": result_id,
+            "result": payload,
+            "read_only": True,
+            "market_source_read_only": True,
+            "paper_orders_created": False,
+            "order_path_present": False,
+            "live_execution_allowed": False,
+        }

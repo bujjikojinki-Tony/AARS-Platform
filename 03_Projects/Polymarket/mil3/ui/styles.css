@@ -648,8 +648,8 @@ tbody tr:last-child td { border-bottom: 0; }
 .isolated-runtime-deck { border-top: 1px solid var(--line); background: linear-gradient(104deg, rgba(82, 194, 255, 0.025), transparent 50%); }
 .isolated-runtime-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .isolated-runtime-grid > section { min-width: 0; padding: 15px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-.isolated-runtime-grid > section:nth-child(3), .isolated-runtime-grid > section:last-child { border-right: 0; }
-.isolated-runtime-grid > section:nth-child(n+4) { border-bottom: 0; }
+.isolated-runtime-grid > section:nth-child(3n) { border-right: 0; }
+.isolated-runtime-grid > section:nth-last-child(-n+3) { border-bottom: 0; }
 .isolated-runtime-grid > section > span { color: var(--blue); font-size: 7px; letter-spacing: 0.08em; }
 .runtime-kill-switch, .runtime-session-summary, .runtime-lease-health { margin-top: 12px; padding: 12px; border: 1px solid var(--line); border-left: 3px solid var(--blue); }
 .runtime-kill-switch > strong, .runtime-session-summary > strong, .runtime-lease-health > strong { color: var(--blue); font: 650 11px/1.25 var(--display); }

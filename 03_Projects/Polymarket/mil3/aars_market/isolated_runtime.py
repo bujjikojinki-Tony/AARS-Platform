@@ -70,13 +70,38 @@ def run_isolated_runtime_cycle(
     lease_seconds: int,
     now: datetime | None = None,
 ) -> dict[str, object]:
-    """Renew one fenced lease and record configuration consumption only."""
-    return store.heartbeat_isolated_paper_runtime(
+    """Renew one fenced lease, then run one idempotent paper-ledger cycle."""
+    heartbeat = store.heartbeat_isolated_paper_runtime(
         session_id,
         fencing_token_sha256=token_sha256(fencing_token),
         lease_seconds=lease_seconds,
         now=_utc(now or datetime.now(timezone.utc)),
     )
+    if heartbeat["effective_status"] != "RUNNING":
+        return {**heartbeat, "paper_cycle": {"status": "FENCED"}}
+    from .runtime_ledger import execute_runtime_paper_cycle
+
+    cycle_time = _utc(now or datetime.now(timezone.utc))
+    try:
+        paper_cycle = execute_runtime_paper_cycle(
+            store, session_id, fencing_token, now=cycle_time
+        )
+    except ValueError as exc:
+        reason = str(exc)
+        waiting = reason.startswith((
+            "no stored candle", "insufficient synchronized runtime candles"
+        ))
+        paper_cycle = {
+            "status": "WAITING" if waiting else "BLOCKED",
+            "reason": reason,
+            "paper_ledger_committed": False,
+        }
+    return {
+        **heartbeat,
+        "paper_cycle": paper_cycle,
+        "paper_ledger_calculation_enabled": True,
+        "external_order_requests_created": False,
+    }
 
 
 def run_isolated_paper_runtime(
@@ -138,6 +163,14 @@ def run_isolated_paper_runtime(
         "cycles": cycles,
         "final_status": final["effective_status"],
         "paper_configuration_consumed": bool(cycles),
+        "paper_ledger_cycles_committed": sum(
+            cycle.get("paper_cycle", {}).get("status") == "COMMITTED"
+            for cycle in cycles
+        ),
+        "paper_ledger_cycles_reused": sum(
+            cycle.get("paper_cycle", {}).get("status") == "REUSED_COMMITTED"
+            for cycle in cycles
+        ),
         "replay_started": False,
         "order_path_present": False,
         "shared_configuration_change_allowed": False,

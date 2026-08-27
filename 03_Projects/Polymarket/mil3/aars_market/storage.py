@@ -333,6 +333,56 @@ ON isolated_paper_runtime_events(session_id, session_version DESC, event_id DESC
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_isolated_runtime_event_version
 ON isolated_paper_runtime_events(session_id, session_version);
+
+CREATE TABLE IF NOT EXISTS isolated_paper_runtime_cycles (
+    cycle_id TEXT PRIMARY KEY,
+    sandbox_id TEXT NOT NULL,
+    configuration_id TEXT NOT NULL,
+    snapshot_boundary TEXT NOT NULL,
+    snapshot_sha256 TEXT NOT NULL,
+    snapshot_json TEXT NOT NULL,
+    previous_committed_cycle_id TEXT,
+    owner_session_id TEXT NOT NULL,
+    status TEXT NOT NULL,
+    attempt_count INTEGER NOT NULL,
+    checkpoint_version INTEGER NOT NULL,
+    reserved_at TEXT NOT NULL,
+    committed_at TEXT,
+    result_id TEXT,
+    failure_reason TEXT,
+    UNIQUE (sandbox_id, configuration_id, snapshot_boundary),
+    FOREIGN KEY (configuration_id) REFERENCES isolated_paper_configurations(configuration_id),
+    FOREIGN KEY (previous_committed_cycle_id) REFERENCES isolated_paper_runtime_cycles(cycle_id),
+    FOREIGN KEY (owner_session_id) REFERENCES isolated_paper_runtime_sessions(session_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_isolated_runtime_cycles_sandbox_time
+ON isolated_paper_runtime_cycles(sandbox_id, snapshot_boundary DESC, cycle_id DESC);
+
+CREATE TABLE IF NOT EXISTS isolated_paper_runtime_cycle_events (
+    event_id TEXT PRIMARY KEY,
+    cycle_id TEXT NOT NULL,
+    session_id TEXT NOT NULL,
+    event_at TEXT NOT NULL,
+    action TEXT NOT NULL,
+    checkpoint_version INTEGER NOT NULL,
+    payload_json TEXT NOT NULL,
+    UNIQUE (cycle_id, checkpoint_version),
+    FOREIGN KEY (cycle_id) REFERENCES isolated_paper_runtime_cycles(cycle_id),
+    FOREIGN KEY (session_id) REFERENCES isolated_paper_runtime_sessions(session_id)
+);
+
+CREATE TABLE IF NOT EXISTS isolated_paper_ledger_results (
+    result_id TEXT PRIMARY KEY,
+    cycle_id TEXT NOT NULL UNIQUE,
+    calculated_at TEXT NOT NULL,
+    result_sha256 TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    FOREIGN KEY (cycle_id) REFERENCES isolated_paper_runtime_cycles(cycle_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_isolated_paper_ledger_results_time
+ON isolated_paper_ledger_results(calculated_at DESC, result_id DESC);
 """
 
 
@@ -2950,3 +3000,383 @@ class MarketStore:
             "order_path_present": False,
             "live_execution_allowed": False,
         }
+
+    @staticmethod
+    def _paper_cycle_event_conn(
+        conn: sqlite3.Connection,
+        cycle: sqlite3.Row,
+        *,
+        session_id: str,
+        event_at: datetime,
+        action: str,
+        version: int,
+    ) -> str:
+        from .isolated_config import canonical_sha256
+
+        payload = {
+            "schema_version": "mil3.isolated-paper-runtime-cycle-event.v1",
+            "execution_mode": "PAPER_ONLY",
+            "cycle_id": cycle["cycle_id"],
+            "sandbox_id": cycle["sandbox_id"],
+            "configuration_id": cycle["configuration_id"],
+            "snapshot_boundary": cycle["snapshot_boundary"],
+            "snapshot_sha256": cycle["snapshot_sha256"],
+            "session_id": session_id,
+            "event_at": _iso(event_at),
+            "action": action,
+            "checkpoint_version": version,
+            "authority": {
+                "checkpoint_transition_only": True,
+                "paper_orders_created": False,
+                "order_path_present": False,
+                "live_execution_allowed": False,
+            },
+        }
+        event_id = canonical_sha256(payload)[:24]
+        payload["event_id"] = event_id
+        conn.execute(
+            """INSERT INTO isolated_paper_runtime_cycle_events(
+                   event_id, cycle_id, session_id, event_at, action,
+                   checkpoint_version, payload_json
+               ) VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (
+                event_id, cycle["cycle_id"], session_id, _iso(event_at), action,
+                version,
+                json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False),
+            ),
+        )
+        return event_id
+
+    def reserve_isolated_paper_runtime_cycle(
+        self,
+        session_id: str,
+        *,
+        fencing_token_sha256: str,
+        snapshot: dict[str, Any],
+        now: datetime | None = None,
+    ) -> dict[str, Any]:
+        import hmac
+
+        from .runtime_ledger import (
+            build_runtime_market_snapshot,
+            verify_runtime_market_snapshot,
+        )
+
+        if not verify_runtime_market_snapshot(snapshot):
+            raise ValueError("runtime market snapshot integrity failed")
+        reserved = _parse(_iso(now or datetime.now(timezone.utc)))
+        if _parse(str(snapshot["snapshot_boundary"])) > reserved:
+            raise ValueError("runtime snapshot boundary cannot exceed reservation time")
+        canonical_snapshot = json.dumps(
+            snapshot, sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
+        with self.connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            session = conn.execute(
+                "SELECT * FROM isolated_paper_runtime_sessions WHERE session_id=?",
+                (session_id,),
+            ).fetchone()
+            if session is None:
+                raise KeyError(f"isolated paper runtime session not found: {session_id}")
+            if not hmac.compare_digest(
+                str(session["fencing_token_sha256"]), fencing_token_sha256
+            ):
+                raise ValueError("runtime paper-cycle fencing token was rejected")
+            effective, reason = self._runtime_effective_state_conn(conn, session, reserved)
+            if effective != "RUNNING":
+                raise ValueError(f"runtime paper cycle is fenced: {reason}")
+            if (
+                snapshot.get("sandbox_id") != session["sandbox_id"]
+                or snapshot.get("configuration_id") != session["configuration_id"]
+                or snapshot.get("configuration_sha256") != session["configuration_sha256"]
+            ):
+                raise ValueError("runtime snapshot exceeds leased configuration authority")
+            rebuilt = build_runtime_market_snapshot(
+                self,
+                session_id,
+                observed_at=reserved,
+                boundary=_parse(str(snapshot["snapshot_boundary"])),
+            )
+            if rebuilt != snapshot:
+                raise ValueError("runtime market snapshot changed before reservation")
+            existing = conn.execute(
+                "SELECT * FROM isolated_paper_runtime_cycles WHERE cycle_id=?",
+                (snapshot["cycle_id"],),
+            ).fetchone()
+            if existing is not None:
+                if (
+                    existing["snapshot_sha256"] != snapshot["snapshot_sha256"]
+                    or existing["snapshot_json"] != canonical_snapshot
+                ):
+                    raise ValueError("runtime cycle identity collided with different inputs")
+                if existing["status"] == "COMMITTED":
+                    return {
+                        "status": "REUSED_COMMITTED",
+                        "cycle_id": existing["cycle_id"],
+                        "result_id": existing["result_id"],
+                        "checkpoint_version": int(existing["checkpoint_version"]),
+                    }
+                if existing["status"] != "RESERVED":
+                    raise ValueError("runtime cycle checkpoint is not recoverable")
+                if existing["owner_session_id"] == session_id:
+                    return {
+                        "status": "RESUMED_RESERVED",
+                        "cycle_id": existing["cycle_id"],
+                        "result_id": None,
+                        "checkpoint_version": int(existing["checkpoint_version"]),
+                    }
+                previous_owner = conn.execute(
+                    "SELECT * FROM isolated_paper_runtime_sessions WHERE session_id=?",
+                    (existing["owner_session_id"],),
+                ).fetchone()
+                if previous_owner is None:
+                    raise ValueError("runtime cycle previous owner evidence is unavailable")
+                owner_state, _ = self._runtime_effective_state_conn(
+                    conn, previous_owner, reserved
+                )
+                if owner_state == "RUNNING":
+                    raise ValueError("runtime cycle is still owned by a live fenced session")
+                version = int(existing["checkpoint_version"]) + 1
+                conn.execute(
+                    """UPDATE isolated_paper_runtime_cycles
+                       SET owner_session_id=?, attempt_count=attempt_count+1,
+                           checkpoint_version=?, reserved_at=?, failure_reason=NULL
+                       WHERE cycle_id=? AND checkpoint_version=? AND status='RESERVED'""",
+                    (
+                        session_id, version, _iso(reserved), existing["cycle_id"],
+                        existing["checkpoint_version"],
+                    ),
+                )
+                recovered = conn.execute(
+                    "SELECT * FROM isolated_paper_runtime_cycles WHERE cycle_id=?",
+                    (existing["cycle_id"],),
+                ).fetchone()
+                self._paper_cycle_event_conn(
+                    conn, recovered, session_id=session_id, event_at=reserved,
+                    action="RECOVER", version=version,
+                )
+                return {
+                    "status": "RECOVERED_RESERVED",
+                    "cycle_id": existing["cycle_id"],
+                    "result_id": None,
+                    "checkpoint_version": version,
+                }
+            conflicting = conn.execute(
+                """SELECT cycle_id, snapshot_sha256 FROM isolated_paper_runtime_cycles
+                   WHERE sandbox_id=? AND configuration_id=? AND snapshot_boundary=?""",
+                (
+                    snapshot["sandbox_id"], snapshot["configuration_id"],
+                    snapshot["snapshot_boundary"],
+                ),
+            ).fetchone()
+            if conflicting is not None:
+                raise ValueError("snapshot boundary already has a different cycle identity")
+            previous = conn.execute(
+                """SELECT cycle_id, snapshot_boundary FROM isolated_paper_runtime_cycles
+                   WHERE sandbox_id=? AND configuration_id=? AND status='COMMITTED'
+                   ORDER BY snapshot_boundary DESC, cycle_id DESC LIMIT 1""",
+                (snapshot["sandbox_id"], snapshot["configuration_id"]),
+            ).fetchone()
+            if previous is not None and _parse(previous["snapshot_boundary"]) >= _parse(
+                str(snapshot["snapshot_boundary"])
+            ):
+                raise ValueError("runtime cycle boundary must advance after the checkpoint")
+            conn.execute(
+                """INSERT INTO isolated_paper_runtime_cycles(
+                       cycle_id, sandbox_id, configuration_id, snapshot_boundary,
+                       snapshot_sha256, snapshot_json, previous_committed_cycle_id,
+                       owner_session_id, status, attempt_count, checkpoint_version,
+                       reserved_at, committed_at, result_id, failure_reason
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'RESERVED', 1, 1, ?, NULL, NULL, NULL)""",
+                (
+                    snapshot["cycle_id"], snapshot["sandbox_id"],
+                    snapshot["configuration_id"], snapshot["snapshot_boundary"],
+                    snapshot["snapshot_sha256"], canonical_snapshot,
+                    previous["cycle_id"] if previous else None,
+                    session_id, _iso(reserved),
+                ),
+            )
+            cycle = conn.execute(
+                "SELECT * FROM isolated_paper_runtime_cycles WHERE cycle_id=?",
+                (snapshot["cycle_id"],),
+            ).fetchone()
+            self._paper_cycle_event_conn(
+                conn, cycle, session_id=session_id, event_at=reserved,
+                action="RESERVE", version=1,
+            )
+        return {
+            "status": "RESERVED_NEW",
+            "cycle_id": snapshot["cycle_id"],
+            "result_id": None,
+            "checkpoint_version": 1,
+        }
+
+    def commit_isolated_paper_runtime_cycle(
+        self,
+        session_id: str,
+        *,
+        fencing_token_sha256: str,
+        result: dict[str, Any],
+        now: datetime | None = None,
+    ) -> dict[str, Any]:
+        import hmac
+
+        from .runtime_ledger import (
+            build_runtime_market_snapshot,
+            verify_runtime_paper_ledger,
+        )
+
+        if not verify_runtime_paper_ledger(result):
+            raise ValueError("runtime paper ledger integrity failed")
+        committed = _parse(_iso(now or datetime.now(timezone.utc)))
+        canonical_result = json.dumps(
+            result, sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
+        with self.connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            session = conn.execute(
+                "SELECT * FROM isolated_paper_runtime_sessions WHERE session_id=?",
+                (session_id,),
+            ).fetchone()
+            if session is None:
+                raise KeyError(f"isolated paper runtime session not found: {session_id}")
+            if not hmac.compare_digest(
+                str(session["fencing_token_sha256"]), fencing_token_sha256
+            ):
+                raise ValueError("runtime paper-cycle fencing token was rejected")
+            effective, reason = self._runtime_effective_state_conn(conn, session, committed)
+            if effective != "RUNNING":
+                raise ValueError(f"runtime paper cycle commit is fenced: {reason}")
+            cycle = conn.execute(
+                "SELECT * FROM isolated_paper_runtime_cycles WHERE cycle_id=?",
+                (result["cycle_id"],),
+            ).fetchone()
+            if cycle is None:
+                raise ValueError("runtime paper cycle reservation is unavailable")
+            if cycle["status"] == "COMMITTED":
+                if cycle["result_id"] != result["result_id"]:
+                    raise ValueError("committed runtime cycle has a different result")
+                return {
+                    "status": "REUSED_COMMITTED",
+                    "cycle_id": cycle["cycle_id"],
+                    "result_id": cycle["result_id"],
+                    "checkpoint_version": int(cycle["checkpoint_version"]),
+                }
+            if cycle["status"] != "RESERVED" or cycle["owner_session_id"] != session_id:
+                raise ValueError("runtime paper cycle is not owned by this fenced session")
+            snapshot = json.loads(cycle["snapshot_json"])
+            if (
+                result.get("snapshot_sha256") != cycle["snapshot_sha256"]
+                or result.get("configuration_sha256") != session["configuration_sha256"]
+            ):
+                raise ValueError("runtime paper ledger differs from reserved snapshot")
+            rebuilt = build_runtime_market_snapshot(
+                self,
+                session_id,
+                observed_at=committed,
+                boundary=_parse(cycle["snapshot_boundary"]),
+            )
+            if rebuilt != snapshot:
+                raise ValueError("runtime snapshot source drift blocked commit")
+            existing_result = conn.execute(
+                "SELECT payload_json FROM isolated_paper_ledger_results WHERE result_id=?",
+                (result["result_id"],),
+            ).fetchone()
+            if existing_result is not None:
+                if existing_result["payload_json"] != canonical_result:
+                    raise ValueError("runtime paper ledger result identity collision")
+            else:
+                conn.execute(
+                    """INSERT INTO isolated_paper_ledger_results(
+                           result_id, cycle_id, calculated_at, result_sha256, payload_json
+                       ) VALUES (?, ?, ?, ?, ?)""",
+                    (
+                        result["result_id"], cycle["cycle_id"], result["calculated_at"],
+                        result["result_sha256"], canonical_result,
+                    ),
+                )
+            version = int(cycle["checkpoint_version"]) + 1
+            updated = conn.execute(
+                """UPDATE isolated_paper_runtime_cycles
+                   SET status='COMMITTED', committed_at=?, result_id=?, checkpoint_version=?
+                   WHERE cycle_id=? AND status='RESERVED' AND owner_session_id=?
+                         AND checkpoint_version=?""",
+                (
+                    _iso(committed), result["result_id"], version, cycle["cycle_id"],
+                    session_id, cycle["checkpoint_version"],
+                ),
+            )
+            if updated.rowcount != 1:
+                raise ValueError("runtime paper cycle commit lost its fencing race")
+            committed_cycle = conn.execute(
+                "SELECT * FROM isolated_paper_runtime_cycles WHERE cycle_id=?",
+                (cycle["cycle_id"],),
+            ).fetchone()
+            self._paper_cycle_event_conn(
+                conn, committed_cycle, session_id=session_id, event_at=committed,
+                action="COMMIT", version=version,
+            )
+        return {
+            "status": "COMMITTED",
+            "cycle_id": result["cycle_id"],
+            "result_id": result["result_id"],
+            "checkpoint_version": version,
+        }
+
+    def get_isolated_paper_runtime_cycle(self, cycle_id: str) -> dict[str, Any] | None:
+        with self.connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM isolated_paper_runtime_cycles WHERE cycle_id=?",
+                (cycle_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        payload = dict(row)
+        payload["snapshot"] = json.loads(payload.pop("snapshot_json"))
+        payload.update({
+            "schema_version": "mil3.isolated-paper-runtime-cycle-view.v1",
+            "execution_mode": "PAPER_ONLY",
+            "read_only": True,
+            "paper_orders_created": False,
+            "order_path_present": False,
+            "live_execution_allowed": False,
+        })
+        return payload
+
+    def list_isolated_paper_runtime_cycles(
+        self, sandbox_id: str, *, limit: int = 100
+    ) -> list[dict[str, Any]]:
+        if limit <= 0:
+            raise ValueError("limit must be positive")
+        with self.connect() as conn:
+            rows = conn.execute(
+                """SELECT cycle_id FROM isolated_paper_runtime_cycles
+                   WHERE sandbox_id=? ORDER BY snapshot_boundary DESC, cycle_id DESC LIMIT ?""",
+                (sandbox_id, limit),
+            ).fetchall()
+        return [
+            self.get_isolated_paper_runtime_cycle(row["cycle_id"]) for row in rows
+        ]
+
+    def get_isolated_paper_ledger_result(self, result_id: str | None) -> dict[str, Any] | None:
+        if not result_id:
+            return None
+        with self.connect() as conn:
+            row = conn.execute(
+                "SELECT payload_json FROM isolated_paper_ledger_results WHERE result_id=?",
+                (result_id,),
+            ).fetchone()
+        return json.loads(row["payload_json"]) if row else None
+
+    def list_isolated_paper_runtime_cycle_events(
+        self, cycle_id: str, *, limit: int = 100
+    ) -> list[dict[str, Any]]:
+        if limit <= 0:
+            raise ValueError("limit must be positive")
+        with self.connect() as conn:
+            rows = conn.execute(
+                """SELECT payload_json FROM isolated_paper_runtime_cycle_events
+                   WHERE cycle_id=? ORDER BY checkpoint_version DESC, event_id DESC LIMIT ?""",
+                (cycle_id, limit),
+            ).fetchall()
+        return [json.loads(row["payload_json"]) for row in rows]

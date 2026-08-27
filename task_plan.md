@@ -382,3 +382,15 @@ PWB-11 Complete
 - [x] Add deterministic concurrency, timeout, kill-switch, API, CLI and UI tests
 - [x] Update documentation, run full verification, review and commit
 - **Status:** complete
+
+## MIL-3.23 Deterministic Snapshot-to-Paper Ledger Runtime
+- [x] Define immutable market snapshot, cycle identity, checkpoint and paper-ledger authority contract
+- [x] Add atomic checkpoint/result storage with session fencing and unique idempotency keys
+- [x] Implement deterministic effective-configuration calculation from read-only stored candles/funding
+- [x] Add crash recovery and duplicate-cycle reuse without double-applying ledger state
+- [x] Integrate calculations into bounded runtime cycles while preserving lease/kill fail-safe behavior
+- [x] Add explicit local CLI plus read-only checkpoint/result service/API surfaces
+- [x] Add task-centered HMI for snapshot boundary, commit state, idempotency and recovery
+- [x] Add deterministic snapshot, crash, duplicate, fencing, API, CLI and UI tests
+- [x] Update documentation, run full verification, review and commit
+- **Status:** complete

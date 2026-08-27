@@ -17,7 +17,7 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
     root = str(Path(ui_root).resolve())
 
     class ReadOnlyHandler(SimpleHTTPRequestHandler):
-        server_version = "AARS-MIL3-ReadOnly/0.9"
+        server_version = "AARS-MIL3-ReadOnly/0.10"
 
         def __init__(self, *args: object, **kwargs: object) -> None:
             super().__init__(*args, directory=root, **kwargs)
@@ -184,6 +184,34 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
                 return HTTPStatus.OK, service.isolated_runtime_kill_events(
                     sandbox_id, limit=int(query.get("limit", ["100"])[0])
                 )
+            if parsed.path == "/api/v1/isolated-runtime-cycles":
+                sandbox_id = query.get("sandbox_id", [""])[0]
+                if not sandbox_id:
+                    raise ValueError("sandbox_id is required")
+                return HTTPStatus.OK, service.isolated_runtime_cycles(
+                    sandbox_id, limit=int(query.get("limit", ["100"])[0])
+                )
+            if parsed.path == "/api/v1/isolated-runtime-cycle-events":
+                cycle_id = query.get("cycle_id", [""])[0]
+                if not cycle_id:
+                    raise ValueError("cycle_id is required")
+                return HTTPStatus.OK, service.isolated_runtime_cycle_events(
+                    cycle_id, limit=int(query.get("limit", ["100"])[0])
+                )
+            cycle_prefix = "/api/v1/isolated-runtime-cycles/"
+            if parsed.path.startswith(cycle_prefix):
+                cycle_id = parsed.path[len(cycle_prefix):]
+                try:
+                    return HTTPStatus.OK, service.isolated_runtime_cycle(cycle_id)
+                except KeyError:
+                    return HTTPStatus.NOT_FOUND, {"error": "isolated runtime cycle not found"}
+            ledger_prefix = "/api/v1/isolated-paper-ledger-results/"
+            if parsed.path.startswith(ledger_prefix):
+                result_id = parsed.path[len(ledger_prefix):]
+                try:
+                    return HTTPStatus.OK, service.isolated_paper_ledger_result(result_id)
+                except KeyError:
+                    return HTTPStatus.NOT_FOUND, {"error": "isolated paper ledger result not found"}
             runtime_session_prefix = "/api/v1/isolated-runtime-sessions/"
             if parsed.path.startswith(runtime_session_prefix):
                 session_id = parsed.path[len(runtime_session_prefix):]

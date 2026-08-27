@@ -299,3 +299,20 @@
 | Initial combined planning patch referenced a nonexistent MIL-3.21 error heading and failed atomically | 1 | Applied the plan/progress update against exact current context and appended findings separately |
 | First MIL-3.22 compile command used repository-relative source paths while already running from the nested MIL-3 root | 1 | Rerun compilation with `aars_market/...` paths from the MIL-3 root |
 | Combined runtime UI patch assumed a standalone `.isolated-registry-deck` CSS selector that the current stylesheet does not contain | 1 | Split HTML and CSS edits, then append runtime styles against the actual stylesheet tail |
+
+## 2026-08-27 — MIL-3.23 kickoff
+- The approved runtime configuration already contains symbols, timeframe, warmup, proposed strategy parameters and deterministic paper cost/risk settings from the archived trial.
+- MIL-3.23 will reuse `ReplayEngine` and the existing paper ledger instead of inventing a second accounting model. Each cycle calculates the proposed strategy cumulatively through one synchronized stored-candle boundary.
+- Cycle identity is sandbox + configuration + synchronized snapshot boundary, not session ID. This makes a crash-recovery session resume the same cycle instead of double-applying it.
+- A snapshot reservation stores content hashes and exact per-asset boundaries. Commit rebuilds the snapshot under a write lock and rejects source drift before atomically inserting the ledger result and marking the checkpoint committed.
+- Checkpoint states are `RESERVED` and `COMMITTED`; append-only events record `RESERVE`, `RECOVER` and `COMMIT`. A committed cycle is immutable and duplicate calls return the existing result.
+- Recovery may transfer a RESERVED cycle only after its previous owner is no longer effectively RUNNING. A live fenced owner cannot be stolen.
+- Each committed result is a cumulative deterministic ledger view, chained to the previous committed cycle. This avoids mutable incremental portfolio state and makes restart verification reproducible.
+- No raw market write, replay order, exchange adapter or live connector is introduced. Market candles/funding are read-only inputs and all fills remain the existing simulated paper accounting outputs.
+- Non-finite internal leverage/risk values from pathological paper liquidation are normalized to strict JSON `null`; explicit liquidation event/risk evidence remains available instead of serializing `NaN` or `Infinity`.
+
+## MIL-3.23 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| A MIL-3.22 bounded-runtime test expected a committed ledger even though its synthetic clock predates the minimum snapshot history | 1 | Keep that case as an explicit WAITING assertion and verify a committed cycle in the current-time CLI fixture |
+| The prior MIL-3.22 UI test retained the shorter no-button recovery sentence after MIL-3.23 added RECOVER to the explicit prohibition | 1 | Updated the shared console assertion to the stricter MIL-3.23 wording |

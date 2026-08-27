@@ -313,6 +313,37 @@ function validateIsolatedRuntimeKillEventIndex(payload) {
   return payload;
 }
 
+function validateIsolatedRuntimeCycleIndex(payload) {
+  if (payload.schema_version !== "mil3.isolated-paper-runtime-cycle-index.v1") throw new Error("unsupported runtime cycle index schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true || payload.market_source_read_only !== true || payload.paper_orders_created !== false || payload.order_path_present !== false || payload.live_execution_allowed !== false) {
+    throw new Error("runtime cycle index exceeded calculation-only authority");
+  }
+  if (payload.latest_cycle && (payload.latest_cycle.schema_version !== "mil3.isolated-paper-runtime-cycle-view.v1" || payload.latest_cycle.read_only !== true || payload.latest_cycle.live_execution_allowed !== false)) {
+    throw new Error("runtime checkpoint authority is invalid");
+  }
+  return payload;
+}
+
+function validateIsolatedRuntimeCycleEventIndex(payload) {
+  if (payload.schema_version !== "mil3.isolated-paper-runtime-cycle-event-index.v1") throw new Error("unsupported runtime cycle event schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true || payload.paper_orders_created !== false || payload.order_path_present !== false || payload.live_execution_allowed !== false) {
+    throw new Error("runtime checkpoint events exceeded read-only authority");
+  }
+  return payload;
+}
+
+function validateIsolatedPaperLedgerEnvelope(payload) {
+  if (payload.schema_version !== "mil3.isolated-paper-ledger-result-envelope.v1") throw new Error("unsupported paper ledger envelope schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true || payload.market_source_read_only !== true || payload.paper_orders_created !== false || payload.order_path_present !== false || payload.live_execution_allowed !== false) {
+    throw new Error("paper ledger envelope exceeded calculation-only authority");
+  }
+  const authority = payload.result?.authority;
+  if (authority?.deterministic_paper_calculation !== true || authority?.market_source_read_only !== true || authority?.paper_orders_created !== false || authority?.order_path_present !== false || authority?.live_execution_allowed !== false) {
+    throw new Error("paper ledger result authority is invalid");
+  }
+  return payload;
+}
+
 function trendClass(value) {
   return Number(value) > 0 ? "positive" : Number(value) < 0 ? "negative" : "";
 }
@@ -1295,7 +1326,7 @@ function renderIsolatedRegistryUnavailable(error) {
   $("#sandbox-registry-recovery").textContent = "Restore registry, sandbox and event evidence; shared configuration and live execution remain prohibited.";
 }
 
-function renderIsolatedRuntime(runtime, eventIndex, killEventIndex) {
+function renderIsolatedRuntime(runtime, eventIndex, killEventIndex, cycleIndex, cycleEventIndex, ledgerEnvelope) {
   state.isolatedRuntime = runtime;
   const session = runtime.latest_session;
   const status = session?.effective_status || "NO_SESSION";
@@ -1318,6 +1349,23 @@ function renderIsolatedRuntime(runtime, eventIndex, killEventIndex) {
     <article><span>VERSION ${escapeHtml(event.session_version)} · ${escapeHtml(formatDate(event.event_at))} · ${escapeHtml(event.operator)}</span><strong>${escapeHtml(event.action)}</strong><small>${escapeHtml(event.reason)} · ${escapeHtml(event.event_id)}</small></article>`).join("") : '<p class="shadow-empty">No runtime session events are archived.</p>';
   $("#runtime-kill-history").innerHTML = killEventIndex.events.length ? killEventIndex.events.slice().reverse().map((event) => `
     <article><span>VERSION ${escapeHtml(event.state_version)} · ${escapeHtml(formatDate(event.event_at))} · ${escapeHtml(event.operator)}</span><strong>${escapeHtml(event.action)} → ${escapeHtml(event.resulting_state)}</strong><small>${escapeHtml(event.note)} · ${escapeHtml(event.event_id)}</small></article>`).join("") : '<p class="shadow-empty">Kill switch is uninitialized and therefore ARMED by default.</p>';
+  const checkpoint = cycleIndex.latest_cycle;
+  const snapshot = checkpoint?.snapshot;
+  const ledger = ledgerEnvelope?.result;
+  $("#runtime-cycle-checkpoint").innerHTML = checkpoint ? `
+    <strong>${escapeHtml(checkpoint.status)} · VERSION ${escapeHtml(checkpoint.checkpoint_version)}</strong>
+    <dl><dt>CYCLE</dt><dd>${escapeHtml(checkpoint.cycle_id)}</dd><dt>OWNER SESSION</dt><dd>${escapeHtml(checkpoint.owner_session_id)}</dd><dt>ATTEMPTS</dt><dd>${escapeHtml(checkpoint.attempt_count)}</dd><dt>PREVIOUS COMMIT</dt><dd>${escapeHtml(checkpoint.previous_committed_cycle_id || "GENESIS")}</dd><dt>RESULT</dt><dd>${escapeHtml(checkpoint.result_id || "NOT COMMITTED")}</dd></dl>
+    <p>${checkpoint.status === "COMMITTED" ? "Result and checkpoint were committed atomically." : "Reserved work may be recovered only after the previous lease is ineffective."}</p>` : '<strong>NO CHECKPOINT</strong><p>No deterministic paper cycle has been reserved.</p>';
+  $("#runtime-snapshot-boundary").innerHTML = snapshot ? `
+    <strong>CONTENT-ADDRESSED SNAPSHOT</strong>
+    <dl><dt>BOUNDARY</dt><dd>${escapeHtml(formatDate(snapshot.snapshot_boundary))}</dd><dt>SNAPSHOT SHA-256</dt><dd><code>${escapeHtml(snapshot.snapshot_sha256.slice(0, 20))}…</code></dd><dt>INPUT SHA-256</dt><dd><code>${escapeHtml(snapshot.combined_input_sha256.slice(0, 20))}…</code></dd><dt>ASSETS</dt><dd>${escapeHtml(snapshot.assets.length)}</dd><dt>SOURCE</dt><dd>${escapeHtml(snapshot.source)}</dd></dl>
+    <p>Commit rebuilds this exact boundary and blocks changed candles, funding or cadence evidence.</p>` : '<strong>NO SNAPSHOT</strong><p>No source boundary or input hash is inferred.</p>';
+  $("#runtime-ledger-summary").innerHTML = ledger ? `
+    <strong>COMMITTED · ${escapeHtml(ledger.result_id)}</strong>
+    <dl><dt>FINAL EQUITY</dt><dd>${escapeHtml(formatMoney(ledger.aggregate.final_equity))}</dd><dt>MEAN RETURN</dt><dd>${escapeHtml(formatPercent(ledger.aggregate.mean_total_return, 2, true))}</dd><dt>REALIZED P&amp;L</dt><dd>${escapeHtml(formatMoney(ledger.aggregate.realized_pnl))}</dd><dt>GRID P&amp;L</dt><dd>${escapeHtml(formatMoney(ledger.aggregate.realized_grid_pnl))}</dd><dt>UNREALIZED</dt><dd>${escapeHtml(formatMoney(ledger.aggregate.inventory_unrealized_pnl))}</dd><dt>FEES / FUNDING</dt><dd>${escapeHtml(formatMoney(ledger.aggregate.fees))} / ${escapeHtml(formatMoney(ledger.aggregate.funding))}</dd><dt>MAX LEVERAGE</dt><dd>${escapeHtml(formatNumber(ledger.aggregate.max_effective_leverage, 2))}×</dd><dt>LIQUIDATION RISK</dt><dd>${escapeHtml(formatPercent(ledger.aggregate.max_liquidation_risk, 2))}</dd></dl>
+    <p>Deterministic cumulative paper accounting; no external order request was created.</p>` : '<strong>NO COMMITTED LEDGER</strong><p>A RESERVED checkpoint has no effective result until atomic COMMIT succeeds.</p>';
+  $("#runtime-cycle-history").innerHTML = cycleEventIndex.events.length ? cycleEventIndex.events.slice().reverse().map((event) => `
+    <article><span>VERSION ${escapeHtml(event.checkpoint_version)} · ${escapeHtml(formatDate(event.event_at))} · ${escapeHtml(event.session_id)}</span><strong>${escapeHtml(event.action)}</strong><small>${escapeHtml(event.cycle_id)} · ${escapeHtml(event.event_id)}</small></article>`).join("") : '<p class="shadow-empty">No reserve/recover/commit history is archived.</p>';
   const recovery = status === "RUNNING"
     ? "Monitor heartbeat age and configuration identity. ARM_KILL remains the immediate local stop path."
     : kill.effective_state === "ARMED"
@@ -1325,7 +1373,12 @@ function renderIsolatedRuntime(runtime, eventIndex, killEventIndex) {
       : status === "NO_SESSION" || status === "STOPPED"
         ? "Use the bounded local RUN command only while the registry configuration remains effective."
         : "The stored session is already ineffective. Run RECONCILE locally to persist the fail-safe stop before any new acquisition.";
-  $("#runtime-recovery").textContent = `${recovery} THIS SCREEN HAS NO RUN, STOP OR KILL-SWITCH BUTTON.`;
+  const checkpointRecovery = checkpoint?.status === "RESERVED"
+    ? " CHECKPOINT IS RESERVED: wait for the owner lease to stop before a new RUN recovers it."
+    : checkpoint?.status === "COMMITTED"
+      ? " COMMIT IS STABLE: duplicate cycles reuse this result and cannot apply it twice."
+      : "";
+  $("#runtime-recovery").textContent = `${recovery}${checkpointRecovery} THIS SCREEN HAS NO RUN, STOP, RECOVER OR KILL-SWITCH BUTTON.`;
 }
 
 function renderIsolatedRuntimeUnavailable(error) {
@@ -1337,6 +1390,10 @@ function renderIsolatedRuntimeUnavailable(error) {
   $("#runtime-lease-health").innerHTML = `<strong>LEASE UNTRUSTED</strong><p>${escapeHtml(error.message)}</p>`;
   $("#runtime-event-history").innerHTML = '<p class="shadow-empty">No runtime history is inferred.</p>';
   $("#runtime-kill-history").innerHTML = '<p class="shadow-empty">No kill-switch history is inferred.</p>';
+  $("#runtime-cycle-checkpoint").innerHTML = '<strong>NO TRUSTED CHECKPOINT</strong><p>No commit or recovery state is inferred.</p>';
+  $("#runtime-snapshot-boundary").innerHTML = '<strong>SNAPSHOT UNAVAILABLE</strong><p>No market boundary or content hash is trusted.</p>';
+  $("#runtime-ledger-summary").innerHTML = '<strong>NO COMMITTED LEDGER</strong><p>No calculated result is inferred.</p>';
+  $("#runtime-cycle-history").innerHTML = '<p class="shadow-empty">No checkpoint transition history is inferred.</p>';
   $("#runtime-recovery").textContent = "Restore read-only runtime evidence; runtime, replay and order activity remain blocked.";
 }
 
@@ -1430,15 +1487,17 @@ async function loadForwardObservations(strategy) {
         validateIsolatedSandbox(await sandboxResponse.json()),
         validateIsolatedSandboxEventIndex(await eventResponse.json()),
       );
-      const [runtimeResponse, killEventResponse] = await Promise.all([
+      const [runtimeResponse, killEventResponse, cycleResponse] = await Promise.all([
         fetch(`/api/v1/isolated-runtime?sandbox_id=${encodeURIComponent(sandboxId)}&limit=100`, { cache: "no-store" }),
         fetch(`/api/v1/isolated-runtime-kill-events?sandbox_id=${encodeURIComponent(sandboxId)}&limit=100`, { cache: "no-store" }),
+        fetch(`/api/v1/isolated-runtime-cycles?sandbox_id=${encodeURIComponent(sandboxId)}&limit=100`, { cache: "no-store" }),
       ]);
-      if (!runtimeResponse.ok || !killEventResponse.ok) {
-        renderIsolatedRuntimeUnavailable(new Error(`runtime/kill-events returned ${runtimeResponse.status}/${killEventResponse.status}`));
+      if (!runtimeResponse.ok || !killEventResponse.ok || !cycleResponse.ok) {
+        renderIsolatedRuntimeUnavailable(new Error(`runtime/kill-events/cycles returned ${runtimeResponse.status}/${killEventResponse.status}/${cycleResponse.status}`));
       } else {
         const runtime = validateIsolatedRuntime(await runtimeResponse.json());
         const killEvents = validateIsolatedRuntimeKillEventIndex(await killEventResponse.json());
+        const cycleIndex = validateIsolatedRuntimeCycleIndex(await cycleResponse.json());
         let runtimeEvents = validateIsolatedRuntimeEventIndex({
           schema_version: "mil3.isolated-paper-runtime-event-index.v1",
           execution_mode: "PAPER_ONLY",
@@ -1458,7 +1517,26 @@ async function loadForwardObservations(strategy) {
           }
           runtimeEvents = validateIsolatedRuntimeEventIndex(await runtimeEventResponse.json());
         }
-        renderIsolatedRuntime(runtime, runtimeEvents, killEvents);
+        let cycleEvents = validateIsolatedRuntimeCycleEventIndex({
+          schema_version: "mil3.isolated-paper-runtime-cycle-event-index.v1",
+          execution_mode: "PAPER_ONLY", cycle_id: null, events: [], read_only: true,
+          paper_orders_created: false, order_path_present: false, live_execution_allowed: false,
+        });
+        let ledgerEnvelope = null;
+        if (cycleIndex.latest_cycle) {
+          const requests = [
+            fetch(`/api/v1/isolated-runtime-cycle-events?cycle_id=${encodeURIComponent(cycleIndex.latest_cycle.cycle_id)}&limit=100`, { cache: "no-store" }),
+          ];
+          if (cycleIndex.latest_cycle.result_id) requests.push(fetch(`/api/v1/isolated-paper-ledger-results/${encodeURIComponent(cycleIndex.latest_cycle.result_id)}`, { cache: "no-store" }));
+          const responses = await Promise.all(requests);
+          if (!responses.every((response) => response.ok)) {
+            renderIsolatedRuntimeUnavailable(new Error(`checkpoint evidence returned ${responses.map((response) => response.status).join("/")}`));
+            return;
+          }
+          cycleEvents = validateIsolatedRuntimeCycleEventIndex(await responses[0].json());
+          if (responses[1]) ledgerEnvelope = validateIsolatedPaperLedgerEnvelope(await responses[1].json());
+        }
+        renderIsolatedRuntime(runtime, runtimeEvents, killEvents, cycleIndex, cycleEvents, ledgerEnvelope);
       }
     }
   }

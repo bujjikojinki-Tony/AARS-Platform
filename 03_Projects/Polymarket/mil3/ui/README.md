@@ -1,4 +1,4 @@
-# MIL-3.22 Governed Isolated Runtime Console HMI Design v10
+# MIL-3.23 Deterministic Paper Ledger Runtime Console HMI Design v11
 
 ## 1. Page Purpose
 
@@ -31,6 +31,10 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 19. Distinguish stored runtime status from current effective runtime authority.
 20. Confirm kill-switch state, heartbeat age, lease deadline, fencing version and stop cause.
 21. Review immutable runtime and kill-switch events plus the exact local recovery path.
+22. Verify the synchronized market boundary and content hashes used by the latest paper calculation.
+23. Distinguish RESERVED work from an atomically COMMITTED ledger result.
+24. Confirm duplicate prevention, recovery attempts and the previous committed-cycle chain.
+25. Inspect realized/grid/unrealized P&L, costs, leverage, margin and liquidation risk without an execution control.
 19. Identify hard-stop triggers before considering extended paper observation.
 20. Trace the result to its proposal, source snapshot, exact settings and per-asset evidence.
 21. Confirm funding completeness and effective Binance cadence for each trial asset.
@@ -170,6 +174,11 @@ infers the kill switch as armed and permits no runtime action. If a stored
 RUNNING session loses its lease or authority, the fail-safe effective state and
 stop cause remain visible until explicit reconciliation persists the stop.
 
+If checkpoint, snapshot or ledger evidence is unavailable, the runtime surface
+infers no committed ledger. A RESERVED checkpoint remains visibly incomplete;
+its owner, attempt count and recovery condition are shown. Source drift or
+missing result evidence blocks trust rather than falling back to an older value.
+
 ## 11. User Actions and Gates
 
 Available actions only change the inspected market, replay window, archive, strategy, trace, diff baseline, validation-strategy filter or immutable snapshot detail. Refresh reads evidence and recomputes advisory governance but does not archive or promote anything. There are no order, credential, live-mode, approval, parameter-change or execution controls. A failed switch preserves the last displayed stable evidence and raises the degraded banner.
@@ -192,6 +201,10 @@ The browser cannot mutate the sandbox pointer or start a strategy process.
 Runtime RUN, STOP, ARM_KILL, CLEAR_KILL and RECONCILE are explicit local
 commands. The browser cannot acquire a lease, renew a heartbeat or change the
 kill switch. Clearing the kill switch never restarts a stopped session.
+
+Snapshot reservation, crash recovery and ledger commit occur only inside the
+fenced local RUN workflow. The browser cannot reserve, recover, calculate or
+commit a cycle and performs only GET requests.
 
 ## 12. HMI Review Gate
 

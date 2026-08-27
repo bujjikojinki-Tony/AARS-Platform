@@ -72,10 +72,13 @@ Each heartbeat renews the lease only after rechecking:
 - current approval lineage and expiry;
 - immutable configuration hash.
 
-The bounded worker records `START`, `HEARTBEAT` and `STOP` events. A heartbeat
-means governed configuration identity was consumed; it does not calculate a
-replay, create a paper order or submit a live order. Completion stops the
-session rather than leaving a lease behind.
+The bounded worker records `START`, `HEARTBEAT` and `STOP` events. Beginning with
+MIL-3.23, a valid heartbeat may run an in-process deterministic ReplayEngine
+paper-ledger calculation against a content-addressed stored-market snapshot.
+It does not start a separate replay process, create an external order request or
+submit a live order. Completion stops the session rather than leaving a lease
+behind. Snapshot/checkpoint details are documented in
+`DETERMINISTIC_RUNTIME_PAPER_LEDGER.md`.
 
 ## Derived and persisted stops
 
@@ -119,6 +122,8 @@ guidance. It contains no run, stop, clear or arm control.
 ```text
 execution_mode=PAPER_ONLY
 replay_started=false
+paper_ledger_calculation_enabled=true
+external_order_requests_created=false
 order_path_present=false
 shared_configuration_change_allowed=false
 automatic_strategy_change_allowed=false
