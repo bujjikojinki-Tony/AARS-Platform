@@ -32,6 +32,42 @@ WINDOWS: dict[str, timedelta | None] = {
 }
 
 
+def timeframe_duration(timeframe: str) -> timedelta:
+    unit = timeframe[-1:].lower()
+    try:
+        count = int(timeframe[:-1])
+    except (TypeError, ValueError):
+        raise ValueError(f"unsupported timeframe: {timeframe}") from None
+    if count <= 0:
+        raise ValueError("timeframe count must be positive")
+    if unit == "m":
+        return timedelta(minutes=count)
+    if unit == "h":
+        return timedelta(hours=count)
+    if unit == "d":
+        return timedelta(days=count)
+    raise ValueError(f"unsupported timeframe: {timeframe}")
+
+
+def latest_synchronized_closed_boundary(
+    store: MarketStore,
+    symbols: Sequence[str],
+    timeframe: str,
+    *,
+    observed_at: datetime,
+) -> tuple[datetime | None, dict[str, datetime | None]]:
+    evaluated = _utc(observed_at)
+    closed_cutoff = evaluated - timeframe_duration(timeframe)
+    per_asset: dict[str, datetime | None] = {}
+    for raw_symbol in symbols:
+        symbol = raw_symbol.upper()
+        rows = store.load_candles(symbol, timeframe, limit=1, end=closed_cutoff)
+        per_asset[symbol] = rows[-1].open_time if rows else None
+    available = [value for value in per_asset.values() if value is not None]
+    synchronized = min(available) if len(available) == len(per_asset) else None
+    return synchronized, per_asset
+
+
 def _utc(value: datetime) -> datetime:
     if value.tzinfo is None:
         value = value.replace(tzinfo=timezone.utc)
@@ -123,20 +159,22 @@ def build_runtime_market_snapshot(
     symbols, timeframe, replay_window, warmup_bars, candidate, _ = (
         _configuration_contract(configuration)
     )
+    duration = timeframe_duration(timeframe)
     if boundary is None:
-        latest = []
-        for symbol in symbols:
-            rows = store.load_candles(symbol, timeframe, limit=1, end=evaluated)
-            if not rows:
-                raise ValueError(f"no stored candle is available for {symbol} at cycle time")
-            latest.append(rows[-1].open_time)
-        synchronized = min(latest)
+        synchronized, per_asset_boundary = latest_synchronized_closed_boundary(
+            store, symbols, timeframe, observed_at=evaluated
+        )
+        if synchronized is None:
+            missing = [symbol for symbol, value in per_asset_boundary.items() if value is None]
+            raise ValueError(
+                "no fully closed stored candle is available for " + ",".join(missing)
+            )
     else:
         synchronized = _utc(boundary)
-        if synchronized > evaluated:
-            raise ValueError("runtime snapshot boundary cannot exceed cycle time")
-    duration = WINDOWS[replay_window]
-    start = synchronized - duration if duration is not None else None
+        if synchronized + duration > evaluated:
+            raise ValueError("runtime snapshot boundary must identify a fully closed candle")
+    replay_duration = WINDOWS[replay_window]
+    start = synchronized - replay_duration if replay_duration is not None else None
     assets: list[dict[str, Any]] = []
     asset_hashes: dict[str, str] = {}
     for symbol in symbols:

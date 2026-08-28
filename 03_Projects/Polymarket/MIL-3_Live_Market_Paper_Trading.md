@@ -415,6 +415,30 @@ Status: **implemented on `mil-3-live-market-paper-trading`**.
 The fleet, accounting and risk-stop contract is documented in
 `mil3/SHADOW_STRATEGY_BOTS.md`.
 
+### MIL-3.25 — Forward Bot Operations
+
+Status: **implemented on `mil-3-live-market-paper-trading`**.
+
+- Runtime selection now rejects still-open candles and uses only the latest
+  fully closed boundary synchronized across every configured asset.
+- A one-shot forward wake starts a short fenced lease only when a new closed
+  boundary is later than the latest commit; unchanged boundaries wait without
+  creating sessions or cycles.
+- Verified ledger v2 lineage produces per-bot and per-asset cycle deltas for
+  equity, P&L, costs, positions, exposure, leverage, margin, risk and new fills.
+- Content-addressed alerts expose configuration/kill blocks, stale or missing
+  data, stale RESERVED work, result integrity, funding gaps and frozen bots.
+- Burn-in evaluates the continuous closed-bar suffix at 7-day and 14-day gates;
+  a gap over two intervals resets continuity.
+- STATUS, WAKE and supervised FOREGROUND modes are explicit local commands. A
+  separately rendered one-shot Mac LaunchAgent remains excluded from default
+  install and is not loaded automatically.
+- The GET-only API and console expose trigger, deltas, alerts and burn-in with
+  no browser operation control.
+
+The forward scheduling and burn-in contract is documented in
+`mil3/FORWARD_BOT_OPERATIONS.md`.
+
 ## Initial decision policy
 
 The initial policy intentionally prefers risk control over activity:
@@ -515,6 +539,10 @@ python run_isolated_paper_runtime.py \
 python run_isolated_paper_runtime.py \
   --db mil3_market.sqlite \
   --action RECONCILE
+python run_forward_bot_operations.py \
+  --db mil3_market.sqlite \
+  --action STATUS \
+  --sandbox-id aars-paper-sandbox
 python -m pytest -q
 ```
 
@@ -536,6 +564,7 @@ The ingestion and scheduler commands touch only public market-data endpoints. Re
 - MIL-3.22 deterministic tests cover fail-safe kill-switch initialization, fenced lease acquisition, token rejection, heartbeat renewal, lease timeout, pointer-version fencing, atomic takeover, kill-switch stop, bounded completion, read-only APIs, explicit local CLI and UI stored/effective runtime separation.
 - MIL-3.23 deterministic tests cover synchronized content-addressed snapshots, cumulative paper ledgers, atomic reserve/commit, duplicate reuse, crash recovery, stale-owner fencing, source drift, result tampering, monotonic checkpoint chains, read-only APIs, bounded CLI and UI commit/recovery evidence.
 - MIL-3.24 deterministic tests cover four-bot isolation, common snapshot/configuration binding, stable account identity, parameterized 10x Futures Grid, simulated fill evidence, flatten-and-freeze risk stops, fleet/result tamper detection, duplicate reuse, read-only API and no-control UI visibility.
+- MIL-3.25 deterministic tests cover complete-candle gating, duplicate/still-open waits, next-boundary execution, cycle/account deltas, concurrent wake fencing, stale RESERVED alerts, 7/14-day continuity and reset, explicit CLI, deferred one-shot LaunchAgent generation, read-only API and no-control UI evidence.
 
 ## Definition of Done
 

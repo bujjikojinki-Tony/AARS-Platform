@@ -660,6 +660,9 @@ tbody tr:last-child td { border-bottom: 0; }
 #runtime-effective-status[data-status="RUNNING"], .runtime-kill-switch [data-status="CLEAR"] { color: var(--green); }
 #runtime-effective-status[data-status*="FAIL_SAFE"], #runtime-effective-status[data-status="UNAVAILABLE"], .runtime-kill-switch [data-status="ARMED"] { color: var(--red); }
 .runtime-bot-fleet-section { grid-column: 1 / -1; }
+.runtime-alert-section { grid-column: 1 / -1; }
+.runtime-alert-section article[data-severity="CRITICAL"] { border-left-color: var(--red); }
+.runtime-alert-section article[data-severity="HIGH"] { border-left-color: var(--amber); }
 .runtime-bot-fleet { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
 .runtime-bot-fleet article { min-width: 0; padding: 12px; border: 1px solid var(--line); border-top: 3px solid var(--green); background: rgba(5, 8, 12, 0.52); }
 .runtime-bot-fleet article[data-status="FROZEN"] { border-top-color: var(--red); }

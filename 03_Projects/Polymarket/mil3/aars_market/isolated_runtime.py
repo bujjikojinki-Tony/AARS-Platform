@@ -115,7 +115,7 @@ def run_isolated_paper_runtime(
     token_factory: Callable[[], str] = lambda: secrets.token_urlsafe(32),
     on_cycle: Callable[[dict[str, object]], None] | None = None,
 ) -> dict[str, object]:
-    """Run a bounded local governance worker without replay or order execution."""
+    """Run a bounded governed paper-calculation worker without external orders."""
     acquired = acquire_isolated_runtime(
         store,
         sandbox_id,

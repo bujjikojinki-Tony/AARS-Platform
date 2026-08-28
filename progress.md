@@ -348,3 +348,25 @@
 - Final MIL-3.24 verification: 152 Python tests passed in 11.21 seconds; Python compilation, JavaScript syntax, diff whitespace and safety scans passed.
 - Safety scan found only the existing random fencing-token generator. No credential, signed request, authenticated adapter, external order request or live-execution authority was added.
 - MIL-3.24 is ready for its local milestone commit.
+
+## 2026-08-28 — MIL-3.25 started
+- Confirmed the clean MIL-3.24 baseline at `f0135a8`.
+- Defined the forward-operations scope and preserved the no-install, no-credential and no-live-order boundaries.
+- Next: inspect existing finality, scheduler, runtime, ledger lineage, alerts and Mac service seams.
+- Inspected ingestion, runtime lease, operations health and Mac deployment contracts.
+- Selected a separate forward-operations runner over stored public data, with explicit closed-bar preflight and existing lease/checkpoint fencing as the concurrency authority.
+- Selected derived content-addressed deltas/alerts/burn-in evidence over new mutable tables.
+- Next: implement timeframe finality and the forward-operations domain report before CLI/API/UI integration.
+- Implemented timeframe-aware synchronized closed-candle selection and made runtime snapshots reject an explicitly unclosed boundary.
+- Implemented the forward-operations domain view with new-bar detection, cycle/account deltas, runtime/data/risk alerts and continuous 7/14-day burn-in evidence.
+- Existing monotonic-chain test exposed its old still-open-candle assumption; the fixture is being updated to cross a real close boundary under a valid lease.
+- Added explicit STATUS, WAKE and bounded/foreground scheduler CLI modes.
+- Added a separately rendered, one-shot forward-bot LaunchAgent artifact that is excluded from the existing install set and has not been installed or loaded.
+- Added six deterministic backend/CLI/service-definition tests; combined MIL-3.23–3.25 verification passes 18 tests.
+- Next: expose the content-addressed operations view through GET-only API and the runtime console.
+- Added GET-only forward-operations API and the console trigger/delta/alert/burn-in surfaces; the browser has no WAKE, service, recovery or order controls.
+- Added the MIL-3.25 forward-operations contract and updated the main milestone, deterministic ledger, Mac mini and HMI documentation.
+- Final recovery audit allows a stale RESERVED checkpoint to recover only when it is the sole critical alert; authority, data and integrity alerts still block the wake.
+- Final MIL-3.25 verification: 159 Python tests passed in 12.30 seconds; Python compilation, JavaScript syntax, diff whitespace and safety scans passed.
+- No service was installed or loaded. No credential, signed request, authenticated adapter, external order request or live-execution authority was added.
+- MIL-3.25 is ready for its local milestone commit.

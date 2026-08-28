@@ -152,6 +152,15 @@ it does not replace the sandbox kill switch or stop ingestion. Do not edit bot
 results or checkpoint rows to restart it—activate a separately reviewed
 configuration through the existing approval/registry lifecycle.
 
+MIL-3.25 provides a separate forward-bot LaunchAgent renderer but intentionally
+does not add that job to the four-job default install. Stage it outside
+`~/Library/LaunchAgents`, inspect its absolute paths and run supervised STATUS/
+WAKE cycles first. The job is one-shot (`RunAtLoad=false`, `KeepAlive=false`),
+polls for a new synchronized closed bar and acquires a bounded lease only when
+work is due. Do not load it until at least backup/restore, stale RESERVED,
+kill-switch and notification drills have passed. See
+`FORWARD_BOT_OPERATIONS.md` for the exact staging command and burn-in gates.
+
 ## Upgrade
 
 Stop the jobs before moving the repository or Python environment because the

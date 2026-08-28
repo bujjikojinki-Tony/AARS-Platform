@@ -333,7 +333,7 @@ def test_mil321_ui_separates_stored_pointer_effective_state_and_rollback_gate():
     html = (ui_root / "index.html").read_text(encoding="utf-8")
     javascript = (ui_root / "app.js").read_text(encoding="utf-8")
     css = (ui_root / "styles.css").read_text(encoding="utf-8")
-    assert "AARS // 03.24" in html
+    assert "AARS // 03.25" in html
     assert 'id="sandbox-effective-status"' in html
     assert 'id="sandbox-pointer-summary"' in html
     assert 'id="sandbox-configuration-detail"' in html

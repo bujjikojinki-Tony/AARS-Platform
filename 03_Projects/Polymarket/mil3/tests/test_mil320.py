@@ -302,7 +302,7 @@ def test_mil320_ui_exposes_prerequisites_retention_and_no_web_activation():
     html = (ui_root / "index.html").read_text(encoding="utf-8")
     javascript = (ui_root / "app.js").read_text(encoding="utf-8")
     css = (ui_root / "styles.css").read_text(encoding="utf-8")
-    assert "AARS // 03.24" in html
+    assert "AARS // 03.25" in html
     assert 'id="activation-approval-status"' in html
     assert 'id="activation-prerequisites"' in html
     assert 'id="evidence-retention-policy"' in html

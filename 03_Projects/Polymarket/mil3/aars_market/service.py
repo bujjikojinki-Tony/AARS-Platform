@@ -586,3 +586,8 @@ class DashboardService:
             "order_path_present": False,
             "live_execution_allowed": False,
         }
+
+    def forward_bot_operations(self, sandbox_id: str) -> dict[str, Any]:
+        from .forward_ops import build_forward_bot_operations_view
+
+        return build_forward_bot_operations_view(self.store, sandbox_id)

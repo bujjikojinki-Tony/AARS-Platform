@@ -1,4 +1,4 @@
-# MIL-3.24 Shadow Strategy Bot Runtime Console HMI Design v12
+# MIL-3.25 Forward Bot Operations Console HMI Design v13
 
 ## 1. Page Purpose
 
@@ -37,6 +37,9 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 25. Inspect realized/grid/unrealized P&L, costs, leverage, margin and liquidation risk without an execution control.
 26. Compare four isolated bot accounts and identify any account frozen by the approved paper risk limits.
 27. Inspect simulated fill counts and latest fill evidence without treating them as exchange orders.
+28. Confirm that only a new synchronized fully closed candle makes a forward wake due.
+29. Review cycle-to-cycle account deltas and 7/14-day burn-in continuity.
+30. Act on stale data, funding, checkpoint, integrity and frozen-bot alerts without a browser control.
 19. Identify hard-stop triggers before considering extended paper observation.
 20. Trace the result to its proposal, source snapshot, exact settings and per-asset evidence.
 21. Confirm funding completeness and effective Binance cadence for each trial asset.
@@ -123,10 +126,14 @@ The desktop layout follows a flight-recorder/control-desk pattern with a persist
 - `ShadowBotFleetPanel`
 - `VirtualBotAccountCard`
 - `PaperRiskStopEvidence`
+- `ClosedBarTriggerPanel`
+- `BotAccountDeltaPanel`
+- `ForwardOperationsAlertList`
+- `BurnInContinuityPanel`
 
 ## 7. Data Model
 
-The page consumes the existing MIL-3 schemas plus `mil3.isolated-paper-configuration-index.v1`, `mil3.isolated-paper-sandbox-view.v1`, `mil3.isolated-paper-sandbox-event-index.v1` and `mil3.shadow-strategy-bot-fleet.v1`. The client rejects any execution mode other than `PAPER_ONLY`; configuration, sandbox and fleet evidence must prove that external orders, shared automatic changes and live execution remain disabled. An effective configuration is accepted only when the sandbox state is exactly `ACTIVE`; all fail-safe states require a null effective configuration. Ledger v1 remains readable without inferring a bot fleet.
+The page consumes the existing MIL-3 schemas plus `mil3.isolated-paper-configuration-index.v1`, `mil3.isolated-paper-sandbox-view.v1`, `mil3.isolated-paper-sandbox-event-index.v1`, `mil3.shadow-strategy-bot-fleet.v1` and `mil3.forward-bot-operations.v1`. The client rejects any execution mode other than `PAPER_ONLY`; configuration, sandbox, fleet and operations evidence must prove that external orders, browser control, shared automatic changes and live execution remain disabled. An effective configuration is accepted only when the sandbox state is exactly `ACTIVE`; all fail-safe states require a null effective configuration. Ledger v1 remains readable without inferring a bot fleet.
 
 ## 8. Alarm and Risk Design
 
@@ -215,6 +222,10 @@ kill switch. Clearing the kill switch never restarts a stopped session.
 Snapshot reservation, crash recovery and ledger commit occur only inside the
 fenced local RUN workflow. The browser cannot reserve, recover, calculate or
 commit a cycle and performs only GET requests.
+
+Forward STATUS/WAKE/FOREGROUND and deferred LaunchAgent rendering are explicit
+local commands. The browser only reads `mil3.forward-bot-operations.v1`; it
+cannot trigger a wake, load a service, clear an alert or change burn-in state.
 
 ## 12. HMI Review Gate
 

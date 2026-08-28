@@ -187,7 +187,7 @@ def test_mil324_ui_exposes_four_bot_accounts_without_browser_controls():
     html = (ui_root / "index.html").read_text(encoding="utf-8")
     javascript = (ui_root / "app.js").read_text(encoding="utf-8")
     css = (ui_root / "styles.css").read_text(encoding="utf-8")
-    assert "AARS // 03.24" in html
+    assert "AARS // 03.25" in html
     assert 'id="runtime-bot-fleet"' in html
     assert "FOUR ISOLATED SHADOW BOTS" in html
     assert 'const expectedBots = ["BUY_HOLD", "SPOT_GRID", "FUTURES_LONG_GRID", "AARS_DYNAMIC"]' in javascript

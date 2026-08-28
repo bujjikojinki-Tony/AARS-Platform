@@ -340,3 +340,24 @@
 - The embedded fleet uses the snapshot boundary as its deterministic calculation timestamp; retrying a crashed RESERVED cycle later therefore rebuilds the same fleet/result identity instead of producing a time-dependent hash.
 - Legacy MIL-3.23 ledger v1 verification remains accepted for already committed cycles, while new calculations emit ledger v2 with a separately verified bot-fleet hash bound to cycle, snapshot and configuration identities.
 - Final audit hardened the risk-stop path for already insolvent paper approximations: the account becomes FROZEN and retains liquidation evidence without attempting or inventing a flatten fill that cannot be funded.
+
+## 2026-08-28 — MIL-3.25 kickoff
+- The clean MIL-3.24 baseline is committed at `f0135a8`; the branch is fourteen commits ahead of origin.
+- MIL-3.25 is bounded to PAPER_ONLY forward operations: complete-candle triggering, per-cycle deltas, local alerts, a bounded scheduler and 7/14-day burn-in evidence.
+- Background-service artifacts may be generated and verified, but must not be installed or started on this development machine.
+- Current ingestion intentionally stores Binance responses through the request time and does not mark candle finality; the runtime currently selects the latest stored open time, so MIL-3.25 needs an explicit timeframe-aware `open_time + duration <= observed_at` gate.
+- Public-data ingestion must remain a separate scheduler. The forward bot runner should consume only already stored rows so replay/risk failures cannot interrupt market collection.
+- Existing runtime acquisition already supplies the single-writer fence. A forward wake should perform a read-only no-new-closed-bar preflight, acquire a short lease only when work is available, and still rely on cycle uniqueness for racing wakes.
+- Cycle deltas, alerts and burn-in progress can be deterministically derived from committed cycle/result lineage rather than introducing mutable account or alert tables.
+- The existing Mac deployment installs four jobs as a set. Forward-bot scheduling should be generated as a separate deferred LaunchAgent artifact so the existing INSTALL action cannot silently start strategy simulation.
+
+## MIL-3.25 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| MIL-3.23 monotonic-chain test expected a newly inserted still-open candle to commit immediately | 1 | Preserve the closed-bar gate and update the deterministic fixture to use a sufficiently long valid lease and advance past the candle close |
+| MIL-3.23 and MIL-3.24 UI tests retained exact `03.24` shared-console assertions after the shell advanced to `03.25` | 1 | Updated all eight exact version strings only; prior feature and no-control assertions remain unchanged |
+
+- Closed-bar wakes are deliberately one-shot: LaunchAgent `StartInterval` may poll every 60 seconds, but preflight avoids lease acquisition until a new synchronized boundary exists.
+- Default Mac install/render output remains the existing four operational jobs. The forward-bot plist is separately rendered, `RunAtLoad=false`, `KeepAlive=false`, and never loaded by the existing install action.
+- The first MIL-3.23–3.25 targeted verification passes all 18 tests, including still-open/duplicate wakes, next-cycle deltas, concurrent lease rejection, stale RESERVED alerting, burn-in continuity and deferred plist generation.
+- Final recovery audit distinguishes a stale RESERVED alert from an authority/data-integrity block: when it is the only critical condition, a new fenced wake may recover it; all other critical alerts continue to block execution.

@@ -351,6 +351,15 @@ function validateIsolatedPaperLedgerEnvelope(payload) {
   return payload;
 }
 
+function validateForwardBotOperations(payload) {
+  if (payload.schema_version !== "mil3.forward-bot-operations.v1") throw new Error("unsupported forward bot operations schema");
+  const authority = payload.authority;
+  if (payload.execution_mode !== "PAPER_ONLY" || authority?.stored_public_market_data_only !== true || authority?.closed_candles_only !== true || authority?.read_only_view !== true || authority?.browser_control_allowed !== false || authority?.external_order_requests_created !== false || authority?.order_path_present !== false || authority?.live_execution_allowed !== false) {
+    throw new Error("forward bot operations exceeded read-only PAPER_ONLY authority");
+  }
+  return payload;
+}
+
 function trendClass(value) {
   return Number(value) > 0 ? "positive" : Number(value) < 0 ? "negative" : "";
 }
@@ -1333,7 +1342,7 @@ function renderIsolatedRegistryUnavailable(error) {
   $("#sandbox-registry-recovery").textContent = "Restore registry, sandbox and event evidence; shared configuration and live execution remain prohibited.";
 }
 
-function renderIsolatedRuntime(runtime, eventIndex, killEventIndex, cycleIndex, cycleEventIndex, ledgerEnvelope) {
+function renderIsolatedRuntime(runtime, eventIndex, killEventIndex, cycleIndex, cycleEventIndex, ledgerEnvelope, forwardOps) {
   state.isolatedRuntime = runtime;
   const session = runtime.latest_session;
   const status = session?.effective_status || "NO_SESSION";
@@ -1381,6 +1390,23 @@ function renderIsolatedRuntime(runtime, eventIndex, killEventIndex, cycleIndex, 
       <small>${escapeHtml(bot.stop_reasons.length ? bot.stop_reasons.join(" · ") : "Independent virtual account remains inside approved risk limits.")}</small>
     </article>`;
   }).join("") : '<p class="shadow-empty">No four-bot fleet is present in this committed ledger. Legacy MIL-3.23 results remain read-only.</p>';
+  const trigger = forwardOps.trigger;
+  $("#forward-bot-trigger").innerHTML = `
+    <strong>${escapeHtml(forwardOps.status.replaceAll("_", " "))}</strong>
+    <dl><dt>TIMEFRAME</dt><dd>${escapeHtml(trigger.timeframe)}</dd><dt>LATEST CLOSED</dt><dd>${escapeHtml(trigger.latest_synchronized_closed_boundary ? formatDate(trigger.latest_synchronized_closed_boundary) : "UNAVAILABLE")}</dd><dt>LATEST COMMITTED</dt><dd>${escapeHtml(trigger.latest_committed_boundary ? formatDate(trigger.latest_committed_boundary) : "NONE")}</dd><dt>NEW CLOSED BAR</dt><dd>${trigger.new_closed_bar ? "YES · WAKE DUE" : "NO"}</dd></dl>
+    <p>Only synchronized fully closed candles may trigger one bounded PAPER_ONLY wake.</p>`;
+  const delta = forwardOps.cycle_delta;
+  $("#forward-bot-delta").innerHTML = delta.bots.length ? `
+    <strong>${escapeHtml(delta.status)} · ${escapeHtml(delta.current_result_id)}</strong>
+    <dl>${delta.bots.map((bot) => `<dt>${escapeHtml(bot.bot_id.replaceAll("_", " "))}</dt><dd>${bot.metrics.final_equity == null ? "—" : escapeHtml(formatMoney(bot.metrics.final_equity))} equity Δ · ${bot.metrics.realized_pnl == null ? "—" : escapeHtml(formatMoney(bot.metrics.realized_pnl))} realized Δ · ${escapeHtml(bot.per_asset.reduce((sum, asset) => sum + Number(asset.new_simulated_fills || 0), 0))} new fills</dd>`).join("")}</dl>
+    <p>Each delta is derived from two verified cumulative account results; GENESIS has no prior cycle.</p>` : '<strong>NO VERIFIED DELTA</strong><p>Two committed ledger v2 results are required for cycle-to-cycle attribution.</p>';
+  const burnIn = forwardOps.burn_in;
+  $("#forward-bot-burn-in").innerHTML = `
+    <strong>${escapeHtml(burnIn.status.replaceAll("_", " "))}</strong>
+    <dl><dt>CONTINUOUS DAYS</dt><dd>${escapeHtml(formatNumber(burnIn.observed_days, 2))}</dd><dt>CONTINUOUS CYCLES</dt><dd>${escapeHtml(burnIn.continuous_cycles)}</dd><dt>7-DAY PROGRESS</dt><dd>${escapeHtml(formatPercent(burnIn.minimum_progress, 1))}</dd><dt>14-DAY PROGRESS</dt><dd>${escapeHtml(formatPercent(burnIn.target_progress, 1))}</dd><dt>MAX GAP</dt><dd>${burnIn.max_gap_seconds == null ? "—" : `${escapeHtml(formatNumber(burnIn.max_gap_seconds / 3600, 1))} h`}</dd></dl>
+    <p>Readiness requires continuous closed-bar evidence; a gap over two intervals resets the suffix window.</p>`;
+  $("#forward-bot-alerts").innerHTML = forwardOps.alerts.length ? forwardOps.alerts.map((alert) => `
+    <article data-severity="${escapeHtml(alert.severity)}"><span>${escapeHtml(alert.severity)} · ${escapeHtml(alert.object)}</span><strong>${escapeHtml(alert.code.replaceAll("_", " "))}</strong><small>${escapeHtml(alert.trigger)} ${escapeHtml(alert.impact)} ${escapeHtml(alert.recommended_response)}</small></article>`).join("") : '<p class="shadow-empty">No forward-operations alert is active.</p>';
   $("#runtime-cycle-history").innerHTML = cycleEventIndex.events.length ? cycleEventIndex.events.slice().reverse().map((event) => `
     <article><span>VERSION ${escapeHtml(event.checkpoint_version)} · ${escapeHtml(formatDate(event.event_at))} · ${escapeHtml(event.session_id)}</span><strong>${escapeHtml(event.action)}</strong><small>${escapeHtml(event.cycle_id)} · ${escapeHtml(event.event_id)}</small></article>`).join("") : '<p class="shadow-empty">No reserve/recover/commit history is archived.</p>';
   const recovery = status === "RUNNING"
@@ -1411,6 +1437,10 @@ function renderIsolatedRuntimeUnavailable(error) {
   $("#runtime-snapshot-boundary").innerHTML = '<strong>SNAPSHOT UNAVAILABLE</strong><p>No market boundary or content hash is trusted.</p>';
   $("#runtime-ledger-summary").innerHTML = '<strong>NO COMMITTED LEDGER</strong><p>No calculated result is inferred.</p>';
   $("#runtime-bot-fleet").innerHTML = '<p class="shadow-empty">No isolated bot account or simulated fill evidence is inferred.</p>';
+  $("#forward-bot-trigger").innerHTML = '<strong>TRIGGER UNAVAILABLE</strong><p>No closed-bar wake is inferred.</p>';
+  $("#forward-bot-delta").innerHTML = '<strong>DELTA UNAVAILABLE</strong><p>No cycle account change is inferred.</p>';
+  $("#forward-bot-burn-in").innerHTML = '<strong>BURN-IN UNAVAILABLE</strong><p>No continuity or readiness claim is inferred.</p>';
+  $("#forward-bot-alerts").innerHTML = '<p class="shadow-empty">Forward operation alerts are unavailable.</p>';
   $("#runtime-cycle-history").innerHTML = '<p class="shadow-empty">No checkpoint transition history is inferred.</p>';
   $("#runtime-recovery").textContent = "Restore read-only runtime evidence; runtime, replay and order activity remain blocked.";
 }
@@ -1505,17 +1535,19 @@ async function loadForwardObservations(strategy) {
         validateIsolatedSandbox(await sandboxResponse.json()),
         validateIsolatedSandboxEventIndex(await eventResponse.json()),
       );
-      const [runtimeResponse, killEventResponse, cycleResponse] = await Promise.all([
+      const [runtimeResponse, killEventResponse, cycleResponse, forwardOpsResponse] = await Promise.all([
         fetch(`/api/v1/isolated-runtime?sandbox_id=${encodeURIComponent(sandboxId)}&limit=100`, { cache: "no-store" }),
         fetch(`/api/v1/isolated-runtime-kill-events?sandbox_id=${encodeURIComponent(sandboxId)}&limit=100`, { cache: "no-store" }),
         fetch(`/api/v1/isolated-runtime-cycles?sandbox_id=${encodeURIComponent(sandboxId)}&limit=100`, { cache: "no-store" }),
+        fetch(`/api/v1/forward-bot-operations?sandbox_id=${encodeURIComponent(sandboxId)}`, { cache: "no-store" }),
       ]);
-      if (!runtimeResponse.ok || !killEventResponse.ok || !cycleResponse.ok) {
-        renderIsolatedRuntimeUnavailable(new Error(`runtime/kill-events/cycles returned ${runtimeResponse.status}/${killEventResponse.status}/${cycleResponse.status}`));
+      if (!runtimeResponse.ok || !killEventResponse.ok || !cycleResponse.ok || !forwardOpsResponse.ok) {
+        renderIsolatedRuntimeUnavailable(new Error(`runtime/kill-events/cycles/forward-ops returned ${runtimeResponse.status}/${killEventResponse.status}/${cycleResponse.status}/${forwardOpsResponse.status}`));
       } else {
         const runtime = validateIsolatedRuntime(await runtimeResponse.json());
         const killEvents = validateIsolatedRuntimeKillEventIndex(await killEventResponse.json());
         const cycleIndex = validateIsolatedRuntimeCycleIndex(await cycleResponse.json());
+        const forwardOps = validateForwardBotOperations(await forwardOpsResponse.json());
         let runtimeEvents = validateIsolatedRuntimeEventIndex({
           schema_version: "mil3.isolated-paper-runtime-event-index.v1",
           execution_mode: "PAPER_ONLY",
@@ -1554,7 +1586,7 @@ async function loadForwardObservations(strategy) {
           cycleEvents = validateIsolatedRuntimeCycleEventIndex(await responses[0].json());
           if (responses[1]) ledgerEnvelope = validateIsolatedPaperLedgerEnvelope(await responses[1].json());
         }
-        renderIsolatedRuntime(runtime, runtimeEvents, killEvents, cycleIndex, cycleEvents, ledgerEnvelope);
+        renderIsolatedRuntime(runtime, runtimeEvents, killEvents, cycleIndex, cycleEvents, ledgerEnvelope, forwardOps);
       }
     }
   }

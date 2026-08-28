@@ -159,6 +159,71 @@ def launch_agent_payloads(config: MacOSDeploymentConfig) -> dict[str, dict[str, 
     }
 
 
+def forward_bot_launch_agent_payload(
+    config: MacOSDeploymentConfig,
+    *,
+    sandbox_id: str = "aars-paper-sandbox",
+    interval_seconds: int = 60,
+    lease_seconds: int = 120,
+) -> dict[str, object]:
+    if not sandbox_id.strip():
+        raise ValueError("sandbox_id is required")
+    if interval_seconds <= 0:
+        raise ValueError("forward bot interval must be positive")
+    if not 5 <= lease_seconds <= 300:
+        raise ValueError("forward bot lease must be between 5 and 300 seconds")
+    script = config.project_root / "run_forward_bot_operations.py"
+    if not script.is_file():
+        raise FileNotFoundError(f"forward bot runner not found: {script}")
+    return _job(
+        config,
+        "forward-bots",
+        [
+            str(script),
+            "--db",
+            str(config.db_path),
+            "--action",
+            "WAKE",
+            "--sandbox-id",
+            sandbox_id.strip(),
+            "--worker-id",
+            "aars-macos-forward-bot-worker",
+            "--lease-seconds",
+            str(lease_seconds),
+        ],
+        RunAtLoad=False,
+        KeepAlive=False,
+        StartInterval=interval_seconds,
+        ThrottleInterval=30,
+    )
+
+
+def render_forward_bot_launch_agent(
+    config: MacOSDeploymentConfig,
+    destination_dir: str | Path,
+    *,
+    sandbox_id: str = "aars-paper-sandbox",
+    interval_seconds: int = 60,
+    lease_seconds: int = 120,
+) -> Path:
+    destination = Path(destination_dir).expanduser().resolve()
+    destination.mkdir(parents=True, exist_ok=True)
+    path = destination / f"{LABEL_PREFIX}.forward-bots.plist"
+    temporary = path.with_suffix(".plist.tmp")
+    if path.exists() or temporary.exists():
+        raise FileExistsError(f"forward bot LaunchAgent already exists: {path}")
+    payload = forward_bot_launch_agent_payload(
+        config,
+        sandbox_id=sandbox_id,
+        interval_seconds=interval_seconds,
+        lease_seconds=lease_seconds,
+    )
+    temporary.write_bytes(plistlib.dumps(payload, sort_keys=True))
+    os.replace(temporary, path)
+    path.chmod(0o600)
+    return path
+
+
 def prepare_runtime(config: MacOSDeploymentConfig) -> None:
     required_scripts = (
         "run_scheduler.py",

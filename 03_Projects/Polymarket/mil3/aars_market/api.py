@@ -191,6 +191,11 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
                 return HTTPStatus.OK, service.isolated_runtime_cycles(
                     sandbox_id, limit=int(query.get("limit", ["100"])[0])
                 )
+            if parsed.path == "/api/v1/forward-bot-operations":
+                sandbox_id = query.get("sandbox_id", [""])[0]
+                if not sandbox_id:
+                    raise ValueError("sandbox_id is required")
+                return HTTPStatus.OK, service.forward_bot_operations(sandbox_id)
             if parsed.path == "/api/v1/isolated-runtime-cycle-events":
                 cycle_id = query.get("cycle_id", [""])[0]
                 if not cycle_id:

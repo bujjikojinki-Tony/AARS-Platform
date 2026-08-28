@@ -36,6 +36,10 @@ timeframe, replay window and warmup.
 
 No ingestion or market row is changed by the runtime cycle.
 
+Beginning with MIL-3.25, the boundary must also identify a fully closed candle:
+`open_time + timeframe_duration <= cycle_time`. Stored still-open rows are
+ignored, and an explicitly supplied still-open recovery boundary is rejected.
+
 ## Deterministic paper ledger
 
 The calculation reuses the existing unified `ReplayEngine`, configured proposed

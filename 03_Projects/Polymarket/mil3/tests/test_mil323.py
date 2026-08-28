@@ -231,12 +231,20 @@ def test_new_synchronized_boundary_chains_to_previous_committed_cycle(
             )],
             "test",
         )
+    next_cycle_at = cycle_at + timedelta(hours=1, seconds=10)
+    next_token = TOKEN + "-closed-boundary"
+    next_session = _acquire(
+        store,
+        at=next_cycle_at,
+        token=next_token,
+        worker="worker-next-closed-boundary",
+    )
     second = run_isolated_runtime_cycle(
         store,
-        acquired["session_id"],
-        TOKEN,
+        next_session["session_id"],
+        next_token,
         lease_seconds=120,
-        now=cycle_at + timedelta(seconds=10),
+        now=next_cycle_at,
     )["paper_cycle"]
     assert second["status"] == "COMMITTED"
     assert second["cycle_id"] != first["cycle_id"]
@@ -287,7 +295,7 @@ def test_mil323_ui_exposes_snapshot_commit_idempotency_and_recovery_state():
     html = (ui_root / "index.html").read_text(encoding="utf-8")
     javascript = (ui_root / "app.js").read_text(encoding="utf-8")
     css = (ui_root / "styles.css").read_text(encoding="utf-8")
-    assert "AARS // 03.24" in html
+    assert "AARS // 03.25" in html
     assert 'id="runtime-cycle-checkpoint"' in html
     assert 'id="runtime-snapshot-boundary"' in html
     assert 'id="runtime-ledger-summary"' in html

@@ -405,3 +405,16 @@ PWB-11 Complete
 - [x] Update MIL-3 documentation and Mac mini operations guidance
 - [x] Run targeted and full verification, safety review, and commit the milestone
 - **Status:** complete
+
+## MIL-3.25 Forward Bot Operations
+- [x] Inspect candle finality, ingestion scheduler, runtime lease, ledger lineage and Mac service contracts
+- [x] Define closed-bar trigger, missed/duplicate wake and single-instance scheduling invariants
+- [x] Implement deterministic cycle-to-cycle bot account deltas and forward operations status
+- [x] Implement actionable local runtime/data/risk alerts with immutable evidence
+- [x] Add bounded background runner and deferred Mac LaunchAgent generation without installing it
+- [x] Add 7/14-day burn-in progress, continuity and readiness evaluation
+- [x] Expose forward operations through read-only API and task-centered UI
+- [x] Add deterministic trigger, delta, alert, scheduler, burn-in, API and UI tests
+- [x] Update MIL-3 and Mac operations documentation
+- [x] Run targeted/full verification, safety review and commit the milestone
+- **Status:** complete
