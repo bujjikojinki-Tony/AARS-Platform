@@ -328,3 +328,23 @@
 - Final MIL-3.23 verification after finite-JSON hardening: 146 Python tests passed in 15.14 seconds; Python compilation, JavaScript syntax and diff whitespace checks passed.
 - Final safety scan found only the existing API write-method rejection handlers. New checkpoint/result HTTP paths are read-only and no credential, signed request, external order request or live-execution authority was added.
 - MIL-3.23 is ready for its local milestone commit.
+
+## 2026-08-28 — MIL-3.24 started
+- Confirmed the clean MIL-3.23 baseline at `d294e41`; the branch is thirteen commits ahead of origin.
+- Scoped the milestone to four deterministic PAPER_ONLY shadow bots sharing one synchronized snapshot while preserving independent accounts and fail-safe risk state.
+- Next: inspect current replay, runtime-ledger, storage, service and UI seams before finalizing the bot-cycle schema.
+- Confirmed the common ReplayEngine and four strategy implementations can be reused directly; no second accounting engine is required.
+- Selected an atomic embedded bot-fleet result bound to the existing cycle/snapshot/configuration hashes, preserving MIL-3.23 recovery and idempotency guarantees.
+- Next: inspect approved risk settings and API/HMI result rendering, then implement the fleet calculation and integrity contract.
+- Extended ReplayEngine with opt-in risk-stop enforcement, deterministic simulated fill evidence and final account-state trace fields; ordinary replay callers retain existing behavior.
+- Python compilation passes. The first targeted pytest command hit only a nested-package path collection issue and is being rerun with the explicit local package path.
+- Implemented the fixed four-bot orchestrator with independent virtual accounts, approved parameters, complete metrics, account/fill evidence and flatten-and-freeze risk response.
+- Embedded and integrity-bound the fleet in atomic ledger v2 while retaining legacy v1 verification for previously committed cycles.
+- Targeted simulation/trial/runtime regression verification passes: 18 tests.
+- Next: add the read-only fleet control surface and MIL-3.24 deterministic acceptance tests.
+- Added the four-account read-only runtime surface with state, P&L attribution, costs, leverage, liquidation risk, simulated-fill count and explicit stop reasons; no browser controls were added.
+- Added the MIL-3.24 fleet contract and updated runtime-ledger, main milestone, Mac mini and console HMI documentation.
+- Final hardening handles insolvent paper approximations without inventing an impossible flatten fill.
+- Final MIL-3.24 verification: 152 Python tests passed in 11.21 seconds; Python compilation, JavaScript syntax, diff whitespace and safety scans passed.
+- Safety scan found only the existing random fencing-token generator. No credential, signed request, authenticated adapter, external order request or live-execution authority was added.
+- MIL-3.24 is ready for its local milestone commit.

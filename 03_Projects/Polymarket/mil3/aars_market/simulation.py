@@ -24,6 +24,36 @@ class StrategyAction:
     category: str = "rebalance"
 
 
+@dataclass(frozen=True)
+class RiskStopPolicy:
+    max_drawdown: float
+    max_liquidation_risk: float
+    liquidation_events_allowed: int = 0
+
+    def __post_init__(self) -> None:
+        if not 0 <= self.max_drawdown <= 1:
+            raise ValueError("max_drawdown must be between zero and one")
+        if not 0 <= self.max_liquidation_risk <= 1:
+            raise ValueError("max_liquidation_risk must be between zero and one")
+        if self.liquidation_events_allowed < 0:
+            raise ValueError("liquidation_events_allowed must be non-negative")
+
+
+@dataclass(frozen=True)
+class ReplayFill:
+    index: int
+    as_of: str
+    category: str
+    reason: str
+    requested_price: float
+    execution_price: float
+    delta_qty: float
+    notional: float
+    fee: float
+    slippage_cost: float
+    realized_pnl_delta: float
+
+
 class ShadowStrategy(Protocol):
     name: str
     max_leverage: float
@@ -82,12 +112,23 @@ class ReplayTracePoint:
     effective_leverage: float
     margin_buffer_pct: float
     liquidation_risk: float
+    position_qty: float
+    avg_entry: float | None
+    realized_pnl: float
+    unrealized_pnl: float
+    fees: float
+    funding: float
+    risk_state: str
 
 
 @dataclass(frozen=True)
 class ReplayResult:
     summary: SimulationSummary
     trace: tuple[ReplayTracePoint, ...]
+    fills: tuple[ReplayFill, ...]
+    risk_state: str
+    risk_stop_reasons: tuple[str, ...]
+    risk_stopped_at: str | None
 
 
 def _periods_per_year(timeframe: str) -> int:
@@ -364,6 +405,7 @@ class ReplayEngine:
         strategy: ShadowStrategy,
         *,
         warmup_bars: int = 120,
+        risk_stop_policy: RiskStopPolicy | None = None,
     ) -> ReplayResult:
         if len(candles) <= warmup_bars:
             raise ValueError("insufficient candles for simulation")
@@ -377,6 +419,7 @@ class ReplayEngine:
         strategy.reset()
         equities: list[float] = [self.initial_equity]
         trace: list[ReplayTracePoint] = []
+        fills: list[ReplayFill] = []
         turnover = 0.0
         realized_grid_pnl = 0.0
         max_abs_exposure = 0.0
@@ -391,21 +434,43 @@ class ReplayEngine:
             if item.symbol.upper() == candles[-1].symbol.upper() and item.funding_time >= replay_start
         ]
         funding_index = 0
+        risk_state = "RUNNING"
+        risk_stop_reasons: list[str] = []
+        risk_stopped_at: str | None = None
+
+        def record_fill(index: int, candle: Candle, action: StrategyAction, trade) -> None:
+            fills.append(
+                ReplayFill(
+                    index=index,
+                    as_of=candle.open_time.isoformat(),
+                    category=action.category,
+                    reason=action.reason,
+                    requested_price=trade.requested_price,
+                    execution_price=trade.execution_price,
+                    delta_qty=trade.delta_qty,
+                    notional=trade.notional,
+                    fee=trade.fee,
+                    slippage_cost=trade.slippage_cost,
+                    realized_pnl_delta=trade.realized_pnl_delta,
+                )
+            )
 
         for index in range(warmup_bars - 1, len(candles)):
             candle = candles[index]
             last_mark = candle.close
-            for action in strategy.actions_for_bar(index, candles):
-                trade = portfolio.rebalance_to_exposure(
-                    action.target_exposure,
-                    action.price,
-                    max_leverage=strategy.max_leverage,
-                )
-                if trade is None:
-                    continue
-                turnover += trade.notional
-                if action.category == "grid":
-                    realized_grid_pnl += trade.realized_pnl_delta
+            if risk_state == "RUNNING":
+                for action in strategy.actions_for_bar(index, candles):
+                    trade = portfolio.rebalance_to_exposure(
+                        action.target_exposure,
+                        action.price,
+                        max_leverage=strategy.max_leverage,
+                    )
+                    if trade is None:
+                        continue
+                    turnover += trade.notional
+                    record_fill(index, candle, action, trade)
+                    if action.category == "grid":
+                        realized_grid_pnl += trade.realized_pnl_delta
 
             if strategy.uses_funding:
                 while funding_index < len(funding_events) and funding_events[funding_index].funding_time <= candle.open_time:
@@ -414,6 +479,53 @@ class ReplayEngine:
                     funding_index += 1
                 if not funding_events and self.funding_rate_per_bar:
                     portfolio.apply_funding_rate(candle.close, self.funding_rate_per_bar)
+
+            observed_snapshot = portfolio.snapshot(
+                candle.close,
+                maintenance_margin_rate=self.maintenance_margin_rate,
+            )
+            max_abs_exposure = max(max_abs_exposure, abs(observed_snapshot.net_exposure))
+            max_leverage = max(max_leverage, observed_snapshot.effective_leverage)
+            if observed_snapshot.position_qty:
+                min_margin_buffer = min(
+                    min_margin_buffer, observed_snapshot.margin_buffer_pct
+                )
+            max_liquidation_risk = max(
+                max_liquidation_risk, observed_snapshot.liquidation_risk
+            )
+            liquidation_events += int(observed_snapshot.liquidation_breached)
+
+            if risk_stop_policy is not None and risk_state == "RUNNING":
+                reasons = []
+                if observed_snapshot.max_drawdown > risk_stop_policy.max_drawdown:
+                    reasons.append("MAX_DRAWDOWN_LIMIT_EXCEEDED")
+                if (
+                    observed_snapshot.liquidation_risk
+                    > risk_stop_policy.max_liquidation_risk
+                ):
+                    reasons.append("LIQUIDATION_RISK_LIMIT_EXCEEDED")
+                if liquidation_events > risk_stop_policy.liquidation_events_allowed:
+                    reasons.append("LIQUIDATION_APPROXIMATION_BREACH")
+                if reasons:
+                    stop_action = StrategyAction(
+                        0.0,
+                        candle.close,
+                        "paper-only risk stop: " + ",".join(reasons),
+                        "risk_stop",
+                    )
+                    stop_trade = (
+                        portfolio.rebalance_to_exposure(
+                            0.0, candle.close, max_leverage=strategy.max_leverage
+                        )
+                        if observed_snapshot.equity > 0
+                        else None
+                    )
+                    if stop_trade is not None:
+                        turnover += stop_trade.notional
+                        record_fill(index, candle, stop_action, stop_trade)
+                    risk_state = "FROZEN"
+                    risk_stop_reasons = reasons
+                    risk_stopped_at = candle.open_time.isoformat()
 
             snapshot = portfolio.snapshot(
                 candle.close,
@@ -431,6 +543,13 @@ class ReplayEngine:
                     effective_leverage=snapshot.effective_leverage,
                     margin_buffer_pct=snapshot.margin_buffer_pct,
                     liquidation_risk=snapshot.liquidation_risk,
+                    position_qty=snapshot.position_qty,
+                    avg_entry=snapshot.avg_entry,
+                    realized_pnl=snapshot.realized_pnl,
+                    unrealized_pnl=snapshot.unrealized_pnl,
+                    fees=snapshot.fees,
+                    funding=snapshot.funding,
+                    risk_state=risk_state,
                 )
             )
             max_abs_exposure = max(max_abs_exposure, abs(snapshot.net_exposure))
@@ -438,7 +557,6 @@ class ReplayEngine:
             if snapshot.position_qty:
                 min_margin_buffer = min(min_margin_buffer, snapshot.margin_buffer_pct)
             max_liquidation_risk = max(max_liquidation_risk, snapshot.liquidation_risk)
-            liquidation_events += int(snapshot.liquidation_breached)
             if snapshot.equity <= 0:
                 break
 
@@ -475,7 +593,14 @@ class ReplayEngine:
             max_liquidation_risk=max_liquidation_risk,
             liquidation_events=liquidation_events,
         )
-        return ReplayResult(summary=summary, trace=tuple(trace))
+        return ReplayResult(
+            summary=summary,
+            trace=tuple(trace),
+            fills=tuple(fills),
+            risk_state=risk_state,
+            risk_stop_reasons=tuple(risk_stop_reasons),
+            risk_stopped_at=risk_stopped_at,
+        )
 
 
 def _shadow_strategies(

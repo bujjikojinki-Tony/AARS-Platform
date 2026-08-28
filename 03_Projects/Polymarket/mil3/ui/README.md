@@ -1,4 +1,4 @@
-# MIL-3.23 Deterministic Paper Ledger Runtime Console HMI Design v11
+# MIL-3.24 Shadow Strategy Bot Runtime Console HMI Design v12
 
 ## 1. Page Purpose
 
@@ -35,6 +35,8 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 23. Distinguish RESERVED work from an atomically COMMITTED ledger result.
 24. Confirm duplicate prevention, recovery attempts and the previous committed-cycle chain.
 25. Inspect realized/grid/unrealized P&L, costs, leverage, margin and liquidation risk without an execution control.
+26. Compare four isolated bot accounts and identify any account frozen by the approved paper risk limits.
+27. Inspect simulated fill counts and latest fill evidence without treating them as exchange orders.
 19. Identify hard-stop triggers before considering extended paper observation.
 20. Trace the result to its proposal, source snapshot, exact settings and per-asset evidence.
 21. Confirm funding completeness and effective Binance cadence for each trial asset.
@@ -118,10 +120,13 @@ The desktop layout follows a flight-recorder/control-desk pattern with a persist
 - `ImmutableRegistryEntryCard`
 - `RollbackGatePanel`
 - `AtomicSandboxEventTrail`
+- `ShadowBotFleetPanel`
+- `VirtualBotAccountCard`
+- `PaperRiskStopEvidence`
 
 ## 7. Data Model
 
-The page consumes the existing MIL-3 schemas plus `mil3.isolated-paper-configuration-index.v1`, `mil3.isolated-paper-sandbox-view.v1` and `mil3.isolated-paper-sandbox-event-index.v1`. The client rejects any execution mode other than `PAPER_ONLY`; configuration and sandbox evidence must prove that no strategy process starts and shared, automatic and live authority remain disabled. An effective configuration is accepted only when the sandbox state is exactly `ACTIVE`; all fail-safe states require a null effective configuration.
+The page consumes the existing MIL-3 schemas plus `mil3.isolated-paper-configuration-index.v1`, `mil3.isolated-paper-sandbox-view.v1`, `mil3.isolated-paper-sandbox-event-index.v1` and `mil3.shadow-strategy-bot-fleet.v1`. The client rejects any execution mode other than `PAPER_ONLY`; configuration, sandbox and fleet evidence must prove that external orders, shared automatic changes and live execution remain disabled. An effective configuration is accepted only when the sandbox state is exactly `ACTIVE`; all fail-safe states require a null effective configuration. Ledger v1 remains readable without inferring a bot fleet.
 
 ## 8. Alarm and Risk Design
 
@@ -178,6 +183,11 @@ If checkpoint, snapshot or ledger evidence is unavailable, the runtime surface
 infers no committed ledger. A RESERVED checkpoint remains visibly incomplete;
 its owner, attempt count and recovery condition are shown. Source drift or
 missing result evidence blocks trust rather than falling back to an older value.
+
+If bot-fleet evidence is absent from a legacy ledger, the console labels it as
+legacy rather than inventing accounts. If fleet authority or identity is
+invalid, the entire ledger envelope is rejected. A FROZEN bot card shows the
+stop reasons and remains inspection-only.
 
 ## 11. User Actions and Gates
 

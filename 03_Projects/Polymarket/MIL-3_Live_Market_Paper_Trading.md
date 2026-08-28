@@ -392,6 +392,29 @@ Status: **implemented on `mil-3-live-market-paper-trading`**.
 The calculation, checkpoint and recovery contract is documented in
 `mil3/DETERMINISTIC_RUNTIME_PAPER_LEDGER.md`.
 
+### MIL-3.24 — PAPER_ONLY Shadow Strategy Bot Orchestrator
+
+Status: **implemented on `mil-3-live-market-paper-trading`**.
+
+- Each synchronized runtime snapshot now calculates Buy & Hold, Spot Grid,
+  Futures Long Grid and AARS Dynamic as four isolated virtual accounts.
+- Every bot uses the same content-addressed market inputs but keeps independent
+  equity, position, costs, P&L, exposure, leverage, margin and risk evidence.
+- Futures Long Grid retains the approved parameterized 10x setting and Tactical
+  Hedge; AARS Dynamic retains Long / Flat / Tactical Short behavior.
+- Deterministic simulated fills record price, quantity, notional, fees,
+  slippage, realized contribution, category and reason without creating an
+  external order request.
+- Approved drawdown/liquidation thresholds flatten and freeze only the affected
+  virtual account; they cannot change strategy, registry or execution authority.
+- The four-bot fleet has its own content hash inside ledger v2 and commits under
+  the existing atomic checkpoint. Legacy ledger v1 remains verifiable.
+- The GET-only API and console expose each bot's account, unified metrics,
+  simulated-fill count, current risk state and stop reason.
+
+The fleet, accounting and risk-stop contract is documented in
+`mil3/SHADOW_STRATEGY_BOTS.md`.
+
 ## Initial decision policy
 
 The initial policy intentionally prefers risk control over activity:
@@ -512,6 +535,7 @@ The ingestion and scheduler commands touch only public market-data endpoints. Re
 - MIL-3.21 deterministic tests cover unique approval consumption, inert registration, optimistic races, monotonic events, atomic activation/rollback, immediate expiry/revocation suppression, reconciliation, read-only APIs, explicit local CLIs and UI stored/effective separation.
 - MIL-3.22 deterministic tests cover fail-safe kill-switch initialization, fenced lease acquisition, token rejection, heartbeat renewal, lease timeout, pointer-version fencing, atomic takeover, kill-switch stop, bounded completion, read-only APIs, explicit local CLI and UI stored/effective runtime separation.
 - MIL-3.23 deterministic tests cover synchronized content-addressed snapshots, cumulative paper ledgers, atomic reserve/commit, duplicate reuse, crash recovery, stale-owner fencing, source drift, result tampering, monotonic checkpoint chains, read-only APIs, bounded CLI and UI commit/recovery evidence.
+- MIL-3.24 deterministic tests cover four-bot isolation, common snapshot/configuration binding, stable account identity, parameterized 10x Futures Grid, simulated fill evidence, flatten-and-freeze risk stops, fleet/result tamper detection, duplicate reuse, read-only API and no-control UI visibility.
 
 ## Definition of Done
 

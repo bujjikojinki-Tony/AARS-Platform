@@ -53,6 +53,12 @@ The result ID excludes wall-clock completion time and binds the deterministic
 strategy, snapshot, configuration and ledger output. Result payloads remain
 strict finite JSON.
 
+MIL-3.24 ledger v2 additionally embeds a separately hashed four-bot fleet for
+Buy & Hold, Spot Grid, Futures Long Grid and AARS Dynamic. All accounts share
+the exact snapshot but remain capital/accounting isolated. Complete funding
+coverage is now mandatory for the fleet because two fixed bots use funding.
+Legacy committed ledger v1 results remain verifiable and read-only.
+
 ## Atomic checkpoint and idempotency
 
 Checkpoint states are:

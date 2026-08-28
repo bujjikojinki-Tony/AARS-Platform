@@ -143,6 +143,15 @@ kill switch and registry state, then run the same bounded command. The new
 fenced session will recover the RESERVED cycle only after the previous owner is
 ineffective. Preserve the database if source-drift validation blocks recovery.
 
+MIL-3.24 also adds no LaunchAgent. The same bounded runtime command now commits
+four isolated shadow-bot accounts inside ledger v2. Before every manual run,
+confirm funding coverage for every configured asset: the fixed Futures Grid and
+AARS bots make complete funding evidence mandatory even when the approved trial
+target was spot-only. A bot `FROZEN` state is a local virtual-account risk stop;
+it does not replace the sandbox kill switch or stop ingestion. Do not edit bot
+results or checkpoint rows to restart it—activate a separately reviewed
+configuration through the existing approval/registry lifecycle.
+
 ## Upgrade
 
 Stop the jobs before moving the repository or Python environment because the

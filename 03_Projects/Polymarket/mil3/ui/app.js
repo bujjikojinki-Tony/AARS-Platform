@@ -341,6 +341,13 @@ function validateIsolatedPaperLedgerEnvelope(payload) {
   if (authority?.deterministic_paper_calculation !== true || authority?.market_source_read_only !== true || authority?.paper_orders_created !== false || authority?.order_path_present !== false || authority?.live_execution_allowed !== false) {
     throw new Error("paper ledger result authority is invalid");
   }
+  if (payload.result?.schema_version === "mil3.isolated-paper-ledger-result.v2") {
+    const fleet = payload.result.bot_fleet;
+    const expectedBots = ["BUY_HOLD", "SPOT_GRID", "FUTURES_LONG_GRID", "AARS_DYNAMIC"];
+    if (fleet?.schema_version !== "mil3.shadow-strategy-bot-fleet.v1" || fleet?.execution_mode !== "PAPER_ONLY" || fleet?.authority?.independent_virtual_accounts !== true || fleet?.authority?.simulated_order_intents_only !== true || fleet?.authority?.external_order_requests_created !== false || fleet?.authority?.order_path_present !== false || fleet?.authority?.live_execution_allowed !== false || JSON.stringify(fleet.bot_order) !== JSON.stringify(expectedBots)) {
+      throw new Error("shadow strategy bot fleet authority is invalid");
+    }
+  }
   return payload;
 }
 
@@ -1352,6 +1359,7 @@ function renderIsolatedRuntime(runtime, eventIndex, killEventIndex, cycleIndex, 
   const checkpoint = cycleIndex.latest_cycle;
   const snapshot = checkpoint?.snapshot;
   const ledger = ledgerEnvelope?.result;
+  const fleet = ledger?.bot_fleet;
   $("#runtime-cycle-checkpoint").innerHTML = checkpoint ? `
     <strong>${escapeHtml(checkpoint.status)} · VERSION ${escapeHtml(checkpoint.checkpoint_version)}</strong>
     <dl><dt>CYCLE</dt><dd>${escapeHtml(checkpoint.cycle_id)}</dd><dt>OWNER SESSION</dt><dd>${escapeHtml(checkpoint.owner_session_id)}</dd><dt>ATTEMPTS</dt><dd>${escapeHtml(checkpoint.attempt_count)}</dd><dt>PREVIOUS COMMIT</dt><dd>${escapeHtml(checkpoint.previous_committed_cycle_id || "GENESIS")}</dd><dt>RESULT</dt><dd>${escapeHtml(checkpoint.result_id || "NOT COMMITTED")}</dd></dl>
@@ -1364,6 +1372,15 @@ function renderIsolatedRuntime(runtime, eventIndex, killEventIndex, cycleIndex, 
     <strong>COMMITTED · ${escapeHtml(ledger.result_id)}</strong>
     <dl><dt>FINAL EQUITY</dt><dd>${escapeHtml(formatMoney(ledger.aggregate.final_equity))}</dd><dt>MEAN RETURN</dt><dd>${escapeHtml(formatPercent(ledger.aggregate.mean_total_return, 2, true))}</dd><dt>REALIZED P&amp;L</dt><dd>${escapeHtml(formatMoney(ledger.aggregate.realized_pnl))}</dd><dt>GRID P&amp;L</dt><dd>${escapeHtml(formatMoney(ledger.aggregate.realized_grid_pnl))}</dd><dt>UNREALIZED</dt><dd>${escapeHtml(formatMoney(ledger.aggregate.inventory_unrealized_pnl))}</dd><dt>FEES / FUNDING</dt><dd>${escapeHtml(formatMoney(ledger.aggregate.fees))} / ${escapeHtml(formatMoney(ledger.aggregate.funding))}</dd><dt>MAX LEVERAGE</dt><dd>${escapeHtml(formatNumber(ledger.aggregate.max_effective_leverage, 2))}×</dd><dt>LIQUIDATION RISK</dt><dd>${escapeHtml(formatPercent(ledger.aggregate.max_liquidation_risk, 2))}</dd></dl>
     <p>Deterministic cumulative paper accounting; no external order request was created.</p>` : '<strong>NO COMMITTED LEDGER</strong><p>A RESERVED checkpoint has no effective result until atomic COMMIT succeeds.</p>';
+  $("#runtime-bot-fleet").innerHTML = fleet ? fleet.bots.map((bot) => {
+    const fills = bot.per_asset.reduce((total, asset) => total + Number(asset.account.fill_evidence.simulated_fill_count || 0), 0);
+    return `<article data-status="${escapeHtml(bot.state)}">
+      <span>${escapeHtml(bot.bot_id.replaceAll("_", " "))}</span>
+      <strong>${escapeHtml(bot.state)}</strong>
+      <dl><dt>ACCOUNT</dt><dd>${escapeHtml(bot.account_id)}</dd><dt>FINAL EQUITY</dt><dd>${escapeHtml(formatMoney(bot.aggregate.final_equity))}</dd><dt>MEAN RETURN</dt><dd>${escapeHtml(formatPercent(bot.aggregate.mean_total_return, 2, true))}</dd><dt>REALIZED / GRID</dt><dd>${escapeHtml(formatMoney(bot.aggregate.realized_pnl))} / ${escapeHtml(formatMoney(bot.aggregate.realized_grid_pnl))}</dd><dt>UNREALIZED</dt><dd>${escapeHtml(formatMoney(bot.aggregate.inventory_unrealized_pnl))}</dd><dt>FEES / FUNDING</dt><dd>${escapeHtml(formatMoney(bot.aggregate.fees))} / ${escapeHtml(formatMoney(bot.aggregate.funding))}</dd><dt>MAX LEVERAGE</dt><dd>${escapeHtml(formatNumber(bot.aggregate.max_effective_leverage, 2))}×</dd><dt>LIQUIDATION RISK</dt><dd>${escapeHtml(formatPercent(bot.aggregate.max_liquidation_risk, 2))}</dd><dt>SIMULATED FILLS</dt><dd>${escapeHtml(fills)}</dd></dl>
+      <small>${escapeHtml(bot.stop_reasons.length ? bot.stop_reasons.join(" · ") : "Independent virtual account remains inside approved risk limits.")}</small>
+    </article>`;
+  }).join("") : '<p class="shadow-empty">No four-bot fleet is present in this committed ledger. Legacy MIL-3.23 results remain read-only.</p>';
   $("#runtime-cycle-history").innerHTML = cycleEventIndex.events.length ? cycleEventIndex.events.slice().reverse().map((event) => `
     <article><span>VERSION ${escapeHtml(event.checkpoint_version)} · ${escapeHtml(formatDate(event.event_at))} · ${escapeHtml(event.session_id)}</span><strong>${escapeHtml(event.action)}</strong><small>${escapeHtml(event.cycle_id)} · ${escapeHtml(event.event_id)}</small></article>`).join("") : '<p class="shadow-empty">No reserve/recover/commit history is archived.</p>';
   const recovery = status === "RUNNING"
@@ -1393,6 +1410,7 @@ function renderIsolatedRuntimeUnavailable(error) {
   $("#runtime-cycle-checkpoint").innerHTML = '<strong>NO TRUSTED CHECKPOINT</strong><p>No commit or recovery state is inferred.</p>';
   $("#runtime-snapshot-boundary").innerHTML = '<strong>SNAPSHOT UNAVAILABLE</strong><p>No market boundary or content hash is trusted.</p>';
   $("#runtime-ledger-summary").innerHTML = '<strong>NO COMMITTED LEDGER</strong><p>No calculated result is inferred.</p>';
+  $("#runtime-bot-fleet").innerHTML = '<p class="shadow-empty">No isolated bot account or simulated fill evidence is inferred.</p>';
   $("#runtime-cycle-history").innerHTML = '<p class="shadow-empty">No checkpoint transition history is inferred.</p>';
   $("#runtime-recovery").textContent = "Restore read-only runtime evidence; runtime, replay and order activity remain blocked.";
 }

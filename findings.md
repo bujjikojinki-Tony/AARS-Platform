@@ -316,3 +316,27 @@
 |---|---:|---|
 | A MIL-3.22 bounded-runtime test expected a committed ledger even though its synthetic clock predates the minimum snapshot history | 1 | Keep that case as an explicit WAITING assertion and verify a committed cycle in the current-time CLI fixture |
 | The prior MIL-3.22 UI test retained the shorter no-button recovery sentence after MIL-3.23 added RECOVER to the explicit prohibition | 1 | Updated the shared console assertion to the stricter MIL-3.23 wording |
+
+## 2026-08-28 — MIL-3.24 kickoff
+- The current MIL-3.23 runtime already provides synchronized content-addressed market snapshots, fenced cycles, atomic checkpoints and cumulative ReplayEngine paper-ledger results.
+- MIL-3.24 will add four isolated shadow bots—Buy & Hold, Spot Grid, Futures Long Grid and AARS Dynamic—using the same snapshot but independent virtual accounts and result identities.
+- All bot actions remain simulated ledger intents/fills. Runtime risk response may freeze a bot or block a cycle, but cannot submit an order, change shared configuration, or authorize live execution.
+- The first implementation should reuse the existing strategy and accounting engines rather than create divergent P&L calculations.
+- `simulation.py` already implements the exact four strategies plus a common `ReplayEngine`; it accounts for realized/grid/unrealized P&L, fees, slippage, funding, exposure, leverage, margin buffer and liquidation approximation.
+- The approved `ValidationCandidate` carries parameters for all four bot constructors even when one target strategy was selected, so a fleet can remain fully bound to the immutable approved configuration without inventing mutable runtime settings.
+- The safest persistence seam is the existing atomic cycle result: add one content-addressed bot-fleet section to the ledger payload so checkpoint commit, crash recovery and duplicate-cycle reuse cover all four bots together without a second mutable transaction.
+- Approved trial settings already carry `stop_max_drawdown` and `stop_max_liquidation_risk`; these can govern each bot without adding an unapproved runtime knob. Any liquidation approximation event is an unconditional stop.
+- Existing `PaperPortfolio` returns deterministic simulated fill records but `ReplayResult` discards them. MIL-3.24 should retain fill evidence and final account state in the result while avoiding any external order object or connector.
+- Fleet funding coverage must be COMPLETE even when the originally selected candidate did not use funding, because the fixed four-bot fleet always contains Futures Grid and AARS Dynamic.
+- A risk breach must change future simulation behavior, not merely label a completed replay. The fleet ReplayEngine path will flatten the affected virtual account once, mark it FROZEN, and suppress later strategy actions; existing replay callers remain unchanged unless they explicitly provide a risk-stop policy.
+
+## MIL-3.24 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| System `pytest` did not add the nested MIL-3 root to `sys.path`, causing collection-time `ModuleNotFoundError: aars_market` | 1 | Rerun with `PYTHONPATH=.` from the MIL-3 directory; no test or implementation failure occurred |
+| MIL-3.23 UI regression retained an exact `03.23` console version assertion after the shared shell advanced to `03.24` | 1 | Updated only the version assertion; all MIL-3.23 snapshot, commit, idempotency and no-control assertions remain unchanged |
+| Six earlier shared-console UI tests also retained the exact `03.23` version after the full suite reached them | 1 | Updated only those version strings to `03.24`; their feature and safety assertions remain unchanged |
+
+- The embedded fleet uses the snapshot boundary as its deterministic calculation timestamp; retrying a crashed RESERVED cycle later therefore rebuilds the same fleet/result identity instead of producing a time-dependent hash.
+- Legacy MIL-3.23 ledger v1 verification remains accepted for already committed cycles, while new calculations emit ledger v2 with a separately verified bot-fleet hash bound to cycle, snapshot and configuration identities.
+- Final audit hardened the risk-stop path for already insolvent paper approximations: the account becomes FROZEN and retains liquidation evidence without attempting or inventing a flatten fill that cannot be funded.

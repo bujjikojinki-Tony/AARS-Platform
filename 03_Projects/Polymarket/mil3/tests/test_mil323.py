@@ -287,7 +287,7 @@ def test_mil323_ui_exposes_snapshot_commit_idempotency_and_recovery_state():
     html = (ui_root / "index.html").read_text(encoding="utf-8")
     javascript = (ui_root / "app.js").read_text(encoding="utf-8")
     css = (ui_root / "styles.css").read_text(encoding="utf-8")
-    assert "AARS // 03.23" in html
+    assert "AARS // 03.24" in html
     assert 'id="runtime-cycle-checkpoint"' in html
     assert 'id="runtime-snapshot-boundary"' in html
     assert 'id="runtime-ledger-summary"' in html

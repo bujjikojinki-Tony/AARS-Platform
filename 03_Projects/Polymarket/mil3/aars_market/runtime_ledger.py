@@ -6,6 +6,11 @@ from datetime import datetime, timedelta, timezone
 from statistics import fmean
 from typing import Any, Mapping, Sequence
 
+from .bot_orchestrator import (
+    ShadowBotAssetInput,
+    calculate_shadow_bot_fleet,
+    verify_shadow_bot_fleet,
+)
 from .coverage import analyze_funding_coverage
 from .isolated_config import canonical_sha256
 from .models import Candle, FundingCadenceObservation, FundingRate
@@ -16,7 +21,8 @@ from .validation import ValidationCandidate, strategy_for_candidate
 
 EXECUTION_MODE = "PAPER_ONLY"
 SNAPSHOT_SCHEMA_VERSION = "mil3.isolated-paper-market-snapshot.v1"
-LEDGER_SCHEMA_VERSION = "mil3.isolated-paper-ledger-result.v1"
+LEDGER_SCHEMA_VERSION = "mil3.isolated-paper-ledger-result.v2"
+LEGACY_LEDGER_SCHEMA_VERSION = "mil3.isolated-paper-ledger-result.v1"
 WINDOWS: dict[str, timedelta | None] = {
     "30d": timedelta(days=30),
     "90d": timedelta(days=90),
@@ -87,7 +93,8 @@ def _configuration_contract(configuration: Mapping[str, Any]) -> tuple[
         raise ValueError("runtime configuration replay boundary is invalid")
     required_settings = {
         "initial_equity_per_asset", "fee_rate", "slippage_rate",
-        "maintenance_margin_rate",
+        "maintenance_margin_rate", "stop_max_drawdown",
+        "stop_max_liquidation_risk",
     }
     if not required_settings.issubset(settings):
         raise ValueError("runtime configuration paper-ledger settings are incomplete")
@@ -148,9 +155,9 @@ def build_runtime_market_snapshot(
             replay_start,
             synchronized,
             cadence_observations=cadence,
-            required=strategy_for_candidate(candidate).uses_funding,
+            required=True,
         )
-        if strategy_for_candidate(candidate).uses_funding and coverage.status != "COMPLETE":
+        if coverage.status != "COMPLETE":
             raise ValueError(
                 f"complete funding history required for runtime {symbol}; status={coverage.status}"
             )
@@ -271,6 +278,7 @@ def calculate_runtime_paper_ledger(
         raise ValueError("runtime snapshot differs from configuration scope")
     boundary = _parse(str(snapshot["snapshot_boundary"]))
     per_asset: list[dict[str, Any]] = []
+    bot_asset_inputs: list[ShadowBotAssetInput] = []
     for asset in snapshot["assets"]:
         symbol = str(asset["symbol"])
         candles = store.load_candles(
@@ -300,6 +308,14 @@ def calculate_runtime_paper_ledger(
             maintenance_margin_rate=float(settings["maintenance_margin_rate"]),
         ).run_detailed(
             candles, strategy_for_candidate(candidate), warmup_bars=warmup_bars
+        )
+        bot_asset_inputs.append(
+            ShadowBotAssetInput(
+                symbol=symbol,
+                input_sha256=str(asset["input_sha256"]),
+                candles=tuple(candles),
+                funding=tuple(funding),
+            )
         )
         per_asset.append({
             "symbol": symbol,
@@ -349,6 +365,16 @@ def calculate_runtime_paper_ledger(
         "liquidation_events": sum(int(item["liquidation_events"]) for item in ledgers),
     }
     calculated = _utc(calculated_at or datetime.now(timezone.utc))
+    bot_fleet = calculate_shadow_bot_fleet(
+        bot_asset_inputs,
+        cycle_id=str(snapshot["cycle_id"]),
+        snapshot_sha256=str(snapshot["snapshot_sha256"]),
+        configuration_sha256=str(snapshot["configuration_sha256"]),
+        candidate=candidate,
+        settings=settings,
+        warmup_bars=warmup_bars,
+        calculated_at=boundary,
+    )
     deterministic = {
         "cycle_id": snapshot["cycle_id"],
         "snapshot_sha256": snapshot["snapshot_sha256"],
@@ -356,6 +382,7 @@ def calculate_runtime_paper_ledger(
         "strategy": candidate.as_dict(),
         "aggregate": aggregate,
         "per_asset": per_asset,
+        "bot_fleet": bot_fleet,
     }
     payload = {
         "schema_version": LEDGER_SCHEMA_VERSION,
@@ -377,7 +404,8 @@ def calculate_runtime_paper_ledger(
 
 
 def verify_runtime_paper_ledger(result: Mapping[str, Any]) -> bool:
-    if result.get("schema_version") != LEDGER_SCHEMA_VERSION:
+    schema_version = result.get("schema_version")
+    if schema_version not in {LEDGER_SCHEMA_VERSION, LEGACY_LEDGER_SCHEMA_VERSION}:
         return False
     if result.get("execution_mode") != EXECUTION_MODE:
         return False
@@ -397,6 +425,18 @@ def verify_runtime_paper_ledger(result: Mapping[str, Any]) -> bool:
         "aggregate": result.get("aggregate"),
         "per_asset": result.get("per_asset"),
     }
+    if schema_version == LEDGER_SCHEMA_VERSION:
+        bot_fleet = result.get("bot_fleet")
+        if not isinstance(bot_fleet, Mapping) or not verify_shadow_bot_fleet(bot_fleet):
+            return False
+        if (
+            bot_fleet.get("cycle_id") != result.get("cycle_id")
+            or bot_fleet.get("snapshot_sha256") != result.get("snapshot_sha256")
+            or bot_fleet.get("configuration_sha256")
+            != result.get("configuration_sha256")
+        ):
+            return False
+        deterministic["bot_fleet"] = bot_fleet
     if result.get("result_id") != canonical_sha256(deterministic)[:24]:
         return False
     unhashed = dict(result)

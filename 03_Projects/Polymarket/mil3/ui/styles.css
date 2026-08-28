@@ -659,6 +659,17 @@ tbody tr:last-child td { border-bottom: 0; }
 .runtime-kill-switch p, .runtime-session-summary p, .runtime-lease-health p { margin: 10px 0 0; color: var(--muted); font-size: 8px; line-height: 1.5; }
 #runtime-effective-status[data-status="RUNNING"], .runtime-kill-switch [data-status="CLEAR"] { color: var(--green); }
 #runtime-effective-status[data-status*="FAIL_SAFE"], #runtime-effective-status[data-status="UNAVAILABLE"], .runtime-kill-switch [data-status="ARMED"] { color: var(--red); }
+.runtime-bot-fleet-section { grid-column: 1 / -1; }
+.runtime-bot-fleet { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+.runtime-bot-fleet article { min-width: 0; padding: 12px; border: 1px solid var(--line); border-top: 3px solid var(--green); background: rgba(5, 8, 12, 0.52); }
+.runtime-bot-fleet article[data-status="FROZEN"] { border-top-color: var(--red); }
+.runtime-bot-fleet article > span { display: block; color: var(--muted); font-size: 7px; letter-spacing: 0.08em; }
+.runtime-bot-fleet article > strong { display: block; margin-top: 6px; color: var(--green); font: 650 11px/1.25 var(--display); }
+.runtime-bot-fleet article[data-status="FROZEN"] > strong { color: var(--red); }
+.runtime-bot-fleet dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 9px; margin: 11px 0; }
+.runtime-bot-fleet dt { color: var(--muted); font-size: 6px; }
+.runtime-bot-fleet dd { margin: 0; color: var(--ink); font-size: 7px; text-align: right; overflow-wrap: anywhere; }
+.runtime-bot-fleet small { color: var(--muted); font-size: 7px; line-height: 1.5; }
 .sandbox-configuration-detail code { color: var(--green); font-size: 7px; }
 
 .shadow-metrics { display: grid; grid-template-columns: repeat(6, minmax(110px, 1fr)); margin-top: 14px; border: 1px solid var(--line); background: var(--panel); }
@@ -882,6 +893,8 @@ tbody tr:last-child td { border-bottom: 0; }
   .isolated-runtime-grid > section { border-right: 0; border-bottom: 1px solid var(--line); }
   .isolated-runtime-grid > section:nth-child(n+4) { border-bottom: 1px solid var(--line); }
   .isolated-runtime-grid > section:last-child { border-bottom: 0; }
+  .runtime-bot-fleet-section { grid-column: auto; }
+  .runtime-bot-fleet { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -394,3 +394,14 @@ PWB-11 Complete
 - [x] Add deterministic snapshot, crash, duplicate, fencing, API, CLI and UI tests
 - [x] Update documentation, run full verification, review and commit
 - **Status:** complete
+
+## MIL-3.24 PAPER_ONLY Shadow Strategy Bot Orchestrator
+- [x] Inspect approved configuration, replay engine, runtime checkpoint, API and HMI contracts
+- [x] Define immutable bot/account/order/fill/cycle contracts with independent ledgers
+- [x] Implement deterministic four-bot orchestration over one synchronized stored-market snapshot
+- [x] Persist idempotent bot-cycle results and expose read-only service/API/HMI evidence
+- [x] Add runtime risk-stop behavior that can only freeze PAPER_ONLY bots
+- [x] Add deterministic bot isolation, accounting, duplicate, recovery, risk, API and UI tests
+- [x] Update MIL-3 documentation and Mac mini operations guidance
+- [x] Run targeted and full verification, safety review, and commit the milestone
+- **Status:** complete
