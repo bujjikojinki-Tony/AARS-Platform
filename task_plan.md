@@ -418,3 +418,65 @@ PWB-11 Complete
 - [x] Update MIL-3 and Mac operations documentation
 - [x] Run targeted/full verification, safety review and commit the milestone
 - **Status:** complete
+
+## MIL-3.25 First Real-Data PAPER_ONLY Cycle
+- [x] Inspect the current local database, ingestion, registry, activation, kill-switch and forward-runner prerequisites
+- [x] Create a dedicated local MIL-3 database without reusing unrelated project data
+- [x] Ingest Binance public candles, funding history and cadence metadata for the configured assets
+- [x] Confirm the documented isolated PAPER_ONLY approval prerequisites are absent and leave activation fail-safe rather than bypassing gates
+- [x] Run STATUS and one governed closed-bar WAKE; capture any fail-safe blocker exactly
+- [x] Verify database integrity, runtime evidence, bot deltas and no-live-execution boundary
+- **Status:** blocked_pending_human_evidence_review
+
+## First real-data cycle errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| Manual SQLite count query referenced nonexistent candle column `interval` | 1 | Database integrity still returned `ok`; inspect the schema and rerun the count using the stored column name instead of repeating the query |
+
+## MIL-3.25 Real-Data Candidate and Trial Preparation
+- [x] Inspect shadow validation, stable-view, proposal, review and trial contracts against the fresh database
+- [x] Run a bounded multi-asset PAPER_ONLY shadow validation using stored real data
+- [x] Archive and verify the resulting immutable daily shadow evidence
+- [x] Attempt inert proposal generation and verify it fails closed because automatic gates do not pass
+- [x] Stop before any human `APPROVE` action and present the exact candidate metrics and review choice
+- [x] Verify database integrity, evidence counts and permanent no-live-execution authority
+- **Status:** blocked_by_promotion_evidence_gate
+
+## Real-data candidate preparation errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| Manual snapshot summary query assumed a materialized `review_disposition` column | 1 | Snapshot review evidence is intentionally stored inside immutable `payload_json`; query the documented JSON payload keys instead |
+| First planning update split two edits to `task_plan.md` into duplicate patch operations | 1 | Combine all changes to the same file into one update operation |
+| Proposal command raised `ValueError: paper proposal requires PROMOTION_CANDIDATE governance` | expected fail-closed check | Confirm zero proposal rows and continue daily evidence collection; do not bypass governance |
+
+## MIL-3.25 Real-Data Daily Evidence — Day 2
+- [x] Verify the persistent database and day-one evidence baseline
+- [x] Run one bounded incremental public-data ingestion cycle
+- [x] Archive the day-two immutable AARS_DYNAMIC shadow snapshot
+- [x] Compare day-one/day-two performance, warnings and candidate stability
+- [x] Recompute promotion governance and forward-operation safety state
+- [x] Verify database integrity, evidence counts and no-live-execution authority
+- **Status:** complete
+
+## Day-two evidence errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| Initial authority aggregate queried a nonexistent `$.authority` snapshot path and returned nulls | 1 | Verify the actual snapshot, portfolio and validation review-gate authority paths; all are explicitly false |
+
+## MIL-3.26 Closed-Candle Daily Evidence Integrity
+- [x] Inspect shadow snapshot construction, candle selection and existing finality helpers/tests
+- [x] Define a deterministic observed-at and synchronized fully closed boundary contract
+- [x] Exclude open candles from validation, portfolio replay and immutable evidence identity
+- [x] Prevent more than one canonical daily observation from inflating governance history
+- [x] Add deterministic tests for open-bar mutation, same-day reruns and next-day advancement
+- [x] Update continuous-shadow and operations documentation
+- [x] Run targeted and full MIL-3 verification, safety scan and diff review
+- **Status:** complete
+
+## MIL-3.26 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| Existing exact-minimum fold fixture lost one bar after the new closed-candle filter | 1 | Advance its deterministic observation time so the required 199 bars are closed, then add a separate explicit open-bar exclusion fixture |
+| Same-data CLI rerun produced a different ID because `evidence_boundary.observed_at` entered content identity | 1 | Preserve observed-at audit metadata but exclude only that operational timestamp from the content-addressed identity, as already done for generated-at fields |
+| Combined documentation patch assumed an outdated sentence in the main milestone file | 1 | Apply the known CLI/operations documents separately, inspect the exact milestone section and patch against current text |
+| First final safety-scan command used an over-complex shell quote pattern and did not execute | 1 | Split diff, safety and database checks into simple independently quoted commands |

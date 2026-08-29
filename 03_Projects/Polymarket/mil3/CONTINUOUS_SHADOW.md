@@ -26,6 +26,17 @@ candidate into the monitored portfolio.
 the last synchronized evidence boundary. Per-asset evidence times remain in
 `evidence_as_of`.
 
+MIL-3.26 tightens that boundary to fully closed candles only. At evaluation time
+`observed_at`, a candle is eligible only when `open_time + timeframe <=
+observed_at`. Validation and portfolio replay share the same synchronized closed
+boundary, and v2 snapshots record the per-asset boundary, timeframe duration,
+observation date and `fully_closed=true` evidence explicitly.
+
+Only one canonical snapshot per target strategy and UTC observation date may be
+archived. An identical rerun is idempotent; changed same-day evidence fails
+closed instead of increasing the governance history count. Run the archive once
+per UTC day after ingestion and after the intended candle has fully closed.
+
 ## Archive one daily snapshot
 
 From `03_Projects/Polymarket/mil3`, after an incremental ingestion cycle:
@@ -46,9 +57,11 @@ python run_shadow_daily.py \
 ```
 
 The command is the only MIL-3.12 write path. It prints the content-addressed
-snapshot ID, synchronized evidence time, and review disposition. Rerunning the
+snapshot ID, synchronized closed evidence time, UTC observation date, finality
+state and review disposition. Rerunning the
 same market evidence with only different generation timestamps returns the
-same ID and does not add a row. Changed evidence creates a new immutable row.
+same ID and does not add a row. Changed evidence creates a new immutable row
+only on a later UTC observation date.
 
 For 10x futures-grid stress validation:
 
@@ -137,6 +150,9 @@ portfolio risk surface is degraded. Otherwise it is
 A few daily snapshots are observation, not evidence of durability. Treat the
 first seven as insufficient history, then review parameter churn, recurring
 funding gaps, drawdown/risk drift, and consecutive ready snapshots together.
+Archived v1 snapshots remain visible for audit but do not count toward promotion
+after MIL-3.26 because they do not contain explicit closed-candle proof. The
+30-day promotion evidence window therefore restarts with eligible v2 snapshots.
 
 ## Deferred Mac mini activation
 

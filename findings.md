@@ -361,3 +361,63 @@
 - Default Mac install/render output remains the existing four operational jobs. The forward-bot plist is separately rendered, `RunAtLoad=false`, `KeepAlive=false`, and never loaded by the existing install action.
 - The first MIL-3.23–3.25 targeted verification passes all 18 tests, including still-open/duplicate wakes, next-cycle deltas, concurrent lease rejection, stale RESERVED alerting, burn-in continuity and deferred plist generation.
 - Final recovery audit distinguishes a stale RESERVED alert from an authority/data-integrity block: when it is the only critical condition, a new fenced wake may recover it; all other critical alerts continue to block execution.
+
+## 2026-08-28 — First real-data PAPER_ONLY cycle
+- The only SQLite files found before this run belong to PWB/weather/Telegram projects; none is an MIL-3 runtime database, so they must not be reused.
+- The run must use the existing explicit registration, activation, kill-switch and forward-operations commands. A passing smoke fixture is not authority to fabricate or bypass an approval record.
+- Public ingestion is explicitly unauthenticated and writes Binance spot candles, USD-M funding history, and a complete cadence snapshot for BTCUSDT, ETHUSDT and SOLUSDT.
+- The forward runner consumes stored rows only. Therefore public-data ingestion can be completed independently even if the governed activation chain correctly remains blocked for human review.
+- The repository has milestone-specific operating documents in the MIL-3 root; there is no nested README/docs tree.
+- The persistent development runtime database is isolated at `/Users/maolei/Documents/Codex/AARS-MIL3/runtime/mil3_market.sqlite`, outside the Git worktree.
+- The first public snapshot contains 2,880 hourly candles per asset and 360 funding observations per asset for BTCUSDT, ETHUSDT and SOLUSDT.
+- Binance `fundingInfo` returned an adjusted inventory and the stored configured-asset snapshot currently resolves all three assets to 8-hour cadence with `ADJUSTED` source status.
+- Operational health reports the database and all three candle freshness checks as healthy. Overall state is `DEGRADED` only because the one-shot bootstrap CLIs do not create an incremental scheduler-cycle receipt.
+- The untouched sandbox correctly fails safe: there is no effective configuration and its uninitialized kill switch resolves to ARMED. STATUS is `BLOCKED`, with no cycle or bot delta created.
+- The explicit WAKE also returned `BLOCKED` with `cycle_executed=false`, `runtime=null`, zero bot deltas, no external order requests and no live-order path.
+- One incremental public-data scheduler cycle completed successfully for fundingInfo, candles and funding across all three assets. This creates the operational ingestion receipt without starting forward bots.
+- Final health is `HEALTHY`: SQLite quick-check, latest ingestion receipt and all three candle freshness checks pass.
+- Final evidence counts are intentionally zero for runtime sessions, runtime cycles, ledger results, approved configurations and activation reviews. The first real-data bot calculation cannot lawfully commit until proposal/trial/forward-observation evidence receives explicit human review and isolated activation approval.
+
+## 2026-08-28 — Real-data candidate and trial preparation
+- A generic `go` authorizes automatic evidence generation but is not treated as the named reviewer, review note and explicit proposal approval required by the immutable human-review record.
+- The automatic gate precedes human review: proposal creation requires `PROMOTION_CANDIDATE`, whose default policy needs 30 immutable daily snapshots and at least 7 consecutive ready snapshots.
+- Replaying the same evidence cannot manufacture history because daily snapshot archival is content-addressed and idempotent. The fresh database can archive one genuine snapshot now, then must accumulate changed daily evidence over time.
+- The bounded first snapshot will use the documented AARS_DYNAMIC settings: BTC/ETH/SOL, 1h, 90d, 120-bar warmup, 720 train bars, 168 test bars and the parameterized exposure/hedge candidate set.
+- The first genuine immutable snapshot is `d35a02566d2d3ca9a2e0e666`, synchronized at `2026-08-28T08:00:00+00:00`; its combined review gate is `DEFER`, and exactly one snapshot is stored.
+- The fixed AARS_DYNAMIC portfolio replay returned -1.77% total return, 15.16% max drawdown, 0 liquidation events, 0.395% maximum liquidation-risk approximation and a non-degraded `ACCEPT_WITH_MONITORING` portfolio surface.
+- Per-asset 90-day returns were BTC -7.80%, ETH -3.94% and SOL +6.43%. The combined snapshot still defers because train-only validation reported `VALIDATION_DEFERRED`, including baseline-underperformance evidence.
+- Funding coverage was complete for every asset in the replay. The immutable evidence reports fallback cadence provenance even though a current 8h fundingInfo snapshot exists; this is an evidence-time lookup detail to monitor, not a current coverage gap.
+- Promotion governance is `CONTINUE_OBSERVATION`, not `REJECT_PROMOTION`: 6 checks pass and 5 block. Passing evidence includes 77.78% mean selection stability, 15.16% max drawdown, 0.395% max liquidation risk and zero liquidation events.
+- Blocking evidence is: 1/30 daily history, 0/7 consecutive ready reviews, latest gate `DEFER`, -2.66% mean excess return versus Buy & Hold, and 100% baseline-underperformance warning recurrence in the one-snapshot window.
+- The proposal CLI correctly raised the fail-closed `PROMOTION_CANDIDATE` requirement. No human review or proposal can be created at this stage.
+- Final verification: database integrity and operational health are `HEALTHY`; exactly one PAPER_ONLY shadow snapshot exists, with zero proposals, reviews, trials, runtime sessions, runtime cycles and ledger results. Its authority flag keeps `live_execution_allowed=false`.
+
+## 2026-08-29 — Real-data daily evidence day 2
+- Day two must use newly ingested market evidence so the content-addressed daily archive produces a genuinely new snapshot rather than returning the day-one ID.
+- Day-one baseline verified with SQLite integrity `ok`, one snapshot at `2026-08-28T08:00:00+00:00`, one ingestion receipt and synchronized asset data through the same boundary.
+- Day-two incremental cycle `0db9360709b2b6417b9456f5` completed all seven resources successfully: 26 overlapping/recent candles and four funding rows fetched per asset, plus a current three-asset 8h cadence snapshot.
+- Day-two snapshot `51501f2bbd72c6b41c085f3f` is genuinely new and synchronized at `2026-08-29T07:00:00+00:00`; the archive count is now 2.
+- Fixed-portfolio total return moved from -1.77% to -3.12% and max drawdown from 15.16% to 15.22%; liquidation risk stayed 0.395% with zero liquidation events.
+- Per-asset return changed BTC -7.80% to -7.46%, ETH -3.94% to -5.89%, SOL +6.43% to +4.00%.
+- Train/test aggregate evidence remains unchanged at 36 folds because a single added day has not crossed the configured 168-hour fold step. Warnings remain `BASELINE_UNDERPERFORMANCE` and `PARAMETER_INSTABILITY`.
+- Promotion governance remains `CONTINUE_OBSERVATION` with 2/30 snapshots, 0/7 consecutive ready reviews, -2.66% mean excess return versus Buy & Hold and the same five blocking checks; no material rejection threshold is reached.
+- Forward operations remain fail-safe `BLOCKED` by the absent effective configuration and default-armed kill switch. No burn-in or bot ledger cycle has started.
+- Final day-two verification is healthy: two ingestion receipts, two immutable shadow snapshots, zero proposals/reviews/trials/runtime sessions/runtime cycles/ledger results, and every snapshot authority layer explicitly sets live execution to false.
+
+## 2026-08-29 — MIL-3.26 closed-candle daily evidence integrity
+- At `2026-08-29T08:24Z`, the latest stored and latest archived boundary were both `07:00Z`, so a third daily archive would be invalid evidence inflation.
+- Binance public kline ingestion stores the current hour as well as closed history. A daily builder that selects `MAX(open_time)` can therefore consume a partial candle unless it applies `open_time + timeframe <= observed_at`.
+- Existing immutable snapshots cannot be rewritten. The fix must preserve their audit history while ensuring all new snapshots carry explicit closed-candle boundary evidence and cannot inflate daily governance through same-day reruns.
+- `build_shadow_daily_snapshot` currently loads every stored candle for validation, while `DashboardService.build_portfolio` independently selects the latest stored candle. Neither path shares the MIL-3.25 closed-boundary helper.
+- Storage identities already ignore nested `generated_at`, but a changing partial candle still changes the payload and can create multiple same-day IDs. A closed-boundary filter removes partial-bar mutation; a separate canonical daily observation rule is still needed to prevent hourly closed bars from counting as daily governance history.
+- The existing runtime helper `latest_synchronized_closed_boundary` is reusable and supports the repository's timeframe syntax. Shadow validation and portfolio replay must both be capped at its returned synchronized boundary.
+- `DashboardRequest` and `PortfolioRequest` currently lack an evidence-end field. Adding an optional `as_of` cap is backward compatible and lets the shadow builder reuse the ordinary portfolio accounting path without duplicating it.
+- Governance loads snapshots by target strategy only. Therefore the conservative daily uniqueness scope should be UTC observation date plus target strategy; allowing multiple symbol/config variants for the same target on one day would mix experiments and inflate policy counts.
+- New builder output can advance to `mil3.shadow-daily.v2` while storage and downstream proposal/trial paths continue reading archived v1 evidence. Proposal validation should accept both explicitly rather than silently accepting arbitrary schemas.
+- The first targeted regression passes 21 tests after updating the exact-minimum fixture, idempotent identity and same-day uniqueness behavior.
+- Historical v1 snapshots must remain readable for audit and old proposal lineage, but they cannot count toward the new 30-day promotion minimum because they lack explicit fully-closed boundary evidence. Governance needs an eligible-evidence subset rather than deleting or rewriting history.
+- Stability now exposes all archived points plus a `promotion_eligible_points` subset. Governance uses that subset when present and calculates transitions/consecutive-ready state within it, while synthetic/legacy API contracts without the new field retain backward-compatible behavior.
+- MIL-3.12–3.16 targeted regression now passes 32 tests, including explicit legacy exclusion and archived-versus-eligible evidence counts.
+- Final full verification passes 163 Python tests, Python compilation, JavaScript syntax and diff whitespace checks. The safety scan found no credential, signed-request, order-submission or LIVE-mode additions.
+- The real development database migrated successfully with `idx_shadow_daily_target_utc_date`; integrity is `ok`, two legacy snapshots remain, and proposal/runtime-cycle counts remain zero.
+- Corrected promotion evidence intentionally resets to 0/30 eligible observations. The first trustworthy v2 day can be archived on the next UTC observation date; the two v1 rows stay available only as excluded audit history.

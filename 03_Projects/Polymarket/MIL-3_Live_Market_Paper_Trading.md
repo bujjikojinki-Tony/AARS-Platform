@@ -439,6 +439,24 @@ Status: **implemented on `mil-3-live-market-paper-trading`**.
 The forward scheduling and burn-in contract is documented in
 `mil3/FORWARD_BOT_OPERATIONS.md`.
 
+### MIL-3.26 — Closed-Candle Daily Evidence Integrity
+
+Status: **implemented on `mil-3-live-market-paper-trading`**.
+
+- Daily validation and portfolio replay share one synchronized fully closed
+  candle boundary.
+- Immutable v2 snapshots record observation date, observed time, per-asset
+  boundaries, timeframe duration and explicit finality proof.
+- One target strategy can archive only one canonical snapshot per UTC
+  observation date; identical reruns are idempotent and changed same-day reruns
+  fail closed.
+- Legacy v1 snapshots remain readable for audit and proposal lineage but are
+  excluded from promotion-eligible history.
+- Promotion governance reports archived versus eligible evidence and restarts
+  its 30-day minimum from trustworthy v2 observations.
+
+The daily evidence contract is documented in `mil3/CONTINUOUS_SHADOW.md`.
+
 ## Initial decision policy
 
 The initial policy intentionally prefers risk control over activity:
@@ -565,6 +583,7 @@ The ingestion and scheduler commands touch only public market-data endpoints. Re
 - MIL-3.23 deterministic tests cover synchronized content-addressed snapshots, cumulative paper ledgers, atomic reserve/commit, duplicate reuse, crash recovery, stale-owner fencing, source drift, result tampering, monotonic checkpoint chains, read-only APIs, bounded CLI and UI commit/recovery evidence.
 - MIL-3.24 deterministic tests cover four-bot isolation, common snapshot/configuration binding, stable account identity, parameterized 10x Futures Grid, simulated fill evidence, flatten-and-freeze risk stops, fleet/result tamper detection, duplicate reuse, read-only API and no-control UI visibility.
 - MIL-3.25 deterministic tests cover complete-candle gating, duplicate/still-open waits, next-boundary execution, cycle/account deltas, concurrent wake fencing, stale RESERVED alerts, 7/14-day continuity and reset, explicit CLI, deferred one-shot LaunchAgent generation, read-only API and no-control UI evidence.
+- MIL-3.26 deterministic tests cover synchronized closed-boundary selection, open-candle mutation immunity, canonical UTC-day uniqueness, idempotent reruns, legacy audit retention, v2-only promotion eligibility and archived-versus-eligible governance counts.
 
 ## Definition of Done
 

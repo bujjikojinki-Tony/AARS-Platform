@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from statistics import fmean
 from typing import Any, Sequence
 
+from .runtime_ledger import (
+    latest_synchronized_closed_boundary,
+    timeframe_duration,
+)
 from .service import DEFAULT_SYMBOLS, DashboardService, PortfolioRequest
 from .storage import MarketStore
 from .validation import (
@@ -16,7 +20,7 @@ from .validation import (
 
 
 EXECUTION_MODE = "PAPER_ONLY"
-SNAPSHOT_SCHEMA_VERSION = "mil3.shadow-daily.v1"
+SNAPSHOT_SCHEMA_VERSION = "mil3.shadow-daily.v2"
 STABILITY_SCHEMA_VERSION = "mil3.shadow-stability.v1"
 
 
@@ -53,10 +57,24 @@ def build_shadow_daily_snapshot(
         raise ValueError("validation candidates must share one target strategy")
 
     generated = _utc(now or datetime.now(timezone.utc))
+    synchronized, per_asset_boundary = latest_synchronized_closed_boundary(
+        store,
+        normalized,
+        timeframe,
+        observed_at=generated,
+    )
+    if synchronized is None:
+        missing = [
+            symbol for symbol, boundary in per_asset_boundary.items()
+            if boundary is None
+        ]
+        raise ValueError(
+            "no fully closed stored candle is available for " + ",".join(missing)
+        )
     reports: list[dict[str, object]] = []
     evidence_times: dict[str, str] = {}
     for symbol in normalized:
-        candles = store.load_candles(symbol, timeframe)
+        candles = store.load_candles(symbol, timeframe, end=synchronized)
         if not candles:
             raise ValueError(f"no candles stored for {symbol} {timeframe}")
         funding = store.load_funding_rates(
@@ -90,6 +108,7 @@ def build_shadow_daily_snapshot(
             timeframe=timeframe,
             replay_window=replay_window,
             strategy=portfolio_strategy,
+            as_of=synchronized,
         ),
         now=generated,
     )
@@ -107,8 +126,18 @@ def build_shadow_daily_snapshot(
         "schema_version": SNAPSHOT_SCHEMA_VERSION,
         "execution_mode": EXECUTION_MODE,
         "generated_at": generated.isoformat(),
-        # The oldest latest candle is the last synchronized evidence boundary.
-        "as_of": min(evidence_times.values()),
+        "as_of": synchronized.isoformat(),
+        "observation_date": synchronized.date().isoformat(),
+        "evidence_boundary": {
+            "observed_at": generated.isoformat(),
+            "synchronized_closed_open_time": synchronized.isoformat(),
+            "per_asset_closed_open_time": {
+                symbol: boundary.isoformat() if boundary is not None else None
+                for symbol, boundary in sorted(per_asset_boundary.items())
+            },
+            "timeframe_duration_seconds": timeframe_duration(timeframe).total_seconds(),
+            "fully_closed": True,
+        },
         "symbols": list(normalized),
         "evidence_as_of": evidence_times,
         "configuration": {
@@ -160,6 +189,42 @@ def _selected_candidates(validation: dict[str, Any]) -> dict[str, str]:
     return selected
 
 
+def _promotion_evidence_eligible(payload: dict[str, Any]) -> bool:
+    if payload.get("schema_version") != SNAPSHOT_SCHEMA_VERSION:
+        return False
+    boundary = payload.get("evidence_boundary", {})
+    if boundary.get("fully_closed") is not True:
+        return False
+    try:
+        as_of = _utc(datetime.fromisoformat(str(payload["as_of"])))
+        observed = _utc(datetime.fromisoformat(str(boundary["observed_at"])))
+        duration = timedelta(
+            seconds=float(boundary["timeframe_duration_seconds"])
+        )
+        per_asset = boundary["per_asset_closed_open_time"]
+        symbols = tuple(str(item) for item in payload["symbols"])
+    except (KeyError, TypeError, ValueError):
+        return False
+    if duration <= timedelta(0) or as_of + duration > observed:
+        return False
+    if payload.get("observation_date") != as_of.date().isoformat():
+        return False
+    if boundary.get("synchronized_closed_open_time") != as_of.isoformat():
+        return False
+    if set(per_asset) != set(symbols):
+        return False
+    try:
+        asset_boundaries = {
+            symbol: _utc(datetime.fromisoformat(str(per_asset[symbol])))
+            for symbol in symbols
+        }
+    except (TypeError, ValueError):
+        return False
+    if any(value < as_of or value + duration > observed for value in asset_boundaries.values()):
+        return False
+    return set(payload.get("evidence_as_of", {}).values()) == {as_of.isoformat()}
+
+
 def _point(snapshot_id: str, payload: dict[str, Any]) -> dict[str, Any]:
     validation = payload["validation"]
     aggregates = [market["aggregate"] for market in _markets(validation)]
@@ -171,6 +236,8 @@ def _point(snapshot_id: str, payload: dict[str, Any]) -> dict[str, Any]:
     return {
         "snapshot_id": snapshot_id,
         "as_of": payload["as_of"],
+        "schema_version": payload.get("schema_version"),
+        "promotion_evidence_eligible": _promotion_evidence_eligible(payload),
         "validation_strategy": payload["configuration"]["validation_strategy"],
         "portfolio_strategy": payload["configuration"]["portfolio_strategy"],
         "selected_candidates": _selected_candidates(validation),
@@ -208,6 +275,9 @@ def build_shadow_stability(
 ) -> dict[str, Any]:
     """Derive deterministic parameter, warning, risk, and review transitions."""
     points = [_point(snapshot_id, payload) for snapshot_id, payload in snapshots]
+    eligible_points = [
+        point for point in points if point["promotion_evidence_eligible"]
+    ]
     transitions: list[dict[str, Any]] = []
     warning_counts: Counter[str] = Counter()
     consecutive_ready = 0
@@ -283,6 +353,7 @@ def build_shadow_stability(
         "generated_at": generated.isoformat(),
         "snapshot_count": len(points),
         "points": points,
+        "promotion_eligible_points": eligible_points,
         "transitions": transitions,
         "summary": {
             "current_disposition": points[-1]["review_disposition"] if points else None,
@@ -290,6 +361,8 @@ def build_shadow_stability(
             "parameter_change_events": parameter_change_events,
             "recurring_warning_counts": dict(sorted(warning_counts.items())),
             "history_warnings": history_warnings,
+            "promotion_eligible_snapshot_count": len(eligible_points),
+            "excluded_legacy_snapshot_count": len(points) - len(eligible_points),
         },
         "review_gate": {
             "disposition": (

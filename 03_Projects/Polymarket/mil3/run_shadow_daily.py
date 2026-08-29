@@ -88,6 +88,11 @@ def main() -> None:
     print("execution_mode=PAPER_ONLY")
     print(f"snapshot_id={snapshot_id} immutable=true")
     print(f"as_of={payload['as_of']}")
+    print(f"observation_date={payload['observation_date']}")
+    print(
+        "closed_candle_boundary="
+        f"{payload['evidence_boundary']['fully_closed']}"
+    )
     print(f"review_gate={payload['review_gate']['disposition']}")
     print(f"snapshots_stored={len(store.list_shadow_daily_snapshots(limit=1000000))}")
 

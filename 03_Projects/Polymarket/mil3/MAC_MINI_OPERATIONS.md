@@ -161,6 +161,13 @@ work is due. Do not load it until at least backup/restore, stale RESERVED,
 kill-switch and notification drills have passed. See
 `FORWARD_BOT_OPERATIONS.md` for the exact staging command and burn-in gates.
 
+MIL-3.26 requires the daily shadow job to run only once per UTC observation
+date, after ingestion and after the intended timeframe candle is fully closed.
+The builder caps validation and portfolio replay to one synchronized closed
+boundary. A changed same-day rerun fails closed, and legacy v1 snapshots remain
+auditable but do not count toward the 30-day promotion window. Do not schedule
+retries that attempt to manufacture additional same-day governance evidence.
+
 ## Upgrade
 
 Stop the jobs before moving the repository or Python environment because the

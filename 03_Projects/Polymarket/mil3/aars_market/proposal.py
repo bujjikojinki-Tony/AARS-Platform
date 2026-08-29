@@ -165,8 +165,17 @@ def build_paper_configuration_proposal(
         raise ValueError("governance must lock automatic strategy changes")
     if decision.get("live_execution_allowed") is not False:
         raise ValueError("governance must disallow live execution")
-    if snapshot.get("schema_version") != "mil3.shadow-daily.v1":
+    snapshot_schema = snapshot.get("schema_version")
+    if snapshot_schema not in {
+        "mil3.shadow-daily.v1",
+        "mil3.shadow-daily.v2",
+    }:
         raise ValueError("unsupported shadow snapshot schema")
+    if (
+        snapshot_schema == "mil3.shadow-daily.v2"
+        and snapshot.get("evidence_boundary", {}).get("fully_closed") is not True
+    ):
+        raise ValueError("v2 shadow snapshot requires closed-candle evidence")
     if snapshot.get("execution_mode") != EXECUTION_MODE:
         raise ValueError("paper proposal requires a PAPER_ONLY snapshot")
     if snapshot.get("review_gate", {}).get("live_execution_allowed") is not False:

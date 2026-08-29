@@ -25,6 +25,7 @@ class DashboardRequest:
     symbol: str = "SOLUSDT"
     timeframe: str = "1h"
     replay_window: str = "90d"
+    as_of: datetime | None = None
 
 
 @dataclass(frozen=True)
@@ -33,6 +34,7 @@ class PortfolioRequest:
     timeframe: str = "1h"
     replay_window: str = "90d"
     strategy: str = "AARS_DYNAMIC"
+    as_of: datetime | None = None
 
 
 class DashboardService:
@@ -93,11 +95,19 @@ class DashboardService:
             raise ValueError(f"unsupported replay window: {request.replay_window}")
         current = now or datetime.now(timezone.utc)
         duration = WINDOWS[request.replay_window]
-        latest = self.store.latest_open_time(symbol, request.timeframe)
+        latest = request.as_of or self.store.latest_open_time(symbol, request.timeframe)
         if latest is None:
             raise ValueError(f"no candles stored for {symbol} {request.timeframe}")
+        if latest.tzinfo is None:
+            latest = latest.replace(tzinfo=timezone.utc)
+        latest = latest.astimezone(timezone.utc)
         start = latest - duration if duration is not None else None
         candles = self.store.load_candles(symbol, request.timeframe, start=start, end=latest)
+        if candles and candles[-1].open_time != latest:
+            raise ValueError(
+                f"evidence boundary missing for {symbol} {request.timeframe}: "
+                f"{latest.isoformat()}"
+            )
         if len(candles) <= self.warmup_bars:
             raise ValueError(
                 f"need > {self.warmup_bars} candles for {symbol} {request.timeframe} "
@@ -158,7 +168,14 @@ class DashboardService:
             raise ValueError("portfolio symbols must be unique")
         payloads = [
             self.build(
-                DashboardRequest(symbol, request.timeframe, request.replay_window),
+                DashboardRequest(
+                    symbol,
+                    request.timeframe,
+                    request.replay_window,
+                    request.as_of,
+                ),
+                # A synchronized evidence cap keeps every asset on the same
+                # fully closed market boundary when supplied by a caller.
                 now=current,
                 archive=False,
                 max_trace_points=1_000_000,

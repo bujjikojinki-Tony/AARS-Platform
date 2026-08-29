@@ -119,13 +119,16 @@ def build_promotion_governance(
     if stability.get("review_gate", {}).get("live_execution_allowed") is not False:
         raise ValueError("stability evidence must explicitly disallow live execution")
 
-    all_points: Sequence[dict[str, Any]] = stability.get("points", [])
+    archived_points: Sequence[dict[str, Any]] = stability.get("points", [])
+    all_points: Sequence[dict[str, Any]] = stability.get(
+        "promotion_eligible_points", archived_points
+    )
     points = list(all_points[-policy.evaluation_window_snapshots :])
     latest = points[-1] if points else None
     transition_count = max(0, len(points) - 1)
     change_events = sum(
-        bool(item.get("candidate_changes"))
-        for item in stability.get("transitions", [])[-transition_count:]
+        before.get("selected_candidates") != after.get("selected_candidates")
+        for before, after in zip(points, points[1:])
     ) if transition_count else 0
     parameter_change_rate = change_events / transition_count if transition_count else 0.0
     mean_selection_stability = (
@@ -164,6 +167,12 @@ def build_promotion_governance(
         latest and latest["review_disposition"] == "READY_FOR_SHADOW_REVIEW"
     )
     latest_healthy = bool(latest and not latest["portfolio"]["degraded"])
+    consecutive_ready = 0
+    for point in points:
+        if point["review_disposition"] == "READY_FOR_SHADOW_REVIEW":
+            consecutive_ready += 1
+        else:
+            consecutive_ready = 0
 
     checks = [
         _check(
@@ -178,8 +187,8 @@ def build_promotion_governance(
         _check(
             "CONSECUTIVE_READY_REVIEWS",
             "Consecutive ready review gates",
-            "PASS" if stability["summary"]["consecutive_ready_snapshots"] >= policy.min_consecutive_ready else "BLOCK",
-            stability["summary"]["consecutive_ready_snapshots"],
+            "PASS" if consecutive_ready >= policy.min_consecutive_ready else "BLOCK",
+            consecutive_ready,
             f">= {policy.min_consecutive_ready}",
             "Recent evidence has not remained continuously reviewable.",
             "Resolve deferral causes and accumulate an uninterrupted ready sequence.",
@@ -305,6 +314,8 @@ def build_promotion_governance(
         "target_strategy": latest["validation_strategy"] if latest else None,
         "evidence_window": {
             "available_snapshots": len(all_points),
+            "archived_snapshots": len(archived_points),
+            "excluded_ineligible_snapshots": len(archived_points) - len(all_points),
             "evaluated_snapshots": len(points),
             "first_as_of": points[0]["as_of"] if points else None,
             "latest_as_of": points[-1]["as_of"] if points else None,

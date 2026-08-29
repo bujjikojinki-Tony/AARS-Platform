@@ -18,7 +18,10 @@ Every decision explicitly sets both `automatic_strategy_change_allowed` and
 
 ## Default candidate policy
 
-The latest 30 archived daily snapshots are evaluated. Candidacy requires:
+The latest 30 promotion-eligible daily snapshots are evaluated. Eligibility
+requires the v2 closed-candle evidence contract and one canonical observation
+per target strategy per UTC date. Older v1 snapshots remain auditable but are
+reported as excluded and do not count toward candidacy. Candidacy requires:
 
 - at least 30 immutable snapshots in total;
 - at least 7 consecutive `READY_FOR_SHADOW_REVIEW` snapshots;
@@ -76,7 +79,7 @@ python run_shadow_daily.py --db mil3_market.sqlite --validation-strategy AARS_DY
 python run_api.py --db mil3_market.sqlite --port 8765
 ```
 
-Governance is recalculated on read after each immutable daily snapshot. No
+Governance is recalculated on read after each eligible immutable daily snapshot. No
 separate decision row is persisted and no parameter is promoted by this flow.
 
 When the result is `PROMOTION_CANDIDATE`, MIL-3.15 can create a separate

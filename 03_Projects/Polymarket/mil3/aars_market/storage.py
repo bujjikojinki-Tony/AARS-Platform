@@ -114,6 +114,9 @@ CREATE TABLE IF NOT EXISTS shadow_daily_snapshots (
 CREATE INDEX IF NOT EXISTS idx_shadow_daily_created
 ON shadow_daily_snapshots(created_at DESC, snapshot_id DESC);
 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_shadow_daily_target_utc_date
+ON shadow_daily_snapshots(substr(as_of, 1, 10), target_strategy);
+
 CREATE TABLE IF NOT EXISTS paper_configuration_proposals (
     proposal_id TEXT PRIMARY KEY,
     created_at TEXT NOT NULL,
@@ -847,15 +850,16 @@ class MarketStore:
             payload, sort_keys=True, separators=(",", ":"), allow_nan=False
         )
 
-        def evidence(value: Any) -> Any:
+        def evidence(value: Any, path: tuple[str, ...] = ()) -> Any:
             if isinstance(value, dict):
                 return {
-                    key: evidence(item)
+                    key: evidence(item, path + (key,))
                     for key, item in value.items()
                     if key != "generated_at"
+                    and path + (key,) != ("evidence_boundary", "observed_at")
                 }
             if isinstance(value, list):
-                return [evidence(item) for item in value]
+                return [evidence(item, path) for item in value]
             return value
 
         identity = json.dumps(
@@ -863,9 +867,26 @@ class MarketStore:
         )
         snapshot_id = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:24]
         created = created_at or datetime.now(timezone.utc)
+        observation_date = _parse(str(payload["as_of"])).date().isoformat()
+        target_strategy = str(
+            payload["configuration"]["validation_strategy"]
+        ).upper()
         with self.connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            existing = conn.execute(
+                """SELECT snapshot_id FROM shadow_daily_snapshots
+                   WHERE substr(as_of, 1, 10)=? AND target_strategy=?""",
+                (observation_date, target_strategy),
+            ).fetchone()
+            if existing is not None:
+                if existing["snapshot_id"] == snapshot_id:
+                    return snapshot_id
+                raise ValueError(
+                    "daily shadow evidence already archived for "
+                    f"{target_strategy} on {observation_date}"
+                )
             conn.execute(
-                """INSERT OR IGNORE INTO shadow_daily_snapshots(
+                """INSERT INTO shadow_daily_snapshots(
                        snapshot_id, as_of, created_at, target_strategy,
                        symbols_json, schema_version, payload_json
                    ) VALUES (?, ?, ?, ?, ?, ?, ?)""",
@@ -873,7 +894,7 @@ class MarketStore:
                     snapshot_id,
                     payload["as_of"],
                     _iso(created),
-                    payload["configuration"]["validation_strategy"],
+                    target_strategy,
                     json.dumps(payload["symbols"], separators=(",", ":")),
                     payload["schema_version"],
                     canonical,

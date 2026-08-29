@@ -370,3 +370,66 @@
 - Final MIL-3.25 verification: 159 Python tests passed in 12.30 seconds; Python compilation, JavaScript syntax, diff whitespace and safety scans passed.
 - No service was installed or loaded. No credential, signed request, authenticated adapter, external order request or live-execution authority was added.
 - MIL-3.25 is ready for its local milestone commit.
+
+## 2026-08-28 — First real-data PAPER_ONLY cycle
+- Recovered the completed MIL-3.25 plan and confirmed the branch is clean and fifteen commits ahead of origin.
+- A deterministic isolated smoke run passed all seven MIL-3.25 tests; the repository currently has no dedicated MIL-3 market database.
+- Next: inspect the exact public ingestion and isolated activation commands before creating any local runtime state.
+- Confirmed the ingestion boundary uses only Binance public endpoints and preserves `execution_mode=PAPER_ONLY`.
+- Created the dedicated persistent runtime directory outside the Git worktree.
+- Ingested 120 days of live Binance public 1h candles and funding data for BTCUSDT, ETHUSDT and SOLUSDT; every request completed successfully.
+- Next: run integrity and governance STATUS, then issue one bounded WAKE to verify the expected fail-safe result without fabricating approval authority.
+- SQLite integrity is `ok`; health is `DEGRADED` solely for the absent scheduler receipt while database and candle freshness checks are healthy.
+- Forward STATUS is safely `BLOCKED` by `CONFIGURATION_NOT_EFFECTIVE` and fail-safe `KILL_SWITCH_ARMED`.
+- Issued one bounded WAKE; it returned `cycle_executed=false` and wrote no runtime ledger because the governance gates are not satisfied.
+- Ran one bounded incremental public-data scheduler cycle; all seven resource results were `SUCCESS`.
+- Next: verify final health, table-level absence of runtime cycles, and Git worktree isolation.
+- Final verification passed: database integrity `ok`, operational health `HEALTHY`, one successful ingestion cycle, and zero runtime/configuration/approval records.
+- The first real-data bot ledger is blocked pending the deliberate proposal, trial, forward-observation and human activation-review workflow; no gate was bypassed.
+
+## 2026-08-28 — Real-data candidate and trial preparation
+- User authorized continuation after the first real-data WAKE correctly stopped at the governance gates.
+- Scope is to generate and verify automatic research evidence and an inert proposal only; no human APPROVE decision will be inferred from a generic continuation command.
+- Next: inspect exact CLI and evidence prerequisites, then run bounded shadow validation.
+- Confirmed the proposal gate cannot be reached on day one: it requires 30 distinct immutable daily snapshots, and duplicate market evidence is idempotent.
+- Next: archive the first genuine daily AARS_DYNAMIC shadow snapshot and inspect its review/governance evidence.
+- Archived the first genuine multi-asset AARS_DYNAMIC daily shadow snapshot; automatic review correctly returned `DEFER` on day one.
+- Next: extract exact immutable metrics and read-only governance checks from the stored payload.
+- Extracted the headline portfolio and per-asset metrics from the immutable payload; risk stayed below hard-stop thresholds, but validation deferred for baseline underperformance.
+- Next: compute the read-only promotion-governance report and verify that proposal generation fails closed without creating a proposal.
+- Computed read-only promotion governance: `CONTINUE_OBSERVATION`, with performance/history blocks but no material rejection band.
+- Verified proposal generation fails closed at the automatic governance gate.
+- Next: run final integrity/evidence-count verification and preserve the day-one handoff state.
+- Final integrity and authority verification passed. The evidence workflow is safely paused at the automatic promotion gate; day-two progress requires new market evidence, not duplicate replays or an inferred human approval.
+
+## 2026-08-29 — Real-data daily evidence day 2
+- User authorized continuation on the next calendar day.
+- Scope remains one bounded public ingestion plus one immutable daily shadow snapshot; no service installation, proposal review, activation or live execution.
+- Next: verify the day-one database baseline and ingest the latest public market rows.
+- Verified the day-one baseline and completed the day-two bounded public-data ingestion successfully.
+- Next: archive the day-two immutable AARS_DYNAMIC shadow snapshot using the identical research configuration.
+- Archived a new day-two snapshot and compared it with day one. Portfolio performance weakened while modeled liquidation risk stayed low and unchanged.
+- Next: recompute promotion governance, run forward STATUS and complete final integrity/authority verification.
+- Recomputed day-two promotion governance and forward STATUS. Observation continues, and all runtime/activation gates remain intentionally closed.
+- Next: perform final database health, evidence-count, Git isolation and authority checks.
+- Day-two final verification passed. The dedicated database remains healthy and PAPER_ONLY, with no runtime or proposal artifacts created.
+
+## 2026-08-29 — MIL-3.26 closed-candle daily evidence integrity
+- A same-day continuation check found no new daily boundary and correctly avoided creating a third snapshot.
+- Operational review exposed a trust gap: daily shadow evidence uses the latest stored open time, while public ingestion includes the current still-open candle. Forward bot operations already enforce candle finality, but daily governance evidence does not.
+- Next: inspect the shadow builder, finality helpers and storage uniqueness contract before changing evidence semantics.
+- Inspected the shadow builder, storage identity and finality helper. Confirmed both validation and portfolio currently can consume the latest open candle.
+- Next: inspect the portfolio request/service seam and migration-safe storage options, then implement a shared boundary with deterministic daily observation identity.
+- Selected the implementation: optional portfolio evidence cap, shared synchronized closed boundary, v2 finality metadata, and one UTC observation per target strategy enforced transactionally plus a unique SQLite expression index.
+- Next: patch service, shadow builder, storage and deterministic MIL-3.26 tests.
+- Implemented the first service/builder/storage pass. Existing regression exposed two expected semantic updates: an exact-minimum fixture now needs its last bar closed, and observed-at must not make identical evidence non-idempotent.
+- Next: fix identity normalization, update the minimum fixture and add dedicated open-bar/daily uniqueness tests.
+- Added deterministic tests for closed-boundary metadata, open-candle mutation immunity, same-day archive rejection and next-day/idempotent behavior; 21 MIL-3.12/15/16 tests pass.
+- Next: separate auditable legacy v1 history from v2 promotion-eligible evidence, then update docs and run full regression.
+- Implemented legacy audit retention with v2-only promotion eligibility and added governance tests; 32 targeted tests pass.
+- Next: expose closed-boundary metadata in CLI output, document the reset/one-per-day contract and run the full MIL-3 suite.
+- Updated CLI output plus continuous-shadow, promotion-governance, Mac operations and main MIL-3 milestone documentation.
+- Next: run the full suite, syntax/diff checks, migrate the development database index and verify the corrected real-data governance reset.
+- Full MIL-3 verification passes 163 tests plus syntax, whitespace and no-live-path scans.
+- Migrated and verified the real development database: unique daily index present, integrity `ok`, legacy audit rows preserved, eligible promotion history reset to zero.
+- MIL-3.26 is ready for a local milestone commit; no background service was installed and no same-day snapshot was created.

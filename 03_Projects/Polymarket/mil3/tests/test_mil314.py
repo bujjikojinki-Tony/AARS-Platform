@@ -129,6 +129,24 @@ def test_governance_continues_observation_for_insufficient_history_or_warnings()
     assert statuses["HIGH_RISK_WARNING_RECURRENCE"] == "BLOCK"
 
 
+def test_governance_counts_only_explicitly_eligible_closed_evidence():
+    stability = _stability()
+    stability["promotion_eligible_points"] = stability["points"][-2:]
+
+    payload = build_promotion_governance(stability, generated_at=START)
+
+    assert payload["evidence_window"] == {
+        "available_snapshots": 2,
+        "archived_snapshots": 30,
+        "excluded_ineligible_snapshots": 28,
+        "evaluated_snapshots": 2,
+        "first_as_of": stability["points"][-2]["as_of"],
+        "latest_as_of": stability["points"][-1]["as_of"],
+    }
+    assert payload["decision"]["disposition"] == "CONTINUE_OBSERVATION"
+    assert "MINIMUM_DAILY_HISTORY" in payload["decision"]["blocking_checks"]
+
+
 @pytest.mark.parametrize(
     ("kwargs", "check_id"),
     [
