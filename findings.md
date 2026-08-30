@@ -421,3 +421,17 @@
 - Final full verification passes 163 Python tests, Python compilation, JavaScript syntax and diff whitespace checks. The safety scan found no credential, signed-request, order-submission or LIVE-mode additions.
 - The real development database migrated successfully with `idx_shadow_daily_target_utc_date`; integrity is `ok`, two legacy snapshots remain, and proposal/runtime-cycle counts remain zero.
 - Corrected promotion evidence intentionally resets to 0/30 eligible observations. The first trustworthy v2 day can be archived on the next UTC observation date; the two v1 rows stay available only as excluded audit history.
+
+## 2026-08-30 — First real v2 daily run
+- The run must produce schema `mil3.shadow-daily.v2`, `fully_closed=true`, a synchronized boundary no later than `observed_at - 1h`, and eligible governance count 1 while preserving two excluded v1 audit rows.
+- Baseline integrity is `ok`; committed code is `7f53c40`, archived evidence is two v1 rows, eligible v2 count is zero and synchronized stored candles initially ended at `2026-08-29T07:00:00+00:00`.
+- Incremental cycle `45e2954795ab2bfcd472d628` completed every public resource successfully at `2026-08-30T04:05:51Z`: 24 candle rows and five funding rows fetched per asset plus a current 8h cadence snapshot.
+- First trustworthy real v2 snapshot is `aaf51f130fdcf43d0bd65ec5`, with observation date `2026-08-30`, synchronized closed boundary `2026-08-30T03:00:00+00:00`, `fully_closed=true`, and review gate `DEFER`.
+- A second identical real command returned the same snapshot ID and kept the archive count at 3, proving operational idempotency and one-per-day protection on the persistent database.
+- First v2 portfolio result: -2.44% total return, 14.96% max drawdown, 0.395% max liquidation-risk approximation and zero liquidation events. Per-asset returns are BTC -5.66%, ETH -6.28% and SOL +4.63%; funding coverage is COMPLETE for all three.
+- The train/test fold boundary has not advanced beyond the existing 168-hour step, so validation remains 36 folds with -2.66% mean excess return versus Buy & Hold, 77.78% selection stability and warnings `BASELINE_UNDERPERFORMANCE` plus `PARAMETER_INSTABILITY`.
+- Corrected governance reports 3 archived snapshots, exactly 1 eligible v2 observation and 2 excluded v1 audit rows. Decision remains `CONTINUE_OBSERVATION` with no rejection band reached.
+- Final operational health is `HEALTHY`. Latest stored open candles are 04:00 UTC while immutable evidence stops at the closed 03:00 UTC boundary, directly confirming open-bar exclusion on real data.
+- Final counts: 3 ingestion cycles, 3 archived snapshots, 0 proposals, 0 runtime sessions, 0 runtime cycles and 0 ledger results; SQLite integrity is `ok`.
+- Forward STATUS remains `BLOCKED` only by `CONFIGURATION_NOT_EFFECTIVE` and fail-safe `KILL_SWITCH_ARMED`; external order requests, order path and live execution are all false.
+- Relevant daily evidence, governance and forward-operation regression passes 26 tests.

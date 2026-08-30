@@ -433,3 +433,16 @@
 - Full MIL-3 verification passes 163 tests plus syntax, whitespace and no-live-path scans.
 - Migrated and verified the real development database: unique daily index present, integrity `ok`, legacy audit rows preserved, eligible promotion history reset to zero.
 - MIL-3.26 is ready for a local milestone commit; no background service was installed and no same-day snapshot was created.
+
+## 2026-08-30 — First real v2 daily run
+- User requested an actual-effects run after the MIL-3.26 closed-candle integrity fix.
+- Scope is one bounded public ingestion, one v2 daily snapshot, governance/performance comparison and fail-safe runtime status; no service installation or activation.
+- Next: verify the committed code and persistent database baseline before network ingestion.
+- Verified the committed MIL-3.26 baseline and completed one bounded public-data ingestion cycle with all seven resource results successful.
+- Next: build and archive the first real synchronized fully closed v2 daily snapshot.
+- Archived the first real v2 closed-candle snapshot and reran the same command; the ID was reused and no fourth row was created.
+- Next: extract actual portfolio/asset metrics, validation warnings and corrected promotion-governance counts.
+- Extracted first-v2 actual metrics and governance: risk remains within limits, performance still underperforms Buy & Hold, and eligible progress is correctly 1/30.
+- Next: verify health, exact open-versus-closed boundary, forward fail-safe status, evidence counts and targeted tests.
+- Final health, finality, governance and safety verification passed. The open 04:00 candle was excluded from the closed 03:00 v2 evidence boundary.
+- Targeted regression passed 26 tests. No proposal, runtime session, runtime cycle, paper ledger or live path was created.

@@ -480,3 +480,13 @@ PWB-11 Complete
 | Same-data CLI rerun produced a different ID because `evidence_boundary.observed_at` entered content identity | 1 | Preserve observed-at audit metadata but exclude only that operational timestamp from the content-addressed identity, as already done for generated-at fields |
 | Combined documentation patch assumed an outdated sentence in the main milestone file | 1 | Apply the known CLI/operations documents separately, inspect the exact milestone section and patch against current text |
 | First final safety-scan command used an over-complex shell quote pattern and did not execute | 1 | Split diff, safety and database checks into simple independently quoted commands |
+
+## MIL-3.26 First Real v2 Daily Run
+- [x] Verify clean committed code, database integrity and prior v1 audit baseline
+- [x] Run one bounded Binance public incremental ingestion cycle
+- [x] Build and archive one synchronized fully closed v2 daily snapshot
+- [x] Verify snapshot finality, input boundary and daily uniqueness evidence
+- [x] Compare actual portfolio/asset performance and promotion governance
+- [x] Confirm forward runtime remains fail-safe PAPER_ONLY with no live path
+- [x] Record final database counts and test the relevant runtime path
+- **Status:** complete
