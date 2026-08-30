@@ -206,3 +206,305 @@
 - Added `weather-dashboard/src/weather_dashboard/ui/activation_authorization_review_panel.py` and wired it into the History shell.
 - Added PWB-11 dashboard smoke coverage and freeze docs.
 - Verified the new panel module and History shell import path with the local `python3` runtime.
+## 2026-08-25 — MIL-3.17 started
+- Confirmed clean `mil-3-live-market-paper-trading` worktree at MIL-3.16.
+- Recovered the file-based plan and established the forward-only observation boundary and safety constraints.
+- Next: implement the domain model and storage contract, then expose read-only workflows and deterministic tests.
+- Implemented the forward-only builder, synchronized multi-asset boundary, dynamic funding coverage gate, advisory dispositions, append-only SQLite archive, lineage chain, read-only service/API, and explicit local CLI.
+- Added seven deterministic MIL-3.17 backend acceptance tests; all seven pass.
+- Next: add the read-only forward observation console, documentation, then run the full suite.
+- Added the forward-only dashboard card with explicit leakage boundary, advisory status, stop state, per-asset evidence and checkpoint lineage; the client fails closed on schema or authority violations.
+- Added `FORWARD_OBSERVATION.md` and updated the main MIL-3 and UI documentation.
+- Final verification: JavaScript syntax check passed; 98 Python tests passed in 2.62 seconds.
+- Final diff passed whitespace validation; MIL-3.17 is ready for its local milestone commit.
+## 2026-08-25 — MIL-3.18 started
+- Confirmed clean MIL-3.17 baseline and recovered the persistent plan.
+- Selected continuous checkpoint scheduling plus stability/decay governance as the next bounded milestone.
+- Next: inspect scheduler and observation contracts, then implement the stability model first.
+- Implemented derived forward stability/governance with confirmation streaks, lineage/cadence verification, decay/reversal/rising-risk alarms and hard-stop precedence.
+- Implemented the independent local forward monitor and bounded CLI; ingestion remains public-market-data-only.
+- Added seven deterministic MIL-3.18 backend tests; all pass after correcting one direct-handler test expectation.
+- Next: expose stability and alarm evidence in the read-only console, then document and run the full suite.
+- Added continuous-governance UI progress, trace, alarm and recovery evidence plus strict client authority validation.
+- Added continuous-forward documentation and updated the main MIL-3 and UI contracts.
+- Full verification: JavaScript syntax passed; 106 Python tests passed in 3.14 seconds.
+- Next: inspect the final diff for safety/regression issues, then commit MIL-3.18 locally.
+- Final hardening added review-gate authority checks, genesis/time-order lineage validation and empty-history API identity.
+- Final verification after hardening: 106 Python tests passed in 3.20 seconds; JavaScript syntax and diff whitespace checks passed.
+- MIL-3.18 is ready for its local milestone commit.
+## 2026-08-26 — MIL-3.19 started
+- Confirmed the clean MIL-3.18 baseline and recovered the persistent plan.
+- Defined the human-review state machine and evidence-export boundary while preserving read-only API and PAPER_ONLY authority.
+- Next: inspect proposal-review storage patterns, then implement review records and lifecycle enforcement.
+- Implemented append-only human review records, state transitions, review lineage, stability/source verification and monitor pause/termination enforcement.
+- Implemented self-verifying JSON evidence bundles plus explicit review/export CLIs.
+- Existing MIL-3.18 tests still pass and new modules compile.
+- Next: add read-only lifecycle/manifest APIs and deterministic MIL-3.19 acceptance tests.
+- Added read-only lifecycle, review-detail and evidence-manifest APIs.
+- Added seven deterministic MIL-3.19 backend tests; all pass.
+- Next: add the lifecycle/review/export trust surface to the read-only console, then document and run the full suite.
+- Added the MIL-3.19 read-only lifecycle console with explicit available-action gates, immutable review history, evidence-manifest trust and fail-closed unavailable states; JavaScript syntax and targeted UI/backend tests pass.
+- Hardened the final review insert against source/lineage races and made authority-lock tampering fail bundle verification.
+- Next: finish milestone documentation, run the full suite and complete the local commit.
+- Added the human-review/evidence-export operating contract and updated continuous-observation, main milestone and console HMI documentation.
+- Final MIL-3.19 verification: 114 Python tests passed in 4.34 seconds; JavaScript syntax, Python compilation and diff whitespace checks passed.
+- Safety scan found only the existing API write-method rejection handlers; no credential, authenticated adapter, order submission, automatic parameter application or live-execution path was added.
+- MIL-3.19 is ready for its local milestone commit.
+
+## 2026-08-26 — MIL-3.20 started
+- Confirmed the clean MIL-3.19 baseline and recovered the persistent plan.
+- Selected database-independent verification, narrowly scoped retention, and isolated PAPER_ONLY activation approval as the bounded implementation scope.
+- Next: inspect the existing evidence, backup, proposal/trial and storage conventions before finalizing schemas.
+- Inspected existing proposal/trial review, evidence export, operations backup and read-only API conventions.
+- Chosen boundary: offline file verification and retention never touch SQLite; approval archives only a verified evidence receipt and isolated sandbox authority, never materializes or applies strategy configuration.
+- Implemented strict duplicate-key JSON loading, database-independent bundle verification reports and explicit verification CLI.
+- Implemented atomic evidence backup, post-copy hash verification, immutable sidecars/inventories, age retention with a minimum-copy floor and filename-scoped pruning.
+- Next: implement the isolated approval event model and independent storage revalidation.
+- Implemented isolated approval/rejection/revocation payloads, bounded expiry, sandbox identifiers, immutable lineage storage, current-evidence reconstruction and final-transaction source checks.
+- Added explicit local activation-review CLI plus read-only policy, lifecycle and review-detail service/API surfaces.
+- Python compilation passes; the first targeted test invocation used the wrong working directory and is being rerun from the MIL-3 root.
+- Added deterministic MIL-3.20 tests for strict offline verification, non-overwrite reports, atomic verified retention, minimum-copy pruning, unknown/lookalike preservation, approval prerequisites, rejection, bounded expiry, revocation, tamper rejection, APIs, CLIs and UI authority.
+- Added the read-only MIL-3.20 control surface with explicit prerequisite PASS/BLOCK state, retention policy, immutable approval history, expiry/revocation recovery and no browser approval/activation controls.
+- Targeted regression verification passes: 29 tests plus JavaScript syntax and diff whitespace checks.
+- Next: complete operations and milestone documentation, then run the full suite and final safety review.
+- Added the MIL-3.20 offline/retention/approval operating contract and updated main milestone, human-review, Mac mini and HMI documentation.
+- Final MIL-3.20 verification: 123 Python tests passed in 5.51 seconds; Python compilation, JavaScript syntax and diff whitespace checks passed.
+- Final safety scan found only the existing API write-method rejection handlers. No credential, authenticated adapter, order route, configuration materialization, automatic application or live execution path was added.
+- MIL-3.20 is ready for its local milestone commit.
+
+## 2026-08-27 — MIL-3.21 started
+- Confirmed the clean MIL-3.20 baseline and recovered the persistent plan.
+- Defined a one-time approval-consumption registry, versioned sandbox pointer, append-only activation events and read-only fail-safe resolution boundary.
+- Next: implement schema/domain/storage first, then exercise atomic activation, rollback and expiry behavior before adding API/UI.
+- Added immutable approved-configuration registry entries with unique approval consumption and exact approval/configuration/source verification.
+- Added versioned sandbox pointers and append-only ACTIVATE, ROLLBACK and fail-safe invalidation events committed under one immediate SQLite transaction.
+- Added read-only sandbox resolution that immediately suppresses expired/revoked/mismatched stored pointers without mutating on GET.
+- Added explicit reconciliation storage workflow for persisting already-effective invalidation states.
+- Existing MIL-3.20 tests remain green and new modules compile.
+- Added one explicit local CLI for REGISTER, ACTIVATE, ROLLBACK and RECONCILE plus GET-only registry, configuration, sandbox and event APIs.
+- Added the MIL-3.21 console surface with stored/effective separation, immutable configuration identity, rollback target validity, atomic event trail and fail-safe recovery instructions.
+- Added nine deterministic MIL-3.21 tests for one-time approval consumption, inert registration, optimistic race rejection, monotonic events, atomic activation/rollback, immediate expiry/revocation suppression, persisted reconciliation, API, CLI and UI gates.
+- Targeted regression verification passes: 38 tests plus Python compilation, JavaScript syntax and diff whitespace checks.
+- Next: document the registry lifecycle and Mac mini reconciliation model, then run the full suite and final safety review.
+- Added the isolated PAPER_ONLY registry operating contract and updated the main milestone, approval, Mac mini and HMI documentation.
+- Final MIL-3.21 verification: 132 Python tests passed in 6.52 seconds; Python compilation, JavaScript syntax and diff whitespace checks passed.
+- Final safety review confirmed the new service/API paths are read-only and found no order submission, strategy-process start, shared-configuration mutation or live-execution authority.
+- MIL-3.21 is ready for its local milestone commit.
+
+## 2026-08-27 — MIL-3.22 started
+- Confirmed the clean MIL-3.21 baseline at `4b56298`; the branch is eleven commits ahead of origin.
+- Scoped the milestone to a fenced, leased PAPER_ONLY runtime that consumes only the registry's effective configuration and cannot reach an execution adapter.
+- Next: inspect registry, monitor and storage conventions, then define session/event invariants before implementation.
+- Added fail-safe-by-default sandbox kill switches, immutable kill events, fenced runtime sessions and append-only runtime lifecycle events.
+- Added atomic acquisition/takeover, token-checked heartbeat renewal, manual stop, derived fail-safe state and explicit reconciliation.
+- Added a bounded local worker that consumes only effective configuration identity and never starts replay or an order path.
+- First MIL-3.22 backend regression pass: 14 MIL-3.21/3.22 tests passed.
+- Next: expose the explicit local lifecycle CLI and read-only API, then build the runtime trust surface in the console.
+- Added explicit RUN, STOP, ARM_KILL, CLEAR_KILL and RECONCILE local CLI actions plus GET-only runtime/session/event API surfaces.
+- Added the runtime HMI for actual versus stored status, kill-switch authority, lease/heartbeat trust, immutable histories and recovery; browser write controls remain absent.
+- Targeted MIL-3.13/3.18–3.22 regression verification passes: 46 tests plus JavaScript syntax.
+- Added the MIL-3.22 runtime contract and updated registry, milestone, Mac mini and HMI operations documentation.
+- Next: run the full suite, inspect safety boundaries and close the local milestone commit.
+- Final MIL-3.22 verification after audit hardening: 140 Python tests passed in 7.68 seconds; Python compilation, JavaScript syntax and diff whitespace checks passed.
+- Final safety scan found only the existing API write-method rejection handlers. New runtime service/API paths are read-only and no credential, signed request, replay start, order path or live-execution authority was added.
+- MIL-3.22 is ready for its local milestone commit.
+
+## 2026-08-27 — MIL-3.23 started
+- Confirmed the clean MIL-3.22 baseline at `a70b93a`; the branch is twelve commits ahead of origin.
+- Scoped the milestone to deterministic read-only market snapshots, idempotent paper calculations, atomic checkpoint commits and crash-safe resume under the MIL-3.22 fenced lease.
+- Next: inspect replay/paper-ledger configuration and calculation contracts, then define the smallest deterministic cycle payload before storage work.
+- Added synchronized content-addressed runtime market snapshots built only from stored candles, funding and cadence observations.
+- Added deterministic cumulative paper-ledger calculation by reusing the unified ReplayEngine and approved proposed-strategy settings.
+- Added unique cycle checkpoints, append-only RESERVE/RECOVER/COMMIT events and atomic ledger-result/checkpoint commit under the fenced lease.
+- Added duplicate committed-cycle reuse, stale-owner recovery, source-drift rejection and monotonic checkpoint chaining.
+- Integrated paper calculation into each leased runtime heartbeat; insufficient data reports WAITING without relaxing runtime authority.
+- Initial MIL-3.22/3.23 backend verification passes: 12 tests.
+- Next: add read-only checkpoint/result APIs and the snapshot/commit/recovery HMI evidence surface.
+- Added GET-only cycle index/detail, checkpoint event and paper-ledger result APIs; the existing bounded RUN CLI now performs the governed calculation.
+- Added the MIL-3.23 HMI surface for checkpoint status/owner/attempts, snapshot hashes, cumulative ledger attribution and RESERVE/RECOVER/COMMIT history.
+- Added deterministic tests for duplicate reuse, crash takeover, source drift, tampered results, monotonic cycle chaining, API non-mutation and UI authority.
+- Added the MIL-3.23 calculation/recovery contract and updated runtime, main milestone, Mac mini and HMI documentation.
+- Next: run the full suite, audit atomicity and execution boundaries, then complete the local milestone commit.
+- Final MIL-3.23 verification after finite-JSON hardening: 146 Python tests passed in 15.14 seconds; Python compilation, JavaScript syntax and diff whitespace checks passed.
+- Final safety scan found only the existing API write-method rejection handlers. New checkpoint/result HTTP paths are read-only and no credential, signed request, external order request or live-execution authority was added.
+- MIL-3.23 is ready for its local milestone commit.
+
+## 2026-08-28 — MIL-3.24 started
+- Confirmed the clean MIL-3.23 baseline at `d294e41`; the branch is thirteen commits ahead of origin.
+- Scoped the milestone to four deterministic PAPER_ONLY shadow bots sharing one synchronized snapshot while preserving independent accounts and fail-safe risk state.
+- Next: inspect current replay, runtime-ledger, storage, service and UI seams before finalizing the bot-cycle schema.
+- Confirmed the common ReplayEngine and four strategy implementations can be reused directly; no second accounting engine is required.
+- Selected an atomic embedded bot-fleet result bound to the existing cycle/snapshot/configuration hashes, preserving MIL-3.23 recovery and idempotency guarantees.
+- Next: inspect approved risk settings and API/HMI result rendering, then implement the fleet calculation and integrity contract.
+- Extended ReplayEngine with opt-in risk-stop enforcement, deterministic simulated fill evidence and final account-state trace fields; ordinary replay callers retain existing behavior.
+- Python compilation passes. The first targeted pytest command hit only a nested-package path collection issue and is being rerun with the explicit local package path.
+- Implemented the fixed four-bot orchestrator with independent virtual accounts, approved parameters, complete metrics, account/fill evidence and flatten-and-freeze risk response.
+- Embedded and integrity-bound the fleet in atomic ledger v2 while retaining legacy v1 verification for previously committed cycles.
+- Targeted simulation/trial/runtime regression verification passes: 18 tests.
+- Next: add the read-only fleet control surface and MIL-3.24 deterministic acceptance tests.
+- Added the four-account read-only runtime surface with state, P&L attribution, costs, leverage, liquidation risk, simulated-fill count and explicit stop reasons; no browser controls were added.
+- Added the MIL-3.24 fleet contract and updated runtime-ledger, main milestone, Mac mini and console HMI documentation.
+- Final hardening handles insolvent paper approximations without inventing an impossible flatten fill.
+- Final MIL-3.24 verification: 152 Python tests passed in 11.21 seconds; Python compilation, JavaScript syntax, diff whitespace and safety scans passed.
+- Safety scan found only the existing random fencing-token generator. No credential, signed request, authenticated adapter, external order request or live-execution authority was added.
+- MIL-3.24 is ready for its local milestone commit.
+
+## 2026-08-28 — MIL-3.25 started
+- Confirmed the clean MIL-3.24 baseline at `f0135a8`.
+- Defined the forward-operations scope and preserved the no-install, no-credential and no-live-order boundaries.
+- Next: inspect existing finality, scheduler, runtime, ledger lineage, alerts and Mac service seams.
+- Inspected ingestion, runtime lease, operations health and Mac deployment contracts.
+- Selected a separate forward-operations runner over stored public data, with explicit closed-bar preflight and existing lease/checkpoint fencing as the concurrency authority.
+- Selected derived content-addressed deltas/alerts/burn-in evidence over new mutable tables.
+- Next: implement timeframe finality and the forward-operations domain report before CLI/API/UI integration.
+- Implemented timeframe-aware synchronized closed-candle selection and made runtime snapshots reject an explicitly unclosed boundary.
+- Implemented the forward-operations domain view with new-bar detection, cycle/account deltas, runtime/data/risk alerts and continuous 7/14-day burn-in evidence.
+- Existing monotonic-chain test exposed its old still-open-candle assumption; the fixture is being updated to cross a real close boundary under a valid lease.
+- Added explicit STATUS, WAKE and bounded/foreground scheduler CLI modes.
+- Added a separately rendered, one-shot forward-bot LaunchAgent artifact that is excluded from the existing install set and has not been installed or loaded.
+- Added six deterministic backend/CLI/service-definition tests; combined MIL-3.23–3.25 verification passes 18 tests.
+- Next: expose the content-addressed operations view through GET-only API and the runtime console.
+- Added GET-only forward-operations API and the console trigger/delta/alert/burn-in surfaces; the browser has no WAKE, service, recovery or order controls.
+- Added the MIL-3.25 forward-operations contract and updated the main milestone, deterministic ledger, Mac mini and HMI documentation.
+- Final recovery audit allows a stale RESERVED checkpoint to recover only when it is the sole critical alert; authority, data and integrity alerts still block the wake.
+- Final MIL-3.25 verification: 159 Python tests passed in 12.30 seconds; Python compilation, JavaScript syntax, diff whitespace and safety scans passed.
+- No service was installed or loaded. No credential, signed request, authenticated adapter, external order request or live-execution authority was added.
+- MIL-3.25 is ready for its local milestone commit.
+
+## 2026-08-28 — First real-data PAPER_ONLY cycle
+- Recovered the completed MIL-3.25 plan and confirmed the branch is clean and fifteen commits ahead of origin.
+- A deterministic isolated smoke run passed all seven MIL-3.25 tests; the repository currently has no dedicated MIL-3 market database.
+- Next: inspect the exact public ingestion and isolated activation commands before creating any local runtime state.
+- Confirmed the ingestion boundary uses only Binance public endpoints and preserves `execution_mode=PAPER_ONLY`.
+- Created the dedicated persistent runtime directory outside the Git worktree.
+- Ingested 120 days of live Binance public 1h candles and funding data for BTCUSDT, ETHUSDT and SOLUSDT; every request completed successfully.
+- Next: run integrity and governance STATUS, then issue one bounded WAKE to verify the expected fail-safe result without fabricating approval authority.
+- SQLite integrity is `ok`; health is `DEGRADED` solely for the absent scheduler receipt while database and candle freshness checks are healthy.
+- Forward STATUS is safely `BLOCKED` by `CONFIGURATION_NOT_EFFECTIVE` and fail-safe `KILL_SWITCH_ARMED`.
+- Issued one bounded WAKE; it returned `cycle_executed=false` and wrote no runtime ledger because the governance gates are not satisfied.
+- Ran one bounded incremental public-data scheduler cycle; all seven resource results were `SUCCESS`.
+- Next: verify final health, table-level absence of runtime cycles, and Git worktree isolation.
+- Final verification passed: database integrity `ok`, operational health `HEALTHY`, one successful ingestion cycle, and zero runtime/configuration/approval records.
+- The first real-data bot ledger is blocked pending the deliberate proposal, trial, forward-observation and human activation-review workflow; no gate was bypassed.
+
+## 2026-08-28 — Real-data candidate and trial preparation
+- User authorized continuation after the first real-data WAKE correctly stopped at the governance gates.
+- Scope is to generate and verify automatic research evidence and an inert proposal only; no human APPROVE decision will be inferred from a generic continuation command.
+- Next: inspect exact CLI and evidence prerequisites, then run bounded shadow validation.
+- Confirmed the proposal gate cannot be reached on day one: it requires 30 distinct immutable daily snapshots, and duplicate market evidence is idempotent.
+- Next: archive the first genuine daily AARS_DYNAMIC shadow snapshot and inspect its review/governance evidence.
+- Archived the first genuine multi-asset AARS_DYNAMIC daily shadow snapshot; automatic review correctly returned `DEFER` on day one.
+- Next: extract exact immutable metrics and read-only governance checks from the stored payload.
+- Extracted the headline portfolio and per-asset metrics from the immutable payload; risk stayed below hard-stop thresholds, but validation deferred for baseline underperformance.
+- Next: compute the read-only promotion-governance report and verify that proposal generation fails closed without creating a proposal.
+- Computed read-only promotion governance: `CONTINUE_OBSERVATION`, with performance/history blocks but no material rejection band.
+- Verified proposal generation fails closed at the automatic governance gate.
+- Next: run final integrity/evidence-count verification and preserve the day-one handoff state.
+- Final integrity and authority verification passed. The evidence workflow is safely paused at the automatic promotion gate; day-two progress requires new market evidence, not duplicate replays or an inferred human approval.
+
+## 2026-08-29 — Real-data daily evidence day 2
+- User authorized continuation on the next calendar day.
+- Scope remains one bounded public ingestion plus one immutable daily shadow snapshot; no service installation, proposal review, activation or live execution.
+- Next: verify the day-one database baseline and ingest the latest public market rows.
+- Verified the day-one baseline and completed the day-two bounded public-data ingestion successfully.
+- Next: archive the day-two immutable AARS_DYNAMIC shadow snapshot using the identical research configuration.
+- Archived a new day-two snapshot and compared it with day one. Portfolio performance weakened while modeled liquidation risk stayed low and unchanged.
+- Next: recompute promotion governance, run forward STATUS and complete final integrity/authority verification.
+- Recomputed day-two promotion governance and forward STATUS. Observation continues, and all runtime/activation gates remain intentionally closed.
+- Next: perform final database health, evidence-count, Git isolation and authority checks.
+- Day-two final verification passed. The dedicated database remains healthy and PAPER_ONLY, with no runtime or proposal artifacts created.
+
+## 2026-08-29 — MIL-3.26 closed-candle daily evidence integrity
+- A same-day continuation check found no new daily boundary and correctly avoided creating a third snapshot.
+- Operational review exposed a trust gap: daily shadow evidence uses the latest stored open time, while public ingestion includes the current still-open candle. Forward bot operations already enforce candle finality, but daily governance evidence does not.
+- Next: inspect the shadow builder, finality helpers and storage uniqueness contract before changing evidence semantics.
+- Inspected the shadow builder, storage identity and finality helper. Confirmed both validation and portfolio currently can consume the latest open candle.
+- Next: inspect the portfolio request/service seam and migration-safe storage options, then implement a shared boundary with deterministic daily observation identity.
+- Selected the implementation: optional portfolio evidence cap, shared synchronized closed boundary, v2 finality metadata, and one UTC observation per target strategy enforced transactionally plus a unique SQLite expression index.
+- Next: patch service, shadow builder, storage and deterministic MIL-3.26 tests.
+- Implemented the first service/builder/storage pass. Existing regression exposed two expected semantic updates: an exact-minimum fixture now needs its last bar closed, and observed-at must not make identical evidence non-idempotent.
+- Next: fix identity normalization, update the minimum fixture and add dedicated open-bar/daily uniqueness tests.
+- Added deterministic tests for closed-boundary metadata, open-candle mutation immunity, same-day archive rejection and next-day/idempotent behavior; 21 MIL-3.12/15/16 tests pass.
+- Next: separate auditable legacy v1 history from v2 promotion-eligible evidence, then update docs and run full regression.
+- Implemented legacy audit retention with v2-only promotion eligibility and added governance tests; 32 targeted tests pass.
+- Next: expose closed-boundary metadata in CLI output, document the reset/one-per-day contract and run the full MIL-3 suite.
+- Updated CLI output plus continuous-shadow, promotion-governance, Mac operations and main MIL-3 milestone documentation.
+- Next: run the full suite, syntax/diff checks, migrate the development database index and verify the corrected real-data governance reset.
+- Full MIL-3 verification passes 163 tests plus syntax, whitespace and no-live-path scans.
+- Migrated and verified the real development database: unique daily index present, integrity `ok`, legacy audit rows preserved, eligible promotion history reset to zero.
+- MIL-3.26 is ready for a local milestone commit; no background service was installed and no same-day snapshot was created.
+
+## 2026-08-30 — First real v2 daily run
+- User requested an actual-effects run after the MIL-3.26 closed-candle integrity fix.
+- Scope is one bounded public ingestion, one v2 daily snapshot, governance/performance comparison and fail-safe runtime status; no service installation or activation.
+- Next: verify the committed code and persistent database baseline before network ingestion.
+- Verified the committed MIL-3.26 baseline and completed one bounded public-data ingestion cycle with all seven resource results successful.
+- Next: build and archive the first real synchronized fully closed v2 daily snapshot.
+- Archived the first real v2 closed-candle snapshot and reran the same command; the ID was reused and no fourth row was created.
+- Next: extract actual portfolio/asset metrics, validation warnings and corrected promotion-governance counts.
+- Extracted first-v2 actual metrics and governance: risk remains within limits, performance still underperforms Buy & Hold, and eligible progress is correctly 1/30.
+- Next: verify health, exact open-versus-closed boundary, forward fail-safe status, evidence counts and targeted tests.
+- Final health, finality, governance and safety verification passed. The open 04:00 candle was excluded from the closed 03:00 v2 evidence boundary.
+- Targeted regression passed 26 tests. No proposal, runtime session, runtime cycle, paper ledger or live path was created.
+
+## 2026-08-30 — MIL-3.27 strategy diagnostics kickoff
+- User selected Strategy Diagnostic and Cost Attribution as the next milestone.
+- Scope: deterministic read-only attribution from immutable PAPER_ONLY evidence, including asset, regime, Long/Flat/Short/Hedge, costs, turnover and AARS-versus-Buy-and-Hold gap explanation.
+- The HMI will be task-centered: current diagnostic state, highest drag, evidence freshness/finality, actionable optimization hypotheses, blockers and recovery remain visible without write controls.
+- Next: inspect replay result traces/fills, shadow snapshot contents, storage/service/API and current console composition.
+- Implemented the first diagnostics contract, stable-snapshot reconciliation, GET-only service route and deterministic accounting tests. The first targeted run passed the core reconciliation test and exposed two integration gaps: the nested temporary database directory was not created, and the diagnostic HMI had not yet been added. The fixture path is corrected; UI integration is next.
+- Added the task-centered diagnostic HMI, fail-closed rendering, read-only CLI, operator documentation and portfolio-trace reconciliation. Targeted diagnostics/dashboard/shadow/governance regression passes 26 tests and the real v2 snapshot verifies successfully.
+- Real evidence result: AARS -2.4357% versus equal-weight Buy & Hold +49.7583%, a -52.1940% gap; modeled cost drag is 13.3745%, fees are largest, ETH is the largest weighted asset drag, and per-asset nominal turnover is roughly 181.9x–193.8x. These are diagnostic evidence and a lower-turnover challenger hypothesis, not configuration authority.
+- Next: run the full MIL-3 suite, compilation/UI syntax, safety scan and diff review; then close planning records and commit locally.
+- The first full run reached 157 passes and 9 failures, all caused by older HMI contract tests that intentionally preserve the `AARS // 03.25` base-console token. Kept that compatibility token and appended `DIAGNOSTICS 03.27`; no runtime or accounting code failed.
+- After the compatibility fix, the complete suite passes 166 tests. Python compilation, JavaScript syntax and whitespace checks also pass. An optional localhost bind smoke test was denied by the managed sandbox; the direct API-handler test and real-database CLI/service path already verify the route without requesting broader network authority.
+- Final rerun remains green at 166 tests; strict JSON output, compilation, UI syntax, whitespace and no-live-path scans pass. MIL-3.27 is ready for the local milestone commit.
+
+## 2026-08-30 — MIL-3.28 low-turnover challenger kickoff
+- User selected a state-dependent deadband challenger plus a true zero-cost replay comparison.
+- Scope is an isolated PAPER_ONLY research challenger over the same immutable v2 boundary. Baseline and challenger will each run under actual modeled costs and a separate engine configuration with fees, slippage and funding disabled.
+- The HMI will keep baseline, challenger, stable/raw boundary, turnover/risk changes and the distinction between measured evidence and gated interpretation continuously visible. It will expose no apply, approve or execution control.
+- Next: inspect strategy/action reset behavior and existing diagnostic payload before defining the deadband contract.
+- Implemented the isolated state-deadband strategy and four-way replay comparison: baseline/challenger under actual costs and under a separate fee/slippage/funding-free engine.
+- First real run is economically promising but remains `CONTINUE_RESEARCH`: actual return +7.96 points, drawdown -5.49 points, zero-cost policy effect +2.00 points, but turnover reduction is 41.93% and strict liquidation-risk no-increase is not met.
+- Next: tune only the ordinary rebalance interval/deadbands while preserving immediate sign/risk-state transitions, then lock deterministic defaults and tests.
+- Locked the conservative challenger defaults at a 12-bar ordinary minimum, state-specific deadbands and 0.95 exposure scale. Immediate direction and risk-state transitions remain exempt.
+- The real v2 run now passes all internal research checks and is labeled `PROMISING_CHALLENGER`, while proposal creation, automatic change, activation and live execution remain explicitly false.
+- Next: add deterministic policy/accounting/API/CLI/UI tests and expose the read-only challenger surface.
+- Added the GET-only service/API, read-only CLI and task-centered challenger deck. The UI keeps stable evidence, actual-versus-zero-cost matrix, highest research disposition, checks, per-asset effects and non-activation authority visible.
+- Seven targeted MIL-3.27/3.28 tests pass with Python and JavaScript syntax checks.
+- Next: update milestone/operator/HMI documentation, then run the full regression and final safety review.
+- Added the MIL-3.28 contract and real-result document, main milestone commands/tests, continuous-shadow and Mac operating rules, and HMI v15 data/degraded/automation gates.
+- Targeted challenger, diagnostic and backward-compatible console regression passes 18 tests; UI syntax and whitespace checks pass.
+- Next: inspect the complete diff for accounting or authority mistakes, run all MIL-3 tests and execute the real CLI report once more.
+- Full MIL-3 regression passes 170 tests. Python compilation, JavaScript syntax, strict JSON, whitespace and no-live-path checks pass.
+- The final real CLI report is `READY / VERIFIED / PROMISING_CHALLENGER` and explicitly denies proposal creation, automatic strategy change and live execution.
+- Added separate deterministic coverage for same-direction defensive-state bypass and direction-sign bypass. MIL-3.28 is ready for the local milestone commit.
+
+## 2026-08-30 — MIL-3.29 frozen robustness validation kickoff
+- User selected frozen-parameter multi-window, rolling walk-forward, market-state and stressed-cost validation.
+- The MIL-3.28 candidate is now treated as immutable evidence input: 12-bar ordinary interval, 0.95 exposure scale, fixed seven-state deadbands and fixed immediate-transition rules. Validation may not search, rank or change these values.
+- The HMI will keep overfit status, weakest fold/regime/stress, evidence breadth, stable boundary, blocked actions and recovery visible. No validation disposition can activate or create a proposal.
+- Next: inspect existing validation fold semantics and available real-data window length before choosing deterministic fold/window geometry.
+- Implemented the frozen-hash robustness core and corrected discovery lineage to stay anchored to the historical freeze boundary.
+- Real run at the fully closed `2026-08-30T04:00:00Z` boundary: 4/4 windows positive, 3/3 pre-discovery holdout folds positive, seven states covered, all stress scenarios pass, and mean rolling turnover reduction is 53.11%.
+- Current result is deliberately `WAIT_FOR_POST_FREEZE_EVIDENCE` / overfit `HIGH`: there are no complete post-freeze weekly folds, and no parameter was changed.
+- Added GET-only service/API/CLI access and HMI v16. The page puts overfit risk, time lineage, frozen hash, stress/state weaknesses and recovery ahead of any favorable aggregate.
+- Added five deterministic MIL-3.29 tests; the focused MIL-3.27–3.29 set passes 12 tests with Python and JavaScript syntax checks.
+- Added the MIL-3.29 evidence contract and real results, plus continuous-shadow, Mac operations, main milestone and HMI operating guidance.
+- Final real CLI verification is strict-JSON clean: 16 rolling folds, 93.75% positive, weakest fold -0.4792 point, only `POST_FREEZE_FORWARD_EVIDENCE` blocked, and every tuning/proposal/activation/live authority false.
+- Full MIL-3 regression passes 175 tests. Python compilation, JavaScript syntax, whitespace, database integrity and focused credential/authenticated-order/live-mode scans pass.
+
+## 2026-08-30 — MIL-3.30 kickoff
+- User selected automatic accumulation of frozen post-freeze weekly evidence, market-state/cost drift monitoring, and unchanged-gate re-evaluation after at least four complete folds.
+- Scope remains local PAPER_ONLY research: no validation-time search, parameter update, proposal creation, configuration activation or live execution.
+- Added an append-only `frozen_robustness_checkpoints` store with content-hash verification, unique spec/fold identity, source-snapshot binding and conflict-on-drift semantics.
+- Extended each MIL-3.29 fold with deterministic state evidence and reject-gapped validation history, enabling forward-only state drift without a second calculation engine.
+- Implemented canonical fold scheduling, checkpoint-zero reference capture, bounded sequential catch-up, unchanged MIL-3.29 gate recomputation, state-mix/outcome and cost/fold drift alarms, and a read-only monitor view.
+- Added the GET-only API, explicit STATUS/WAKE/FOREGROUND CLI and HMI forward-evidence surface with fold progress, next eligible time, highest drift alarm, checkpoint lineage and recovery guidance.
+- Six MIL-3.30 deterministic tests cover exact baseline identity, repeat reuse, ordered catch-up, unchanged gates, actionable drift, tamper/gap fail-closed behavior, bounded scheduling, API/CLI authority and HMI visibility. The focused MIL-3.28–3.30 set passes 15 tests.
+- Real persistent-database WAKE archived checkpoint zero once at the exact freeze boundary; an immediate second WAKE returned `WAITING` with zero writes. SQLite integrity remains `ok`.
+- Real forward status: 0/4 complete weekly folds, no drift claim, and next evidence becomes eligible after `2026-09-08T08:00:00Z` (`16:00` Asia/Shanghai).
+- Added the MIL-3.30 evidence contract and real checkpoint record, plus main milestone, continuous-shadow, Mac deployment-defer and HMI v17 guidance.
+- Final hardening re-verifies checkpoint IDs from canonical fields, embedded report and authority locks, and exact scheduled boundaries on every read; checkpoints ahead of available market history fail closed.
+- Full MIL-3 regression passes 181 tests. Python compilation, JavaScript syntax, strict JSON, whitespace, SQLite integrity and focused network/credential/authenticated-order/live-mode scans pass.

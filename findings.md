@@ -196,3 +196,294 @@
 - The local `python3` runtime can also compile and smoke-test the new activation-authorization review service layer.
 - The local `python3` runtime can compile the new activation-authorization review panel and the History shell wiring, but live Streamlit rendering remains environment-bound in this session.
 - API and dashboard live verification are still partially environment-bound because the bundled runtime does not include full `fastapi` / `pytest` / `streamlit` coverage for an end-to-end run.
+## 2026-08-25 — MIL-3.17 kickoff
+- The branch is clean at `c8476bf` and is six commits ahead of origin; remote publishing remains separate from implementation.
+- MIL-3.16 already supplies immutable acknowledged proposals, same-window trial results, funding completeness checks, and read-only API/UI surfaces.
+- The correct forward boundary is each asset's archived trial `evidence_end`, not the trial generation wall-clock time.
+- Replay warmup can remain leak-free by loading exactly `warmup_bars - 1` context candles at or before the anchor, so the replay engine's first actionable bar is the first candle strictly after the anchor.
+- Forward observation must remain advisory and append-only: no candidate application, no execution route, and no rewriting an earlier checkpoint.
+- The existing simulation engine starts strategy actions at index `warmup_bars - 1`; using 59 historical context bars for a 60-bar warmup makes the first actionable bar exactly the first unseen forward candle.
+- Existing MIL-3.16 tests already provide deterministic candles, funding, proposal acknowledgement, storage immutability, read-only API, explicit CLI, and static UI safety patterns that MIL-3.17 can extend consistently.
+- `ReplayEngine.run_detailed` counts only bars from its warmup boundary onward, filters funding from that same boundary, and initializes a fresh portfolio there; no engine mutation is needed for forward-only measurement.
+- A synchronized cross-asset checkpoint should use the minimum latest unseen candle time so every asset is assessed over an identical forward end and no faster feed gets extra evidence.
+- The dashboard already validates envelope authority at runtime; the new forward view should add equivalent schema and authority rejection before rendering any status.
+- MIL-3.17 domain/storage tests confirm 59 context bars plus 80 unseen bars produce exactly 80 measured bars; funding gaps fail closed and eligible-trial enforcement is explicit.
+- Rebuilding the same endpoint must preserve the checkpoint's original lineage to remain idempotent; a later endpoint chains to the prior observation ID and input hash, while older unseen endpoints are rejected.
+- Warmup candles must be included in the content hash because they affect the first forward decision, even though they are excluded from all measured performance; the implementation now preserves this reproducibility distinction.
+- The storage boundary independently revalidates the archived trial configuration, target strategy and per-asset anchors, so callers cannot bypass the normal CLI by submitting altered parameters or a forward start at/before the trial endpoint.
+## 2026-08-25 — MIL-3.18 kickoff
+- MIL-3.17 is cleanly committed at `6964d87`; the branch is seven commits ahead of origin.
+- MIL-3.18 will govern a sequence of existing immutable checkpoints rather than introduce another strategy or execution mechanism.
+- Confirmation must require both a minimum forward horizon and consecutive qualifying checkpoints; a single favorable checkpoint is insufficient.
+- The main view should keep current risk, evidence continuity, confirmation progress, decay warnings, and recovery instructions visible without action controls.
+- The existing ingestion scheduler is intentionally public-market-data-only; continuous forward observation should be a separate local runner so replay failures cannot interfere with ingestion and the scheduler's declared scope remains truthful.
+- Existing shadow stability derives transitions without persisting a second aggregate table. MIL-3.18 can follow that pattern: immutable forward checkpoints remain the source of truth, while stability/governance is rebuilt read-only from their ordered payloads.
+- Long-term confirmation should require a minimum measured horizon plus a tail streak of qualifying checkpoints; hard stops override all confirmation progress, and broken lineage must force deferral.
+- The stability model can remain read-only and deterministic: it derives score/return/risk transitions, verifies every predecessor ID and input hash, and turns continuity, decay, reversal, rising risk and hard-stop conditions into actionable evidence objects.
+- Default confirmation is deliberately stricter than MIL-3.17's first checkpoint: 720 measured 1h bars (30 days) and three consecutive qualifying checkpoints inside a 30-checkpoint evaluation window.
+- The monitor is isolated from ingestion, processes every eligible archived trial, reuses an unchanged endpoint idempotently, waits on insufficient history, degrades on integrity/coverage failures, and permanently skips a trial after its latest hard-stop checkpoint.
+
+## MIL-3.18 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| Direct `_api_payload()` test expected a returned 400 for a missing `trial_id`, but validation raises before HTTP dispatch wraps it | 1 | Updated the unit test to assert the domain `ValueError`; request dispatch remains responsible for the HTTP 400 envelope |
+- The MIL-3.18 control surface passes its targeted syntax/tests and keeps confirmation progress, current risk, checkpoint trace, alarms, recommended response and closure condition in the primary forward-observation card.
+- Final review added review-gate authority validation, genesis/non-monotonic lineage checks and a truthful empty-history stability response bound to the requested archived trial.
+- No authenticated adapter, credential handling, order call or configuration-application route was added; the new monitor only reads market/trial evidence and archives PAPER_ONLY checkpoints.
+## 2026-08-26 — MIL-3.19 kickoff
+- MIL-3.18 is cleanly committed at `c2901de`; the branch is eight commits ahead of origin.
+- Human review must be an immutable local write path distinct from the read-only HTTP API; the dashboard will display records and blocked actions but never create them.
+- Candidate lifecycle will be explicit: observing, acknowledged, paused, restarted/observing, or terminated. Termination is irreversible; restart is allowed only from pause and never bypasses stop/defer evidence.
+- Evidence export should be deterministic and self-verifying: trial, checkpoints, derived stability, reviews, per-component SHA-256 hashes and one combined manifest hash.
+- Existing proposal review establishes the right authority pattern but is terminal and one-per-proposal; MIL-3.19 needs an append-only lineage-chained event stream because pause and restart are lifecycle transitions rather than a single terminal vote.
+- The monitor already has a single per-trial gate before replay, so lifecycle enforcement can fail safely by adding one current-state lookup before the hard-stop and data checks.
+- Review storage independently rebuilds current stability from archived checkpoints and verifies its hash, disposition, checkpoint count, warning set, latest observation identity and prior review lineage before accepting an event.
+- Evidence bundle identity excludes only the derived stability generation timestamp; archived trial, checkpoints and human review payloads are hashed exactly, then covered by one combined manifest hash.
+- The final archive transaction now rechecks both review lineage/time and latest observation identity, closing the window where a concurrent checkpoint could otherwise make an already-built review stale.
+- Evidence verification treats authority locks as signed trust claims: changing export-only, parameter-application, automatic-change or live-execution authority invalidates the bundle even if evidence components are untouched.
+
+## MIL-3.19 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| One large patch used an outdated storage context and failed atomically | 1 | Split the change into focused review, storage-hardening, export and CLI patches using the current line context |
+| Full suite retained MIL-3.18's exact UI version assertion after the console advanced to 03.19 | 1 | Updated the prior stability UI test to assert the current shared console version; all MIL-3.18 functional evidence assertions remain intact |
+| First context-integrity check expected `trial_id` inside the archived trial payload, but its identity lives in the storage envelope | 1 | Bound the top-level trial identity to stability plus every observation/review payload, while target strategy remains independently bound to the trial payload |
+- Seven MIL-3.19 backend acceptance tests now pass across lifecycle transitions, irreversible termination, stale/tampered evidence rejection, monitor gating, deterministic bundle verification, read-only APIs and explicit local CLIs.
+- The read-only lifecycle console exposes current state, permitted local actions, immutable review history, export manifest and recovery guidance without adding a browser write control.
+
+## 2026-08-26 — MIL-3.20 kickoff
+- MIL-3.19 is cleanly committed at `5663715`; the branch is nine commits ahead of origin.
+- Offline verification must operate from the exported JSON alone and must never require or mutate SQLite.
+- Retention must be scoped to a dedicated evidence directory, preserve a verifiable inventory, avoid overwriting files and prune only explicitly recognized bundle/verification artifacts.
+- Activation approval is authorization for an isolated PAPER_ONLY configuration sandbox only; it must not alter the active replay defaults, start a trial, place an order or authorize live execution.
+- The console should expose actual approval state, prerequisite failures, evidence identity, expiry/revocation state and recovery guidance, but all writes remain explicit local CLI operations.
+- Existing SQLite backup logic already demonstrates safe scoping: resolved destination, non-overwrite, temporary write plus atomic replace, integrity verification and filename-pattern-limited pruning. Evidence retention should reuse those principles without mixing database backups and evidence artifacts.
+- `DashboardService` currently owns only a `MarketStore`, so durable approval status belongs in SQLite; filesystem retention should remain an explicit offline CLI/report rather than making ordinary API GETs scan or mutate an operator-selected directory.
+- Approval should be bound to a verified bundle's combined manifest hash and raw file SHA-256. The trial configuration can be identified by a canonical hash while the approval explicitly leaves active configuration unchanged.
+- Final retention hardening must verify both bundle integrity and filename identity before an old artifact becomes eligible for pruning; matching a filename pattern alone is insufficient authority to delete a file.
+
+## MIL-3.20 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| Targeted pytest was launched from the repository root with `PYTHONPATH=.` and could not import the nested `aars_market` package | 1 | Run MIL-3 tests from `03_Projects/Polymarket/mil3`, matching the established project test command |
+| First expiry-path test referenced a nonexistent storage `_utc` helper | 1 | Reused the storage module's established `_iso` plus `_parse` normalization path |
+| Initial Mac mini documentation patch used a slightly different line wrap than the current file | 1 | Read the exact local paragraph and applied the addition against its current wrapping |
+
+## 2026-08-27 — MIL-3.21 kickoff
+- MIL-3.20 is cleanly committed at `23be812`; the branch is ten commits ahead of origin.
+- Registration should consume exactly one unexpired `APPROVED` review into one immutable configuration entry. The approval ID needs a database uniqueness constraint so concurrent consumers cannot duplicate it.
+- Sandbox activation is a mutable pointer plus an append-only event trail. Pointer update, version increment and activation event must commit in one SQLite transaction.
+- Read-only GET requests must not reconcile or write expiry events. Instead, effective configuration resolution must derive `EXPIRED_FAIL_SAFE` or `REVOKED_FAIL_SAFE` immediately and expose the stale stored pointer separately.
+- A later explicit reconciliation cycle can persist the already-effective invalidation event; safety must never depend on that cycle running.
+- Rollback should target the previous pointer recorded by the latest unrolled activation. If that target is missing, expired or revoked, rollback must clear to the baseline/empty state rather than revive unsafe configuration.
+- MIL-3.21 will materialize and select configuration only inside a named local sandbox registry. It will not start ReplayEngine, change shared defaults, contact an exchange or add a live execution adapter.
+- SQLite foreign keys make configuration deletion impossible while referenced by the sandbox pointer or event history; MIL-3.21 adds no deletion API, preserving rollback and audit evidence.
+- A sandbox GET can remain strictly read-only while still enforcing expiry: it exposes both `stored_configuration_id` and a separately derived `effective_configuration_id`, which becomes null immediately when approval validity fails.
+- Rollback safety is evaluated at rollback time, not activation time. An expired or revoked previous configuration is never restored; the rollback event atomically clears the pointer instead.
+- Optimistic state version, previous pointer and previous event ID are all rechecked under `BEGIN IMMEDIATE`, so a stale activation payload cannot partially update the registry.
+
+## 2026-08-27 — MIL-3.22 kickoff
+- MIL-3.21 exposes a strict read-only `effective_configuration_id`; expiry, revocation and approval mismatch already suppress it immediately without waiting for reconciliation.
+- The runtime must bind each session to sandbox ID, configuration ID, configuration hash and sandbox state version. A pointer change therefore fences the old worker even if its approval remains valid.
+- Runtime authority will be represented by a short renewable lease plus an opaque fencing token. Heartbeats must revalidate the effective configuration and token inside one `BEGIN IMMEDIATE` transaction.
+- Kill switch is sandbox-scoped persistent state, defaults fail-safe, and can only be armed or cleared by an explicit local CLI with operator and note. The read-only HTTP API will expose but never change it.
+- A bounded runtime cycle will record governed configuration consumption and health only. It will not call ReplayEngine, an exchange adapter, an order function, or any live execution path.
+- UI design must distinguish requested/leased state from effective runtime state, show heartbeat age and stop cause, and keep kill-switch/recovery guidance visible without browser write controls.
+- Runtime event versions and kill-switch event versions have database uniqueness constraints, making each append-only state transition unambiguous.
+- Kill-switch ARM rejects timestamps older than a running session's latest heartbeat so the atomic stop trail cannot move backward.
+- Runtime effective-state diagnosis checks kill authority, pointer/configuration authority and then lease freshness, preserving the most useful root-cause evidence.
+
+## MIL-3.22 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| Initial combined planning patch referenced a nonexistent MIL-3.21 error heading and failed atomically | 1 | Applied the plan/progress update against exact current context and appended findings separately |
+| First MIL-3.22 compile command used repository-relative source paths while already running from the nested MIL-3 root | 1 | Rerun compilation with `aars_market/...` paths from the MIL-3 root |
+| Combined runtime UI patch assumed a standalone `.isolated-registry-deck` CSS selector that the current stylesheet does not contain | 1 | Split HTML and CSS edits, then append runtime styles against the actual stylesheet tail |
+
+## 2026-08-27 — MIL-3.23 kickoff
+- The approved runtime configuration already contains symbols, timeframe, warmup, proposed strategy parameters and deterministic paper cost/risk settings from the archived trial.
+- MIL-3.23 will reuse `ReplayEngine` and the existing paper ledger instead of inventing a second accounting model. Each cycle calculates the proposed strategy cumulatively through one synchronized stored-candle boundary.
+- Cycle identity is sandbox + configuration + synchronized snapshot boundary, not session ID. This makes a crash-recovery session resume the same cycle instead of double-applying it.
+- A snapshot reservation stores content hashes and exact per-asset boundaries. Commit rebuilds the snapshot under a write lock and rejects source drift before atomically inserting the ledger result and marking the checkpoint committed.
+- Checkpoint states are `RESERVED` and `COMMITTED`; append-only events record `RESERVE`, `RECOVER` and `COMMIT`. A committed cycle is immutable and duplicate calls return the existing result.
+- Recovery may transfer a RESERVED cycle only after its previous owner is no longer effectively RUNNING. A live fenced owner cannot be stolen.
+- Each committed result is a cumulative deterministic ledger view, chained to the previous committed cycle. This avoids mutable incremental portfolio state and makes restart verification reproducible.
+- No raw market write, replay order, exchange adapter or live connector is introduced. Market candles/funding are read-only inputs and all fills remain the existing simulated paper accounting outputs.
+- Non-finite internal leverage/risk values from pathological paper liquidation are normalized to strict JSON `null`; explicit liquidation event/risk evidence remains available instead of serializing `NaN` or `Infinity`.
+
+## MIL-3.23 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| A MIL-3.22 bounded-runtime test expected a committed ledger even though its synthetic clock predates the minimum snapshot history | 1 | Keep that case as an explicit WAITING assertion and verify a committed cycle in the current-time CLI fixture |
+| The prior MIL-3.22 UI test retained the shorter no-button recovery sentence after MIL-3.23 added RECOVER to the explicit prohibition | 1 | Updated the shared console assertion to the stricter MIL-3.23 wording |
+
+## 2026-08-28 — MIL-3.24 kickoff
+- The current MIL-3.23 runtime already provides synchronized content-addressed market snapshots, fenced cycles, atomic checkpoints and cumulative ReplayEngine paper-ledger results.
+- MIL-3.24 will add four isolated shadow bots—Buy & Hold, Spot Grid, Futures Long Grid and AARS Dynamic—using the same snapshot but independent virtual accounts and result identities.
+- All bot actions remain simulated ledger intents/fills. Runtime risk response may freeze a bot or block a cycle, but cannot submit an order, change shared configuration, or authorize live execution.
+- The first implementation should reuse the existing strategy and accounting engines rather than create divergent P&L calculations.
+- `simulation.py` already implements the exact four strategies plus a common `ReplayEngine`; it accounts for realized/grid/unrealized P&L, fees, slippage, funding, exposure, leverage, margin buffer and liquidation approximation.
+- The approved `ValidationCandidate` carries parameters for all four bot constructors even when one target strategy was selected, so a fleet can remain fully bound to the immutable approved configuration without inventing mutable runtime settings.
+- The safest persistence seam is the existing atomic cycle result: add one content-addressed bot-fleet section to the ledger payload so checkpoint commit, crash recovery and duplicate-cycle reuse cover all four bots together without a second mutable transaction.
+- Approved trial settings already carry `stop_max_drawdown` and `stop_max_liquidation_risk`; these can govern each bot without adding an unapproved runtime knob. Any liquidation approximation event is an unconditional stop.
+- Existing `PaperPortfolio` returns deterministic simulated fill records but `ReplayResult` discards them. MIL-3.24 should retain fill evidence and final account state in the result while avoiding any external order object or connector.
+- Fleet funding coverage must be COMPLETE even when the originally selected candidate did not use funding, because the fixed four-bot fleet always contains Futures Grid and AARS Dynamic.
+- A risk breach must change future simulation behavior, not merely label a completed replay. The fleet ReplayEngine path will flatten the affected virtual account once, mark it FROZEN, and suppress later strategy actions; existing replay callers remain unchanged unless they explicitly provide a risk-stop policy.
+
+## MIL-3.24 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| System `pytest` did not add the nested MIL-3 root to `sys.path`, causing collection-time `ModuleNotFoundError: aars_market` | 1 | Rerun with `PYTHONPATH=.` from the MIL-3 directory; no test or implementation failure occurred |
+| MIL-3.23 UI regression retained an exact `03.23` console version assertion after the shared shell advanced to `03.24` | 1 | Updated only the version assertion; all MIL-3.23 snapshot, commit, idempotency and no-control assertions remain unchanged |
+| Six earlier shared-console UI tests also retained the exact `03.23` version after the full suite reached them | 1 | Updated only those version strings to `03.24`; their feature and safety assertions remain unchanged |
+
+- The embedded fleet uses the snapshot boundary as its deterministic calculation timestamp; retrying a crashed RESERVED cycle later therefore rebuilds the same fleet/result identity instead of producing a time-dependent hash.
+- Legacy MIL-3.23 ledger v1 verification remains accepted for already committed cycles, while new calculations emit ledger v2 with a separately verified bot-fleet hash bound to cycle, snapshot and configuration identities.
+- Final audit hardened the risk-stop path for already insolvent paper approximations: the account becomes FROZEN and retains liquidation evidence without attempting or inventing a flatten fill that cannot be funded.
+
+## 2026-08-28 — MIL-3.25 kickoff
+- The clean MIL-3.24 baseline is committed at `f0135a8`; the branch is fourteen commits ahead of origin.
+- MIL-3.25 is bounded to PAPER_ONLY forward operations: complete-candle triggering, per-cycle deltas, local alerts, a bounded scheduler and 7/14-day burn-in evidence.
+- Background-service artifacts may be generated and verified, but must not be installed or started on this development machine.
+- Current ingestion intentionally stores Binance responses through the request time and does not mark candle finality; the runtime currently selects the latest stored open time, so MIL-3.25 needs an explicit timeframe-aware `open_time + duration <= observed_at` gate.
+- Public-data ingestion must remain a separate scheduler. The forward bot runner should consume only already stored rows so replay/risk failures cannot interrupt market collection.
+- Existing runtime acquisition already supplies the single-writer fence. A forward wake should perform a read-only no-new-closed-bar preflight, acquire a short lease only when work is available, and still rely on cycle uniqueness for racing wakes.
+- Cycle deltas, alerts and burn-in progress can be deterministically derived from committed cycle/result lineage rather than introducing mutable account or alert tables.
+- The existing Mac deployment installs four jobs as a set. Forward-bot scheduling should be generated as a separate deferred LaunchAgent artifact so the existing INSTALL action cannot silently start strategy simulation.
+
+## MIL-3.25 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| MIL-3.23 monotonic-chain test expected a newly inserted still-open candle to commit immediately | 1 | Preserve the closed-bar gate and update the deterministic fixture to use a sufficiently long valid lease and advance past the candle close |
+| MIL-3.23 and MIL-3.24 UI tests retained exact `03.24` shared-console assertions after the shell advanced to `03.25` | 1 | Updated all eight exact version strings only; prior feature and no-control assertions remain unchanged |
+
+- Closed-bar wakes are deliberately one-shot: LaunchAgent `StartInterval` may poll every 60 seconds, but preflight avoids lease acquisition until a new synchronized boundary exists.
+- Default Mac install/render output remains the existing four operational jobs. The forward-bot plist is separately rendered, `RunAtLoad=false`, `KeepAlive=false`, and never loaded by the existing install action.
+- The first MIL-3.23–3.25 targeted verification passes all 18 tests, including still-open/duplicate wakes, next-cycle deltas, concurrent lease rejection, stale RESERVED alerting, burn-in continuity and deferred plist generation.
+- Final recovery audit distinguishes a stale RESERVED alert from an authority/data-integrity block: when it is the only critical condition, a new fenced wake may recover it; all other critical alerts continue to block execution.
+
+## 2026-08-28 — First real-data PAPER_ONLY cycle
+- The only SQLite files found before this run belong to PWB/weather/Telegram projects; none is an MIL-3 runtime database, so they must not be reused.
+- The run must use the existing explicit registration, activation, kill-switch and forward-operations commands. A passing smoke fixture is not authority to fabricate or bypass an approval record.
+- Public ingestion is explicitly unauthenticated and writes Binance spot candles, USD-M funding history, and a complete cadence snapshot for BTCUSDT, ETHUSDT and SOLUSDT.
+- The forward runner consumes stored rows only. Therefore public-data ingestion can be completed independently even if the governed activation chain correctly remains blocked for human review.
+- The repository has milestone-specific operating documents in the MIL-3 root; there is no nested README/docs tree.
+- The persistent development runtime database is isolated at `/Users/maolei/Documents/Codex/AARS-MIL3/runtime/mil3_market.sqlite`, outside the Git worktree.
+- The first public snapshot contains 2,880 hourly candles per asset and 360 funding observations per asset for BTCUSDT, ETHUSDT and SOLUSDT.
+- Binance `fundingInfo` returned an adjusted inventory and the stored configured-asset snapshot currently resolves all three assets to 8-hour cadence with `ADJUSTED` source status.
+- Operational health reports the database and all three candle freshness checks as healthy. Overall state is `DEGRADED` only because the one-shot bootstrap CLIs do not create an incremental scheduler-cycle receipt.
+- The untouched sandbox correctly fails safe: there is no effective configuration and its uninitialized kill switch resolves to ARMED. STATUS is `BLOCKED`, with no cycle or bot delta created.
+- The explicit WAKE also returned `BLOCKED` with `cycle_executed=false`, `runtime=null`, zero bot deltas, no external order requests and no live-order path.
+- One incremental public-data scheduler cycle completed successfully for fundingInfo, candles and funding across all three assets. This creates the operational ingestion receipt without starting forward bots.
+- Final health is `HEALTHY`: SQLite quick-check, latest ingestion receipt and all three candle freshness checks pass.
+- Final evidence counts are intentionally zero for runtime sessions, runtime cycles, ledger results, approved configurations and activation reviews. The first real-data bot calculation cannot lawfully commit until proposal/trial/forward-observation evidence receives explicit human review and isolated activation approval.
+
+## 2026-08-28 — Real-data candidate and trial preparation
+- A generic `go` authorizes automatic evidence generation but is not treated as the named reviewer, review note and explicit proposal approval required by the immutable human-review record.
+- The automatic gate precedes human review: proposal creation requires `PROMOTION_CANDIDATE`, whose default policy needs 30 immutable daily snapshots and at least 7 consecutive ready snapshots.
+- Replaying the same evidence cannot manufacture history because daily snapshot archival is content-addressed and idempotent. The fresh database can archive one genuine snapshot now, then must accumulate changed daily evidence over time.
+- The bounded first snapshot will use the documented AARS_DYNAMIC settings: BTC/ETH/SOL, 1h, 90d, 120-bar warmup, 720 train bars, 168 test bars and the parameterized exposure/hedge candidate set.
+- The first genuine immutable snapshot is `d35a02566d2d3ca9a2e0e666`, synchronized at `2026-08-28T08:00:00+00:00`; its combined review gate is `DEFER`, and exactly one snapshot is stored.
+- The fixed AARS_DYNAMIC portfolio replay returned -1.77% total return, 15.16% max drawdown, 0 liquidation events, 0.395% maximum liquidation-risk approximation and a non-degraded `ACCEPT_WITH_MONITORING` portfolio surface.
+- Per-asset 90-day returns were BTC -7.80%, ETH -3.94% and SOL +6.43%. The combined snapshot still defers because train-only validation reported `VALIDATION_DEFERRED`, including baseline-underperformance evidence.
+- Funding coverage was complete for every asset in the replay. The immutable evidence reports fallback cadence provenance even though a current 8h fundingInfo snapshot exists; this is an evidence-time lookup detail to monitor, not a current coverage gap.
+- Promotion governance is `CONTINUE_OBSERVATION`, not `REJECT_PROMOTION`: 6 checks pass and 5 block. Passing evidence includes 77.78% mean selection stability, 15.16% max drawdown, 0.395% max liquidation risk and zero liquidation events.
+- Blocking evidence is: 1/30 daily history, 0/7 consecutive ready reviews, latest gate `DEFER`, -2.66% mean excess return versus Buy & Hold, and 100% baseline-underperformance warning recurrence in the one-snapshot window.
+- The proposal CLI correctly raised the fail-closed `PROMOTION_CANDIDATE` requirement. No human review or proposal can be created at this stage.
+- Final verification: database integrity and operational health are `HEALTHY`; exactly one PAPER_ONLY shadow snapshot exists, with zero proposals, reviews, trials, runtime sessions, runtime cycles and ledger results. Its authority flag keeps `live_execution_allowed=false`.
+
+## 2026-08-29 — Real-data daily evidence day 2
+- Day two must use newly ingested market evidence so the content-addressed daily archive produces a genuinely new snapshot rather than returning the day-one ID.
+- Day-one baseline verified with SQLite integrity `ok`, one snapshot at `2026-08-28T08:00:00+00:00`, one ingestion receipt and synchronized asset data through the same boundary.
+- Day-two incremental cycle `0db9360709b2b6417b9456f5` completed all seven resources successfully: 26 overlapping/recent candles and four funding rows fetched per asset, plus a current three-asset 8h cadence snapshot.
+- Day-two snapshot `51501f2bbd72c6b41c085f3f` is genuinely new and synchronized at `2026-08-29T07:00:00+00:00`; the archive count is now 2.
+- Fixed-portfolio total return moved from -1.77% to -3.12% and max drawdown from 15.16% to 15.22%; liquidation risk stayed 0.395% with zero liquidation events.
+- Per-asset return changed BTC -7.80% to -7.46%, ETH -3.94% to -5.89%, SOL +6.43% to +4.00%.
+- Train/test aggregate evidence remains unchanged at 36 folds because a single added day has not crossed the configured 168-hour fold step. Warnings remain `BASELINE_UNDERPERFORMANCE` and `PARAMETER_INSTABILITY`.
+- Promotion governance remains `CONTINUE_OBSERVATION` with 2/30 snapshots, 0/7 consecutive ready reviews, -2.66% mean excess return versus Buy & Hold and the same five blocking checks; no material rejection threshold is reached.
+- Forward operations remain fail-safe `BLOCKED` by the absent effective configuration and default-armed kill switch. No burn-in or bot ledger cycle has started.
+- Final day-two verification is healthy: two ingestion receipts, two immutable shadow snapshots, zero proposals/reviews/trials/runtime sessions/runtime cycles/ledger results, and every snapshot authority layer explicitly sets live execution to false.
+
+## 2026-08-29 — MIL-3.26 closed-candle daily evidence integrity
+- At `2026-08-29T08:24Z`, the latest stored and latest archived boundary were both `07:00Z`, so a third daily archive would be invalid evidence inflation.
+- Binance public kline ingestion stores the current hour as well as closed history. A daily builder that selects `MAX(open_time)` can therefore consume a partial candle unless it applies `open_time + timeframe <= observed_at`.
+- Existing immutable snapshots cannot be rewritten. The fix must preserve their audit history while ensuring all new snapshots carry explicit closed-candle boundary evidence and cannot inflate daily governance through same-day reruns.
+- `build_shadow_daily_snapshot` currently loads every stored candle for validation, while `DashboardService.build_portfolio` independently selects the latest stored candle. Neither path shares the MIL-3.25 closed-boundary helper.
+- Storage identities already ignore nested `generated_at`, but a changing partial candle still changes the payload and can create multiple same-day IDs. A closed-boundary filter removes partial-bar mutation; a separate canonical daily observation rule is still needed to prevent hourly closed bars from counting as daily governance history.
+- The existing runtime helper `latest_synchronized_closed_boundary` is reusable and supports the repository's timeframe syntax. Shadow validation and portfolio replay must both be capped at its returned synchronized boundary.
+- `DashboardRequest` and `PortfolioRequest` currently lack an evidence-end field. Adding an optional `as_of` cap is backward compatible and lets the shadow builder reuse the ordinary portfolio accounting path without duplicating it.
+- Governance loads snapshots by target strategy only. Therefore the conservative daily uniqueness scope should be UTC observation date plus target strategy; allowing multiple symbol/config variants for the same target on one day would mix experiments and inflate policy counts.
+- New builder output can advance to `mil3.shadow-daily.v2` while storage and downstream proposal/trial paths continue reading archived v1 evidence. Proposal validation should accept both explicitly rather than silently accepting arbitrary schemas.
+- The first targeted regression passes 21 tests after updating the exact-minimum fixture, idempotent identity and same-day uniqueness behavior.
+- Historical v1 snapshots must remain readable for audit and old proposal lineage, but they cannot count toward the new 30-day promotion minimum because they lack explicit fully-closed boundary evidence. Governance needs an eligible-evidence subset rather than deleting or rewriting history.
+- Stability now exposes all archived points plus a `promotion_eligible_points` subset. Governance uses that subset when present and calculates transitions/consecutive-ready state within it, while synthetic/legacy API contracts without the new field retain backward-compatible behavior.
+- MIL-3.12–3.16 targeted regression now passes 32 tests, including explicit legacy exclusion and archived-versus-eligible evidence counts.
+- Final full verification passes 163 Python tests, Python compilation, JavaScript syntax and diff whitespace checks. The safety scan found no credential, signed-request, order-submission or LIVE-mode additions.
+- The real development database migrated successfully with `idx_shadow_daily_target_utc_date`; integrity is `ok`, two legacy snapshots remain, and proposal/runtime-cycle counts remain zero.
+- Corrected promotion evidence intentionally resets to 0/30 eligible observations. The first trustworthy v2 day can be archived on the next UTC observation date; the two v1 rows stay available only as excluded audit history.
+
+## 2026-08-30 — First real v2 daily run
+- The run must produce schema `mil3.shadow-daily.v2`, `fully_closed=true`, a synchronized boundary no later than `observed_at - 1h`, and eligible governance count 1 while preserving two excluded v1 audit rows.
+- Baseline integrity is `ok`; committed code is `7f53c40`, archived evidence is two v1 rows, eligible v2 count is zero and synchronized stored candles initially ended at `2026-08-29T07:00:00+00:00`.
+- Incremental cycle `45e2954795ab2bfcd472d628` completed every public resource successfully at `2026-08-30T04:05:51Z`: 24 candle rows and five funding rows fetched per asset plus a current 8h cadence snapshot.
+- First trustworthy real v2 snapshot is `aaf51f130fdcf43d0bd65ec5`, with observation date `2026-08-30`, synchronized closed boundary `2026-08-30T03:00:00+00:00`, `fully_closed=true`, and review gate `DEFER`.
+- A second identical real command returned the same snapshot ID and kept the archive count at 3, proving operational idempotency and one-per-day protection on the persistent database.
+- First v2 portfolio result: -2.44% total return, 14.96% max drawdown, 0.395% max liquidation-risk approximation and zero liquidation events. Per-asset returns are BTC -5.66%, ETH -6.28% and SOL +4.63%; funding coverage is COMPLETE for all three.
+- The train/test fold boundary has not advanced beyond the existing 168-hour step, so validation remains 36 folds with -2.66% mean excess return versus Buy & Hold, 77.78% selection stability and warnings `BASELINE_UNDERPERFORMANCE` plus `PARAMETER_INSTABILITY`.
+- Corrected governance reports 3 archived snapshots, exactly 1 eligible v2 observation and 2 excluded v1 audit rows. Decision remains `CONTINUE_OBSERVATION` with no rejection band reached.
+- Final operational health is `HEALTHY`. Latest stored open candles are 04:00 UTC while immutable evidence stops at the closed 03:00 UTC boundary, directly confirming open-bar exclusion on real data.
+- Final counts: 3 ingestion cycles, 3 archived snapshots, 0 proposals, 0 runtime sessions, 0 runtime cycles and 0 ledger results; SQLite integrity is `ok`.
+- Forward STATUS remains `BLOCKED` only by `CONFIGURATION_NOT_EFFECTIVE` and fail-safe `KILL_SWITCH_ARMED`; external order requests, order path and live execution are all false.
+- Relevant daily evidence, governance and forward-operation regression passes 26 tests.
+
+## 2026-08-30 — MIL-3.27 strategy diagnostics
+- The implementation must explain observed performance without inventing causality: realized accounting, market-state groupings and cost counterfactuals are evidence; optimization recommendations remain hypotheses until separate challenger trials validate them.
+- The diagnostic page is read-only and must distinguish latest raw data from the latest eligible stable v2 snapshot, keep the largest performance drag and risk state visible, and explain why any next action remains gated.
+- The shared replay engine already exposes deterministic full-resolution `trace` and `fills`: every fill carries category, reason, notional, fee, slippage and realized-P&L delta, while every trace point carries equity, exposure, leverage, margin buffer, liquidation risk, realized/unrealized P&L, cumulative fees and funding. MIL-3.27 should compose evidence from this accounting path, not introduce a second simulator.
+- Existing dashboard serialization deliberately downsamples traces and omits fills; the archived portfolio stable view also keeps only selected per-asset summary fields. Rich attribution must replay the exact closed-candle boundary and verify the reconstructed result against the immutable v2 summary before calling it trusted.
+- `AARS_DYNAMIC` already labels negative targets as `tactical_short`; direction attribution can use signed exposure and fill category without inventing a separate hedge execution path.
+- Cost reversal is an accounting counterfactual (`final equity + fees + slippage + funding paid`), not proof that performance would improve by that amount in a different execution environment; API and UI labels must preserve this limitation.
+- Stable-source verification now checks every per-asset AARS return and every archived portfolio trace point's equity index and net exposure at `1e-10` tolerance. Missing or mismatched evidence returns `DEGRADED`, withholds attribution and emits no optimization hypothesis.
+- Real snapshot `aaf51f130fdcf43d0bd65ec5` reconciles exactly. AARS returned -2.4357% versus equal-weight Buy & Hold +49.7583% over the archived window, a -52.1940% gap. Modeled cost drag is 13.3745%; fee drag is the largest component.
+- BTC, ETH and SOL generated 2,042 simulated rebalances each, with nominal turnover of approximately 181.9x, 193.8x and 185.8x initial capital. ETH is the largest weighted baseline-gap contributor. The first bounded optimization experiment should therefore test a lower-turnover/deadband challenger while preserving the baseline and all risk limits.
+- Final verification passes 166 tests plus Python compilation, JavaScript syntax, strict real-database diagnostic serialization, whitespace checks and a focused scan for credential, authenticated exchange and live-order additions. No execution path was added.
+
+## 2026-08-30 — MIL-3.28 low-turnover challenger
+- The experiment must separate three quantities: observed actual-cost performance, a true rerun with all modeled costs disabled, and the strategy-policy difference under the same cost mode. The MIL-3.27 accounting add-back is not sufficient for this experiment.
+- The challenger must remain a separate strategy object with no registry or runtime activation path. A favorable replay can only support a later governed proposal after independent validation.
+- `AarsDynamicStrategy` currently emits a target on every bar; because target quantity is equity- and price-relative, even a nearly unchanged target creates a fill. The challenger should return no action while inside its state deadband instead of repeatedly requesting the previous exposure.
+- Zero-cost replay must instantiate a separate engine with `fee_rate=0`, `slippage_rate=0`, no funding history and no fallback funding. This preserves price-path and ledger behavior while truly removing all three modeled cost channels.
+- Risk-direction transitions should bypass the ordinary minimum interval: a sign change, entry into `BREAKDOWN`, or entry into `DISTRIBUTION` must remain responsive. Ordinary same-direction adjustments can be held until both the state deadband and minimum-bar interval are satisfied.
+- The first real 6-bar/default-deadband run improved actual-cost return by 7.9579 percentage points and reduced portfolio max drawdown by 5.4879 points. A separate zero-cost engine rerun shows a +1.9982-point policy effect and a 5.9597-point reduction in true modeled-cost effect, so the observed improvement is not only an accounting fee add-back.
+- That first run reduced turnover by 41.93% and fills from 6,126 to 954, short of the conservative 50% turnover gate. Its liquidation-risk approximation rose only 0.0044 percentage point with zero events, but the strict no-increase gate correctly blocks promotion. Tune the ordinary interval/deadband before finalizing defaults; do not relax the risk gate to make the result pass.
+- Increasing the ordinary minimum interval to 12 bars clears the turnover gate, but held exposure can drift slightly above the continuously rebalanced baseline. Applying a transparent 0.95 challenger exposure scale keeps the deadband experiment conservative and preserves the strict no-risk-increase check rather than weakening it.
+- Final proposed defaults (12-bar minimum, state deadbands 0.05–0.20, 0.95 exposure scale, immediate sign/risk-state transitions) produce `PROMISING_CHALLENGER` on the real v2 boundary: +8.8356% actual return versus -2.4357% baseline, 57.09% turnover reduction, 6.06% versus 14.96% max drawdown, lower liquidation-risk approximation and zero events.
+- The true zero-cost policy delta is +3.0000 percentage points, while the reduction in true modeled-cost effect is +8.2714 points. This cleanly shows that most observed improvement comes from reduced cost/turnover, with a smaller positive policy-path effect in this window.
+- Final verification passes 170 tests plus compilation, UI syntax, strict report serialization, whitespace and focused credential/authenticated-order/live-mode scans. The challenger has no registry, runtime, proposal or execution integration.
+
+## 2026-08-30 — MIL-3.29 frozen robustness validation
+- Validation must consume a canonical hash of the MIL-3.28 specification and include that hash in every fold, stress scenario and response. Any alternative parameter set is a different experiment and cannot be mixed into this report.
+- Rolling folds must compare baseline and challenger only on each test segment while allowing warmup history before the test boundary; state attribution must be computed using information available through each bar.
+- The real store has 2,924 synchronized hourly bars per asset, approximately 122 days. Because MIL-3.28 was discovered on the latest 90-day window, only about 32 earlier days can serve as pre-discovery holdout; the overlapping 90-day folds must be labeled discovery-window reuse, not independent out-of-sample evidence.
+- No meaningful post-freeze forward horizon exists yet. MIL-3.29 can assess multi-window consistency, pre-discovery holdout, state breadth and stressed costs now, but its final gate must remain `WAIT_FOR_POST_FREEZE_EVIDENCE` until new fully closed weekly folds accumulate.
+- Existing `build_walk_forward_folds` is designed for training-time candidate selection. MIL-3.29 must use a separate frozen-policy fold builder with `selection_uses_any_fold=false`; reusing the selector would contradict the no-retuning requirement.
+- The discovery boundary is anchored to `frozen_at - 2160h`, not the latest candle, so lineage does not drift as forward evidence accumulates.
+- The real immutable snapshot produced four positive windows (30/60/90/120 days), 3/3 pre-discovery holdout wins, seven observed market states, and survival under all four modeled-cost scenarios.
+- The only current gate blocker is forward time: zero complete weekly post-freeze folds exist. The honest disposition is `WAIT_FOR_POST_FREEZE_EVIDENCE` with overfit risk `HIGH`; 12 reused discovery folds cannot cure that limitation.
+- State evidence is adverse in ACCUMULATION, BREAKDOWN and BREAKOUT despite a positive portfolio aggregate. These observations remain diagnostic and must not trigger MIL-3.29 retuning.
+- Rolling evidence is positive in 15/16 folds; the weakest fold is a reused-discovery fold at -0.4792 point. BREAKOUT is the weakest state at -5.1380 points. Both are kept visible rather than used as a new optimization target.
+
+## 2026-08-30 — MIL-3.30 frozen forward evidence accumulation
+- The accumulator must preserve the MIL-3.29 frozen spec hash and review thresholds. A drift alarm is observation evidence, not a parameter-tuning trigger.
+- The primary HMI task is to distinguish elapsed-time waiting from failure: show the next complete weekly boundary, current post-freeze fold count, highest drift alarm, data trust and exact recovery while all proposal/activation/live authorities remain false.
+- The committed MIL-3.29 baseline is clean at `07b948e`; only the three planning files changed for the new milestone.
+- The existing incremental scheduler is deliberately scoped to public market-data ingestion. MIL-3.30 should not broaden it into evaluation writes; use a separate bounded evidence runner/checkpoint store and defer any Mac scheduling change until its one-shot behavior is verified.
+- Existing immutable archives and runtime checkpoints provide idempotency patterns, but there is no frozen robustness evidence table yet. A dedicated append-only table can bind each evaluation to the frozen spec hash and synchronized weekly boundary without modifying the source v2 snapshot.
+- Canonical checkpoint geometry should be derived from the first aligned candle, unchanged warmup/test/step sizes and `test_start > frozen_at`. Each checkpoint is evaluated exactly at that fold's final fully closed candle; running the monitor later must not shift its payload boundary.
+- Archive identity should be unique on `(spec_sha256, post_freeze_fold_count)`. Same identity and payload is reused; different payload at the same count is a source-drift/tamper error, never an overwrite.
+- Checkpoint zero should be evaluated exactly at the frozen source boundary and becomes the immutable drift reference. Future cycles archive every newly completed weekly fold in order, bounded per cycle, so missed scheduler time does not collapse several weeks into one checkpoint.
+- Drift will compare forward-only state mix/outcomes with the frozen reference and compare the rolling 90-day cost-stress surface between checkpoints. Alerts must include trigger, impact, evidence, recommended response and closure condition; they may never recommend retuning.
+- The existing MIL-3.29 deck already exposes retrospective windows and gates. MIL-3.30 should extend it with a distinct forward-evidence sub-surface showing archived/required folds, next eligible time, drift severity, checkpoint lineage and actionable alarms, rather than duplicating retrospective charts.
+- The real database archived exactly one fold-zero checkpoint, `94e86430a12e442bd1a126a1`, bound to the frozen `2026-08-30T03:00:00Z` boundary and the unchanged MIL-3.29 spec hash. A repeated WAKE archived zero rows and returned `WAITING`.
+- No complete post-freeze fold is currently available. The canonical next fold closes at `2026-09-08T07:00:00Z` and becomes eligible after `2026-09-08T08:00:00Z` (`16:00` Asia/Shanghai). Current drift is correctly `INSUFFICIENT_FORWARD_EVIDENCE`, not a performance alarm.
+- Final hardening must verify checkpoint identity from canonical payload fields on every read and match every stored count to its original scheduled boundary. A checkpoint ahead of currently available market history is degraded, not silently accepted.

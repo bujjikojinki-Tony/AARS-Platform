@@ -319,3 +319,247 @@ PWB-11 Complete
 - [x] Ensure responses carry safety flags
 - [x] Preserve no-execution boundary
 - **Status:** complete
+
+## MIL-3.17 Forward-Only Extended Paper Observation
+- [x] Define the immutable forward-observation contract and strict out-of-sample boundary
+- [x] Add forward-only replay construction, funding coverage gates, and advisory dispositions
+- [x] Persist append-only observation checkpoints with lineage and content hashes
+- [x] Add read-only service, API, CLI, and dashboard visibility
+- [x] Add deterministic leakage, immutability, risk, API, CLI, and UI tests
+- [x] Update MIL-3 documentation and run the full suite
+- [x] Commit the milestone
+- **Status:** complete
+
+## MIL-3.18 Continuous Forward Observation Governance
+- [x] Define checkpoint scheduling, stability analysis, decay warnings, and confirmation policy
+- [x] Add deterministic forward-observation stability/governance model
+- [x] Add safe scheduled checkpoint orchestration without duplicate writes or execution paths
+- [x] Expose read-only stability/governance API and task-centered UI evidence
+- [x] Add deterministic scheduler, stability, degradation, API, CLI, and UI tests
+- [x] Update documentation and run the full suite
+- [x] Review and commit the milestone
+- **Status:** complete
+
+## MIL-3.19 Human Forward Review and Evidence Export
+- [x] Define immutable human review actions and candidate lifecycle transitions
+- [x] Persist lineage-chained review records with stability/source verification
+- [x] Make the monitor respect pause, termination, and governed restart state
+- [x] Add deterministic complete evidence-bundle export with component hashes
+- [x] Expose read-only review/evidence status through API and task-centered UI
+- [x] Add deterministic state-machine, tamper, monitor, export, API, CLI, and UI tests
+- [x] Update documentation, run the full suite, review, and commit
+- **Status:** complete
+
+## MIL-3.20 Offline Evidence Verification, Retention, and Isolated Activation Approval
+- [x] Define offline verification report, retention policy, and isolated approval authority contract
+- [x] Add database-independent evidence-bundle verification CLI and deterministic report
+- [x] Add scoped evidence retention/backup inventory with integrity verification and safe pruning
+- [x] Add immutable isolated PAPER_ONLY activation-approval state and storage verification
+- [x] Expose approval/retention status through read-only API and task-centered console
+- [x] Add deterministic tamper, retention, approval, API, CLI, and UI tests
+- [x] Update operations/milestone documentation and run the full suite
+- [x] Review and commit the milestone
+- **Status:** complete
+
+## MIL-3.21 Isolated PAPER_ONLY Configuration Registry and Atomic Lifecycle
+- [x] Define immutable registry, one-time approval consumption, sandbox pointer and fail-safe expiry contract
+- [x] Add registry/storage models with exact configuration and authority verification
+- [x] Add atomic activate, rollback and persisted expiry/revocation reconciliation events
+- [x] Add immediate read-only effective-configuration resolution that fails safe without GET mutations
+- [x] Add explicit local registry/activation/reconciliation CLI and read-only API
+- [x] Add task-centered UI for stored pointer vs effective state, rollback target and blocking reason
+- [x] Add deterministic registry, race, expiry, revocation, rollback, API, CLI and UI tests
+- [x] Update documentation, run full verification, review and commit
+- **Status:** complete
+
+## MIL-3.22 Governed Isolated PAPER Runtime
+- [x] Define runtime lease, heartbeat, stop, kill-switch and fail-safe authority contract
+- [x] Add append-only runtime sessions/events with atomic lease acquisition and fencing
+- [x] Add a bounded PAPER_ONLY runtime worker that consumes only effective configuration
+- [x] Enforce automatic stop on expiry, revocation, pointer change, lease loss or kill switch
+- [x] Add explicit local lifecycle CLI plus read-only service/API surfaces
+- [x] Add task-centered runtime HMI with actual state, lease freshness, blockers and recovery
+- [x] Add deterministic concurrency, timeout, kill-switch, API, CLI and UI tests
+- [x] Update documentation, run full verification, review and commit
+- **Status:** complete
+
+## MIL-3.23 Deterministic Snapshot-to-Paper Ledger Runtime
+- [x] Define immutable market snapshot, cycle identity, checkpoint and paper-ledger authority contract
+- [x] Add atomic checkpoint/result storage with session fencing and unique idempotency keys
+- [x] Implement deterministic effective-configuration calculation from read-only stored candles/funding
+- [x] Add crash recovery and duplicate-cycle reuse without double-applying ledger state
+- [x] Integrate calculations into bounded runtime cycles while preserving lease/kill fail-safe behavior
+- [x] Add explicit local CLI plus read-only checkpoint/result service/API surfaces
+- [x] Add task-centered HMI for snapshot boundary, commit state, idempotency and recovery
+- [x] Add deterministic snapshot, crash, duplicate, fencing, API, CLI and UI tests
+- [x] Update documentation, run full verification, review and commit
+- **Status:** complete
+
+## MIL-3.24 PAPER_ONLY Shadow Strategy Bot Orchestrator
+- [x] Inspect approved configuration, replay engine, runtime checkpoint, API and HMI contracts
+- [x] Define immutable bot/account/order/fill/cycle contracts with independent ledgers
+- [x] Implement deterministic four-bot orchestration over one synchronized stored-market snapshot
+- [x] Persist idempotent bot-cycle results and expose read-only service/API/HMI evidence
+- [x] Add runtime risk-stop behavior that can only freeze PAPER_ONLY bots
+- [x] Add deterministic bot isolation, accounting, duplicate, recovery, risk, API and UI tests
+- [x] Update MIL-3 documentation and Mac mini operations guidance
+- [x] Run targeted and full verification, safety review, and commit the milestone
+- **Status:** complete
+
+## MIL-3.25 Forward Bot Operations
+- [x] Inspect candle finality, ingestion scheduler, runtime lease, ledger lineage and Mac service contracts
+- [x] Define closed-bar trigger, missed/duplicate wake and single-instance scheduling invariants
+- [x] Implement deterministic cycle-to-cycle bot account deltas and forward operations status
+- [x] Implement actionable local runtime/data/risk alerts with immutable evidence
+- [x] Add bounded background runner and deferred Mac LaunchAgent generation without installing it
+- [x] Add 7/14-day burn-in progress, continuity and readiness evaluation
+- [x] Expose forward operations through read-only API and task-centered UI
+- [x] Add deterministic trigger, delta, alert, scheduler, burn-in, API and UI tests
+- [x] Update MIL-3 and Mac operations documentation
+- [x] Run targeted/full verification, safety review and commit the milestone
+- **Status:** complete
+
+## MIL-3.25 First Real-Data PAPER_ONLY Cycle
+- [x] Inspect the current local database, ingestion, registry, activation, kill-switch and forward-runner prerequisites
+- [x] Create a dedicated local MIL-3 database without reusing unrelated project data
+- [x] Ingest Binance public candles, funding history and cadence metadata for the configured assets
+- [x] Confirm the documented isolated PAPER_ONLY approval prerequisites are absent and leave activation fail-safe rather than bypassing gates
+- [x] Run STATUS and one governed closed-bar WAKE; capture any fail-safe blocker exactly
+- [x] Verify database integrity, runtime evidence, bot deltas and no-live-execution boundary
+- **Status:** blocked_pending_human_evidence_review
+
+## First real-data cycle errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| Manual SQLite count query referenced nonexistent candle column `interval` | 1 | Database integrity still returned `ok`; inspect the schema and rerun the count using the stored column name instead of repeating the query |
+
+## MIL-3.25 Real-Data Candidate and Trial Preparation
+- [x] Inspect shadow validation, stable-view, proposal, review and trial contracts against the fresh database
+- [x] Run a bounded multi-asset PAPER_ONLY shadow validation using stored real data
+- [x] Archive and verify the resulting immutable daily shadow evidence
+- [x] Attempt inert proposal generation and verify it fails closed because automatic gates do not pass
+- [x] Stop before any human `APPROVE` action and present the exact candidate metrics and review choice
+- [x] Verify database integrity, evidence counts and permanent no-live-execution authority
+- **Status:** blocked_by_promotion_evidence_gate
+
+## Real-data candidate preparation errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| Manual snapshot summary query assumed a materialized `review_disposition` column | 1 | Snapshot review evidence is intentionally stored inside immutable `payload_json`; query the documented JSON payload keys instead |
+| First planning update split two edits to `task_plan.md` into duplicate patch operations | 1 | Combine all changes to the same file into one update operation |
+| Proposal command raised `ValueError: paper proposal requires PROMOTION_CANDIDATE governance` | expected fail-closed check | Confirm zero proposal rows and continue daily evidence collection; do not bypass governance |
+
+## MIL-3.25 Real-Data Daily Evidence — Day 2
+- [x] Verify the persistent database and day-one evidence baseline
+- [x] Run one bounded incremental public-data ingestion cycle
+- [x] Archive the day-two immutable AARS_DYNAMIC shadow snapshot
+- [x] Compare day-one/day-two performance, warnings and candidate stability
+- [x] Recompute promotion governance and forward-operation safety state
+- [x] Verify database integrity, evidence counts and no-live-execution authority
+- **Status:** complete
+
+## Day-two evidence errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| Initial authority aggregate queried a nonexistent `$.authority` snapshot path and returned nulls | 1 | Verify the actual snapshot, portfolio and validation review-gate authority paths; all are explicitly false |
+
+## MIL-3.26 Closed-Candle Daily Evidence Integrity
+- [x] Inspect shadow snapshot construction, candle selection and existing finality helpers/tests
+- [x] Define a deterministic observed-at and synchronized fully closed boundary contract
+- [x] Exclude open candles from validation, portfolio replay and immutable evidence identity
+- [x] Prevent more than one canonical daily observation from inflating governance history
+- [x] Add deterministic tests for open-bar mutation, same-day reruns and next-day advancement
+- [x] Update continuous-shadow and operations documentation
+- [x] Run targeted and full MIL-3 verification, safety scan and diff review
+- **Status:** complete
+
+## MIL-3.26 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| Existing exact-minimum fold fixture lost one bar after the new closed-candle filter | 1 | Advance its deterministic observation time so the required 199 bars are closed, then add a separate explicit open-bar exclusion fixture |
+| Same-data CLI rerun produced a different ID because `evidence_boundary.observed_at` entered content identity | 1 | Preserve observed-at audit metadata but exclude only that operational timestamp from the content-addressed identity, as already done for generated-at fields |
+| Combined documentation patch assumed an outdated sentence in the main milestone file | 1 | Apply the known CLI/operations documents separately, inspect the exact milestone section and patch against current text |
+| First final safety-scan command used an over-complex shell quote pattern and did not execute | 1 | Split diff, safety and database checks into simple independently quoted commands |
+
+## MIL-3.26 First Real v2 Daily Run
+- [x] Verify clean committed code, database integrity and prior v1 audit baseline
+- [x] Run one bounded Binance public incremental ingestion cycle
+- [x] Build and archive one synchronized fully closed v2 daily snapshot
+- [x] Verify snapshot finality, input boundary and daily uniqueness evidence
+- [x] Compare actual portfolio/asset performance and promotion governance
+- [x] Confirm forward runtime remains fail-safe PAPER_ONLY with no live path
+- [x] Record final database counts and test the relevant runtime path
+- **Status:** complete
+
+## MIL-3.27 Strategy Diagnostic and Cost Attribution
+- [x] Inspect replay traces, fills, strategy state, portfolio aggregation, API and console seams
+- [x] Define deterministic asset/regime/direction/cost/turnover attribution contracts
+- [x] Implement read-only diagnostics over immutable v2 snapshot evidence without adding a new calculation engine
+- [x] Add AARS-versus-Buy-and-Hold gap, cost counterfactual and actionable optimization findings
+- [x] Expose diagnostics through GET-only API and task-centered HMI with risk/data-trust/degraded states
+- [x] Add deterministic accounting, attribution, tamper/degraded, API and UI tests
+- [x] Update MIL-3.27, continuous-shadow, Mac operations and HMI documentation
+- [x] Run targeted and full verification, safety scan, diff review and local milestone commit
+- **Status:** complete
+
+## MIL-3.27 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| Nested mismatch-test SQLite parent directory did not exist | 1 | Create the deterministic fixture directory before initializing its database |
+| First full suite had 9 UI regressions because the long-lived console brand token changed from `03.25` | 1 | Preserve the backward-compatible base-console token and append the `DIAGNOSTICS 03.27` milestone label |
+| Local HTTP smoke server could not bind inside the managed filesystem/network sandbox | 1 | Do not broaden permissions for an optional check; rely on direct handler/API tests plus the real-database service/CLI verification |
+
+## MIL-3.28 Low-Turnover Deadband Challenger
+- [x] Inspect strategy action semantics, replay cost accounting and MIL-3.27 diagnostic/UI seams
+- [x] Define a deterministic state-dependent deadband and minimum-rebalance interval with immediate risk-direction transitions
+- [x] Implement isolated AARS low-turnover challenger through the existing PAPER_ONLY replay engine
+- [x] Add actual-cost and true zero-cost reruns for baseline and challenger on identical closed evidence
+- [x] Attribute logic effect, modeled-cost effect, cost savings, turnover reduction and risk deltas without causal overclaim
+- [x] Expose GET-only challenger evidence and task-centered HMI with explicit non-activation gates
+- [x] Add deterministic policy, accounting, degraded/tamper, API, CLI and UI tests
+- [x] Run the challenger against the real v2 snapshot and record the observed result
+- [x] Update MIL-3.28, continuous-shadow, Mac operations and HMI documentation
+- [x] Run targeted/full verification, safety scan, diff review and local milestone commit
+- **Status:** complete
+
+## MIL-3.29 Frozen Challenger Robustness Validation
+- [x] Inspect existing walk-forward fold contracts, state labels, challenger evidence and window availability
+- [x] Define and content-hash one immutable MIL-3.28 challenger specification with no validation-time tuning
+- [x] Implement multi-window and rolling out-of-sample baseline/challenger comparisons on identical bars
+- [x] Add state-regime coverage and per-regime return/turnover evidence without future leakage
+- [x] Add deterministic fee/slippage/funding stress scenarios around the actual-cost baseline
+- [x] Define conservative robustness gates for fold breadth, win rate, return, drawdown, turnover, risk and stress survival
+- [x] Expose GET-only robustness evidence and task-centered HMI with overfit/degraded/non-activation states
+- [x] Add deterministic freeze, fold, stress, regime, API, CLI and UI tests
+- [x] Run the frozen validation against the real v2 evidence and record the result without retuning
+- [x] Update MIL-3.29, continuous-shadow, Mac operations and HMI documentation
+- [x] Run targeted/full verification, safety scan, diff review and local milestone commit
+- **Status:** complete
+
+## MIL-3.29 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| Combined planning update used one stale cross-file context anchor | 1 | Split the append-only findings/progress and checklist edits into exact patches |
+| Final verification referenced root planning file from the nested MIL-3 directory | 1 | Use the explicit repository-root path, then rerun every verification command |
+| First weakest-fold HMI template omitted a closing JavaScript interpolation brace | 1 | Split the nested template into explicit weakest-fold and lineage row strings, then rerun syntax and tests |
+
+## MIL-3.30 Frozen Forward Evidence Accumulation and Drift Monitoring
+- [x] Inspect scheduler, immutable archive, content identity, alert and HMI seams
+- [x] Define an idempotent weekly evidence checkpoint bound to the MIL-3.29 frozen specification
+- [x] Accumulate only complete synchronized post-freeze folds without retroactive mutation or tuning
+- [x] Recompute unchanged MIL-3.29 review gates after each new eligible boundary
+- [x] Add state-mixture, per-state outcome and modeled-cost sensitivity drift baselines and alarms
+- [x] Expose evidence age, next eligible boundary, fold continuity, drift alarms and recovery through GET-only API/HMI
+- [x] Add bounded background scheduling without adding activation, proposal or live-order authority
+- [x] Add deterministic idempotency, boundary, drift, tamper, degraded, API, CLI and UI tests
+- [x] Run against the real persistent database and confirm the no-new-fold wait state
+- [x] Update MIL-3.30, continuous-shadow, Mac operations and HMI documentation
+- [x] Run targeted/full verification, safety scan, diff review and local milestone commit
+- **Status:** complete
+
+## MIL-3.30 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| Nested MIL-3 inspection used `task_plan.md` without the repository-root prefix | 1 | Preserve the successful UI inspection and use the absolute planning path for subsequent plan reads |
+| First drift-alert test rejected the safe phrase `do not retune` merely because it contained `retune` | 1 | Assert an explicit frozen/no-retune boundary instead of banning the word itself |
+| Combined hardening patch assumed a duplicated drift key that was only duplicated in truncated console output | 1 | Inspect exact source ranges, remove only real unused imports, and apply identity/boundary hardening separately |
