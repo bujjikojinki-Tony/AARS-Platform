@@ -1,4 +1,4 @@
-# MIL-3.27 Strategy Diagnostic and Cost Attribution Console HMI Design v14
+# MIL-3.28 Low-Turnover Challenger Console HMI Design v15
 
 ## 1. Page Purpose
 
@@ -62,6 +62,7 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 - Lower deck: Latest Stable View, P&L attribution, cross-asset portfolio risk and Stable View differences.
 - Continuous-shadow deck: Latest Stable Snapshot, history trust, safe next step, stability trace, warning memory, daily change log and selected immutable evidence.
 - Strategy-diagnostic deck: stable/raw boundary, replay trust, baseline gap, cost add-back, per-asset attribution and gated challenger hypotheses.
+- Challenger deck: identical closed-evidence trust, actual/zero-cost matrix, turnover/risk checks, disposition and per-asset effects.
 - Governance card: advisory disposition, permanent authority locks, evidence window, blocking/rejection counts, ordered checks and conservative policy thresholds.
 - Paper proposal card: immutable proposal status, deterministic selection provenance, before/after changes, risk boundary, stop condition and human review record.
 - Paper trial card: advisory result, authority locks, common comparison, cost/P&L deltas, hard-stop result, per-asset evidence and input hashes.
@@ -138,10 +139,14 @@ The desktop layout follows a flight-recorder/control-desk pattern with a persist
 - `BaselineGapAndCostStrip`
 - `AssetDragAttributionList`
 - `EvidenceHypothesisQueue`
+- `ChallengerAuthorityBar`
+- `ActualZeroCostComparisonMatrix`
+- `ChallengerResearchGate`
+- `PerAssetChallengerEffectList`
 
 ## 7. Data Model
 
-The page consumes the existing MIL-3 schemas plus `mil3.strategy-diagnostics.v1`, `mil3.isolated-paper-configuration-index.v1`, `mil3.isolated-paper-sandbox-view.v1`, `mil3.isolated-paper-sandbox-event-index.v1`, `mil3.shadow-strategy-bot-fleet.v1` and `mil3.forward-bot-operations.v1`. The client rejects any execution mode other than `PAPER_ONLY`; diagnostics must also prove read-only mode and deny automatic change, activation and live execution. An effective configuration is accepted only when the sandbox state is exactly `ACTIVE`; all fail-safe states require a null effective configuration. Ledger v1 remains readable without inferring a bot fleet.
+The page consumes the existing MIL-3 schemas plus `mil3.strategy-diagnostics.v1`, `mil3.low-turnover-challenger.v1`, `mil3.isolated-paper-configuration-index.v1`, `mil3.isolated-paper-sandbox-view.v1`, `mil3.isolated-paper-sandbox-event-index.v1`, `mil3.shadow-strategy-bot-fleet.v1` and `mil3.forward-bot-operations.v1`. The client rejects any execution mode other than `PAPER_ONLY`; diagnostics and challenger evidence must also prove read-only mode and deny automatic change, activation and live execution. An effective configuration is accepted only when the sandbox state is exactly `ACTIVE`; all fail-safe states require a null effective configuration. Ledger v1 remains readable without inferring a bot fleet.
 
 ## 8. Alarm and Risk Design
 
@@ -162,6 +167,8 @@ AARS output is presented as a recommendation with state, confidence, Bull/Base/B
 MIL-3.15 proposal selection exposes its cross-asset mode and tie-break. Expected risk impact is labeled `NOT_FORECAST`. An acknowledgement is shown as an immutable human record and explicitly states that it did not apply parameters.
 
 MIL-3.16 exposes the common-input rule, aggregation method, exact input hash and advisory scoring boundary. `ELIGIBLE_FOR_EXTENDED_PAPER_OBSERVATION` is not parameter authority.
+
+MIL-3.28 exposes the deadband, minimum interval, exposure scale, bypass rules and two cost modes. `PROMISING_CHALLENGER` means only that fixed replay checks pass. The interface states that independent validation is required and provides no proposal or activation action.
 
 ## 10. Degraded Mode and Recovery
 
@@ -208,6 +215,11 @@ If strategy diagnostics are unavailable or replay reconciliation fails, the
 console shows `DEGRADED`, withholds attribution and issues no optimization
 hypothesis. Recovery points to the eligible v2 snapshot and exact closed-boundary
 inputs; it never falls back to current raw data or a demonstration result.
+
+If the challenger source is unavailable, the console shows `DEFER`, withholds
+the cost matrix and per-asset effects, and identifies the exact stable-evidence
+recovery path. A promising result remains visibly non-activating and requires
+independent validation.
 
 ## 11. User Actions and Gates
 
@@ -281,6 +293,7 @@ python run_isolated_paper_runtime.py --db mil3_market.sqlite --action CLEAR_KILL
 python run_isolated_paper_runtime.py --db mil3_market.sqlite --action RUN --sandbox-id aars-paper-sandbox --max-cycles 1
 python run_isolated_paper_runtime.py --db mil3_market.sqlite --action RECONCILE
 python run_strategy_diagnostics.py --db mil3_market.sqlite --output-json reports/mil327-diagnostic.json
+python run_low_turnover_challenger.py --db mil3_market.sqlite --output-json reports/mil328-challenger.json
 python run_api.py --db mil3_market.sqlite --port 8765
 ```
 

@@ -49,6 +49,8 @@ For snapshot `aaf51f130fdcf43d0bd65ec5` at the fully closed `2026-08-30T03:00:00
 
 This supports a lower-turnover challenger as the first optimization experiment. It does not authorize changing the fixed PAPER_ONLY configuration.
 
+MIL-3.28 implements that isolated experiment with a true zero-cost engine comparison. See `LOW_TURNOVER_CHALLENGER.md`; the MIL-3.27 diagnostic and accounting-add-back contract remains unchanged.
+
 ## Recovery
 
 - `NO_ELIGIBLE_V2_STABLE_SNAPSHOT`: archive one fully closed canonical daily v2 snapshot.

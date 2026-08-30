@@ -508,3 +508,16 @@ PWB-11 Complete
 | Nested mismatch-test SQLite parent directory did not exist | 1 | Create the deterministic fixture directory before initializing its database |
 | First full suite had 9 UI regressions because the long-lived console brand token changed from `03.25` | 1 | Preserve the backward-compatible base-console token and append the `DIAGNOSTICS 03.27` milestone label |
 | Local HTTP smoke server could not bind inside the managed filesystem/network sandbox | 1 | Do not broaden permissions for an optional check; rely on direct handler/API tests plus the real-database service/CLI verification |
+
+## MIL-3.28 Low-Turnover Deadband Challenger
+- [x] Inspect strategy action semantics, replay cost accounting and MIL-3.27 diagnostic/UI seams
+- [x] Define a deterministic state-dependent deadband and minimum-rebalance interval with immediate risk-direction transitions
+- [x] Implement isolated AARS low-turnover challenger through the existing PAPER_ONLY replay engine
+- [x] Add actual-cost and true zero-cost reruns for baseline and challenger on identical closed evidence
+- [x] Attribute logic effect, modeled-cost effect, cost savings, turnover reduction and risk deltas without causal overclaim
+- [x] Expose GET-only challenger evidence and task-centered HMI with explicit non-activation gates
+- [x] Add deterministic policy, accounting, degraded/tamper, API, CLI and UI tests
+- [x] Run the challenger against the real v2 snapshot and record the observed result
+- [x] Update MIL-3.28, continuous-shadow, Mac operations and HMI documentation
+- [x] Run targeted/full verification, safety scan, diff review and local milestone commit
+- **Status:** complete

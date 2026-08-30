@@ -174,6 +174,11 @@ the SQLite database if retained, record its source snapshot ID, and treat a
 replay mismatch as an investigation stop rather than rebuilding or editing the
 immutable snapshot.
 
+MIL-3.28 challenger reports are also on-demand and need no LaunchAgent. Generate
+them only after the canonical v2 snapshot and retain the source snapshot ID with
+the report. Do not schedule parameter sweeps or rewrite the fixed first result;
+the next step is independent walk-forward validation, not automatic activation.
+
 ## Upgrade
 
 Stop the jobs before moving the repository or Python environment because the

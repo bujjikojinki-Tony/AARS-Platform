@@ -564,6 +564,9 @@ python run_forward_bot_operations.py \
 python run_strategy_diagnostics.py \
   --db mil3_market.sqlite \
   --output-json reports/mil327-diagnostic.json
+python run_low_turnover_challenger.py \
+  --db mil3_market.sqlite \
+  --output-json reports/mil328-challenger.json
 python -m pytest -q
 ```
 
@@ -588,6 +591,7 @@ The ingestion and scheduler commands touch only public market-data endpoints. Re
 - MIL-3.25 deterministic tests cover complete-candle gating, duplicate/still-open waits, next-boundary execution, cycle/account deltas, concurrent wake fencing, stale RESERVED alerts, 7/14-day continuity and reset, explicit CLI, deferred one-shot LaunchAgent generation, read-only API and no-control UI evidence.
 - MIL-3.26 deterministic tests cover synchronized closed-boundary selection, open-candle mutation immunity, canonical UTC-day uniqueness, idempotent reruns, legacy audit retention, v2-only promotion eligibility and archived-versus-eligible governance counts.
 - MIL-3.27 deterministic tests cover immutable-v2 replay reconciliation, asset/baseline/cost/direction/regime attribution, accounting add-back limitations, tamper/degraded behavior, GET-only API authority and task-centered HMI gates.
+- MIL-3.28 deterministic tests cover state deadbands, ordinary interval holds, immediate direction/risk transitions, true zero-cost engine reruns, turnover/cost/risk deltas, degraded evidence, GET-only API/CLI authority and non-activation HMI gates.
 
 ## Definition of Done
 

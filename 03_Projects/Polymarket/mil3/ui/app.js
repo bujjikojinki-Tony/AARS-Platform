@@ -1767,6 +1767,71 @@ async function loadStrategyDiagnostics() {
   renderStrategyDiagnostics(validateStrategyDiagnostics(await response.json()));
 }
 
+function validateLowTurnoverChallenger(payload) {
+  if (payload.schema_version !== "mil3.low-turnover-challenger.v1") throw new Error("unsupported challenger schema");
+  if (payload.execution_mode !== "PAPER_ONLY") throw new Error("unsafe challenger mode rejected");
+  const authority = payload.authority || {};
+  if (authority.read_only !== true) throw new Error("challenger evidence is not read-only");
+  if (authority.challenger_activation_allowed !== false) throw new Error("challenger activation was not denied");
+  if (authority.automatic_strategy_change_allowed !== false) throw new Error("automatic challenger change was not denied");
+  if (authority.live_execution_allowed !== false) throw new Error("challenger did not deny live execution");
+  return payload;
+}
+
+function renderLowTurnoverChallenger(payload) {
+  const ready = payload.status === "READY" && payload.comparison;
+  const disposition = payload.review_gate?.disposition || "DEFER";
+  $("#challenger-disposition").textContent = disposition;
+  $("#challenger-disposition").className = `stable-status ${disposition === "PROMISING_CHALLENGER" ? "positive" : "warning"}`;
+  if (!ready) {
+    $("#challenger-recovery").textContent = `Challenger withheld: ${payload.data_trust?.reason || "verified evidence unavailable"}. Restore an eligible v2 source and rerun; no fallback result is used.`;
+    $("#challenger-cost-matrix").innerHTML = '<div><span>STATE</span><strong>DEGRADED</strong><small>No comparison permitted</small></div>';
+    $("#challenger-checks").innerHTML = '<p class="shadow-empty">Research checks are unavailable.</p>';
+    $("#challenger-assets").innerHTML = '<p class="shadow-empty">Per-asset effects are withheld.</p>';
+    return;
+  }
+  const comparison = payload.comparison;
+  const baseline = comparison.baseline;
+  const challenger = comparison.challenger;
+  $("#challenger-recovery").textContent = `${payload.configuration.min_rebalance_bars}-bar minimum · ${formatPercent(payload.configuration.challenger_exposure_scale)} exposure scale · sign and risk-state transitions remain immediate. Result cannot create a proposal or activate a configuration.`;
+  $("#challenger-cost-matrix").innerHTML = `
+    <div><span>BASELINE · ACTUAL COST</span><strong class="${trendClass(baseline.actual_cost.total_return)}">${formatPercent(baseline.actual_cost.total_return, 2, true)}</strong><small>${formatNumber(baseline.actual_cost.turnover_multiple)}× turnover</small></div>
+    <div><span>BASELINE · ZERO COST</span><strong class="${trendClass(baseline.zero_cost.total_return)}">${formatPercent(baseline.zero_cost.total_return, 2, true)}</strong><small>True engine rerun</small></div>
+    <div><span>CHALLENGER · ACTUAL COST</span><strong class="${trendClass(challenger.actual_cost.total_return)}">${formatPercent(challenger.actual_cost.total_return, 2, true)}</strong><small>${formatNumber(challenger.actual_cost.turnover_multiple)}× turnover</small></div>
+    <div><span>CHALLENGER · ZERO COST</span><strong class="${trendClass(challenger.zero_cost.total_return)}">${formatPercent(challenger.zero_cost.total_return, 2, true)}</strong><small>True engine rerun</small></div>
+    <div><span>ACTUAL RETURN DELTA</span><strong class="${trendClass(comparison.deltas.actual_return)}">${formatPercent(comparison.deltas.actual_return, 2, true)}</strong><small>Challenger minus baseline</small></div>
+    <div><span>ZERO-COST POLICY DELTA</span><strong class="${trendClass(comparison.deltas.zero_cost_policy_return)}">${formatPercent(comparison.deltas.zero_cost_policy_return, 2, true)}</strong><small>Policy-path evidence</small></div>
+    <div><span>TURNOVER REDUCTION</span><strong>${formatPercent(comparison.deltas.turnover_reduction, 2)}</strong><small>Same closed window</small></div>
+    <div><span>TRUE COST-EFFECT REDUCTION</span><strong>${formatPercent(comparison.deltas.true_cost_effect_reduction, 2, true)}</strong><small>Separate reruns, not add-back</small></div>`;
+  $("#challenger-checks").innerHTML = payload.review_gate.checks.map((check) => `
+    <article data-status="${escapeHtml(check.status)}">
+      <span>${escapeHtml(check.status)} · ${escapeHtml(check.id)}</span>
+      <strong>${typeof check.observed === "number" ? formatPercent(check.observed, 3, true) : escapeHtml(check.observed)}</strong>
+      <small>Requirement ${escapeHtml(check.requirement)} · ${escapeHtml(check.impact)} Recovery: ${escapeHtml(check.recovery_condition)}</small>
+    </article>`).join("");
+  $("#challenger-assets").innerHTML = payload.assets.map((asset) => `
+    <article>
+      <span>${escapeHtml(asset.symbol)}</span>
+      <strong class="${trendClass(asset.deltas.actual_return)}">${formatPercent(asset.deltas.actual_return, 2, true)} actual delta</strong>
+      <small>${formatPercent(asset.deltas.turnover_reduction, 2)} turnover reduction · ${formatPercent(asset.deltas.zero_cost_return, 2, true)} zero-cost policy delta</small>
+    </article>`).join("");
+}
+
+function renderLowTurnoverChallengerUnavailable(error) {
+  renderLowTurnoverChallenger(validateLowTurnoverChallenger({
+    schema_version: "mil3.low-turnover-challenger.v1", execution_mode: "PAPER_ONLY", status: "DEGRADED",
+    data_trust: { status: "UNAVAILABLE", reason: error.message }, configuration: null, comparison: null, assets: [],
+    authority: { read_only: true, challenger_activation_allowed: false, automatic_strategy_change_allowed: false, paper_configuration_activation_allowed: false, live_execution_allowed: false },
+    review_gate: { disposition: "DEFER", checks: [], requires_independent_validation: true, live_execution_allowed: false },
+  }));
+}
+
+async function loadLowTurnoverChallenger() {
+  const response = await fetch("/api/v1/low-turnover-challenger", { cache: "no-store" });
+  if (!response.ok) throw new Error(`low-turnover challenger returned ${response.status}`);
+  renderLowTurnoverChallenger(validateLowTurnoverChallenger(await response.json()));
+}
+
 async function loadPayload() {
   try {
     const endpoint = location.protocol === "file:" ? "./dashboard_payload.json" : "/api/v1/dashboard?symbol=SOLUSDT&interval=1h&window=90d";
@@ -1788,6 +1853,7 @@ async function loadPayload() {
     loadCurrentCadence(),
     loadShadowEvidence().catch(renderShadowUnavailable),
     loadStrategyDiagnostics().catch(renderStrategyDiagnosticsUnavailable),
+    loadLowTurnoverChallenger().catch(renderLowTurnoverChallengerUnavailable),
   ]);
 }
 

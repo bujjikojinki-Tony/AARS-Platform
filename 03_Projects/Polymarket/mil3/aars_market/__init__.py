@@ -7,6 +7,7 @@ from .probability import estimate_outcome_probabilities
 from .dashboard import DASHBOARD_SCHEMA_VERSION, build_dashboard_payload, write_dashboard_payload
 from .simulation import (
     EXECUTION_MODE,
+    AarsDeadbandStrategy,
     AarsDynamicStrategy,
     BuyAndHoldStrategy,
     LeveragedFuturesLongGridStrategy,
@@ -35,6 +36,7 @@ __all__ = [
     "SpotGridStrategy",
     "LeveragedFuturesLongGridStrategy",
     "AarsDynamicStrategy",
+    "AarsDeadbandStrategy",
     "compare_shadow_strategies",
     "compare_shadow_strategy_results",
 ]

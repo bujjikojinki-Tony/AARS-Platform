@@ -98,15 +98,34 @@
 .diagnostic-findings small { color: var(--muted); }
 .diagnostic-limitation { margin: 16px 0 0; color: var(--amber); text-align: center; font: 700 10px/1.3 var(--mono); }
 
+.challenger-deck { margin-top: 18px; padding: 15px; border: 1px solid var(--line-bright); background: rgba(8, 18, 20, .82); }
+.challenger-authority { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.challenger-authority span { padding: 7px; border: 1px solid var(--green); color: var(--green); text-align: center; font: 700 9px/1.3 var(--mono); }
+.challenger-cost-matrix { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
+.challenger-cost-matrix > div { min-height: 76px; padding: 10px; border: 1px solid var(--line); background: rgba(4, 10, 14, .82); }
+.challenger-cost-matrix span, .challenger-detail-grid > article > span, .challenger-checks span, .challenger-assets span { display: block; color: var(--muted); font: 700 9px/1.3 var(--mono); letter-spacing: .06em; }
+.challenger-cost-matrix strong { display: block; margin: 7px 0 3px; font: 700 18px/1.2 var(--mono); }
+.challenger-cost-matrix small, .challenger-checks small, .challenger-assets small { color: var(--muted); }
+.challenger-detail-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; margin-top: 10px; }
+.challenger-detail-grid > article { padding: 11px; border: 1px solid var(--line); }
+.challenger-checks, .challenger-assets { display: grid; gap: 7px; margin-top: 8px; }
+.challenger-checks article, .challenger-assets article { padding: 9px; border-left: 3px solid var(--amber); background: rgba(4, 10, 14, .72); }
+.challenger-checks article[data-status="PASS"] { border-left-color: var(--green); }
+.challenger-checks article[data-status="BLOCK"] { border-left-color: var(--red); }
+.challenger-checks strong, .challenger-assets strong { display: block; margin: 5px 0; }
+
 @media (max-width: 980px) {
   .diagnostic-heading, .diagnostic-grid { grid-template-columns: 1fr; }
   .diagnostic-state { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .diagnostic-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .diagnostic-locks { grid-auto-flow: row; }
+  .challenger-authority, .challenger-cost-matrix { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .challenger-detail-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 560px) {
   .diagnostic-state, .diagnostic-summary { grid-template-columns: 1fr; }
+  .challenger-authority, .challenger-cost-matrix { grid-template-columns: 1fr; }
 }
 
 * { box-sizing: border-box; }

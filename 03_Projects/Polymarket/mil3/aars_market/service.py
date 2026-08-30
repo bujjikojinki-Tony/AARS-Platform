@@ -243,6 +243,15 @@ class DashboardService:
 
         return build_strategy_diagnostics(self.store, snapshot_id=snapshot_id)
 
+    def low_turnover_challenger(
+        self, *, snapshot_id: str | None = None
+    ) -> dict[str, Any]:
+        from .challenger import build_low_turnover_challenger
+
+        return build_low_turnover_challenger(
+            self.store, snapshot_id=snapshot_id
+        )
+
     def shadow_stability(
         self, *, limit: int = 90, target_strategy: str | None = None
     ) -> dict[str, Any]:

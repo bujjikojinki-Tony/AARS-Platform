@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from math import sqrt
 from statistics import fmean, pstdev
-from typing import Protocol, Sequence
+from typing import Mapping, Protocol, Sequence
 
 from .features import compute_features
 from .models import Candle, FundingRate, MarketState
@@ -366,6 +366,102 @@ class AarsDynamicStrategy:
         )
         category = "tactical_short" if decision.target_exposure < 0 else "rebalance"
         return [StrategyAction(decision.target_exposure, candles[index].close, decision.reason, category)]
+
+
+class AarsDeadbandStrategy:
+    """Isolated low-turnover challenger; never part of runtime activation."""
+
+    name = "AARS_DEADBAND_CHALLENGER"
+    uses_funding = True
+    DEFAULT_DEADBANDS: Mapping[MarketState, float] = {
+        MarketState.ACCUMULATION: 0.12,
+        MarketState.RECOVERY: 0.10,
+        MarketState.RANGE: 0.20,
+        MarketState.BREAKOUT: 0.08,
+        MarketState.TREND_EXPANSION: 0.08,
+        MarketState.DISTRIBUTION: 0.05,
+        MarketState.BREAKDOWN: 0.05,
+    }
+    RISK_STATES = frozenset((MarketState.DISTRIBUTION, MarketState.BREAKDOWN))
+
+    def __init__(
+        self,
+        *,
+        max_abs_exposure: float = 1.0,
+        exposure_scale: float = 1.0,
+        min_rebalance_bars: int = 6,
+        state_deadbands: Mapping[MarketState, float] | None = None,
+    ) -> None:
+        if max_abs_exposure <= 0:
+            raise ValueError("max_abs_exposure must be positive")
+        if min_rebalance_bars < 1:
+            raise ValueError("min_rebalance_bars must be positive")
+        if not 0 < exposure_scale <= 1:
+            raise ValueError("exposure_scale must be within (0, 1]")
+        configured = dict(state_deadbands or self.DEFAULT_DEADBANDS)
+        if set(configured) != set(MarketState):
+            raise ValueError("state_deadbands must define every MarketState")
+        if any(value < 0 or value > 2 * max_abs_exposure for value in configured.values()):
+            raise ValueError("state deadbands must be within the bounded exposure range")
+        self.max_leverage = float(max_abs_exposure)
+        self.exposure_scale = float(exposure_scale)
+        self.min_rebalance_bars = int(min_rebalance_bars)
+        self.state_deadbands = configured
+        self._last_target: float | None = None
+        self._last_rebalance_index: int | None = None
+        self._last_state: MarketState | None = None
+
+    def reset(self) -> None:
+        self._last_target = None
+        self._last_rebalance_index = None
+        self._last_state = None
+
+    @staticmethod
+    def _sign(value: float, epsilon: float = 1e-12) -> int:
+        if value > epsilon:
+            return 1
+        if value < -epsilon:
+            return -1
+        return 0
+
+    def actions_for_bar(self, index: int, candles: Sequence[Candle]) -> list[StrategyAction]:
+        assessment = classify_market_state(compute_features(candles[: index + 1]))
+        probabilities = estimate_outcome_probabilities(assessment, horizon_bars=24)
+        decision = decide_target_exposure(
+            assessment,
+            probabilities,
+            max_abs_exposure=self.max_leverage,
+        )
+        target = decision.target_exposure * self.exposure_scale
+        first = self._last_target is None or self._last_rebalance_index is None
+        sign_change = (
+            not first and self._sign(target) != self._sign(float(self._last_target))
+        )
+        risk_transition = (
+            assessment.state in self.RISK_STATES
+            and assessment.state != self._last_state
+        )
+        interval_due = (
+            first
+            or index - int(self._last_rebalance_index) >= self.min_rebalance_bars
+        )
+        delta = abs(target - float(self._last_target or 0.0))
+        threshold = self.state_deadbands[assessment.state]
+        should_rebalance = first or sign_change or risk_transition or (
+            interval_due and delta >= threshold
+        )
+        self._last_state = assessment.state
+        if not should_rebalance:
+            return []
+        self._last_target = target
+        self._last_rebalance_index = index
+        category = "tactical_short" if target < 0 else "deadband_rebalance"
+        reason = (
+            f"{decision.reason}; challenger=state_deadband; "
+            f"deadband={threshold:.3f}; min_bars={self.min_rebalance_bars}; "
+            f"trigger={'FIRST' if first else 'SIGN_CHANGE' if sign_change else 'RISK_STATE' if risk_transition else 'DEADBAND'}"
+        )
+        return [StrategyAction(target, candles[index].close, reason, category)]
 
 
 class ReplayEngine:

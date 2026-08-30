@@ -111,6 +111,16 @@ modeled-cost attribution plus the AARS-versus-Buy-and-Hold gap. Optimization
 ideas remain explicitly gated challenger hypotheses; reading diagnostics never
 creates evidence or changes a configuration. See `STRATEGY_DIAGNOSTICS.md`.
 
+## MIL-3.28 isolated challenger
+
+`GET /api/v1/low-turnover-challenger` uses the verified MIL-3.27 source and
+runs baseline and deadband challenger under both actual modeled costs and a
+separate zero-cost engine. The fixed challenger reduces ordinary same-direction
+rebalances while preserving immediate direction and defensive state changes.
+`PROMISING_CHALLENGER` is a research result only: proposal creation, automatic
+strategy change, configuration activation and live execution remain false. See
+`LOW_TURNOVER_CHALLENGER.md`.
+
 ## MIL-3.13 local console
 
 The localhost console now includes a task-centered Continuous Shadow Evidence

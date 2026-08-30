@@ -459,3 +459,24 @@
 - The first full run reached 157 passes and 9 failures, all caused by older HMI contract tests that intentionally preserve the `AARS // 03.25` base-console token. Kept that compatibility token and appended `DIAGNOSTICS 03.27`; no runtime or accounting code failed.
 - After the compatibility fix, the complete suite passes 166 tests. Python compilation, JavaScript syntax and whitespace checks also pass. An optional localhost bind smoke test was denied by the managed sandbox; the direct API-handler test and real-database CLI/service path already verify the route without requesting broader network authority.
 - Final rerun remains green at 166 tests; strict JSON output, compilation, UI syntax, whitespace and no-live-path scans pass. MIL-3.27 is ready for the local milestone commit.
+
+## 2026-08-30 — MIL-3.28 low-turnover challenger kickoff
+- User selected a state-dependent deadband challenger plus a true zero-cost replay comparison.
+- Scope is an isolated PAPER_ONLY research challenger over the same immutable v2 boundary. Baseline and challenger will each run under actual modeled costs and a separate engine configuration with fees, slippage and funding disabled.
+- The HMI will keep baseline, challenger, stable/raw boundary, turnover/risk changes and the distinction between measured evidence and gated interpretation continuously visible. It will expose no apply, approve or execution control.
+- Next: inspect strategy/action reset behavior and existing diagnostic payload before defining the deadband contract.
+- Implemented the isolated state-deadband strategy and four-way replay comparison: baseline/challenger under actual costs and under a separate fee/slippage/funding-free engine.
+- First real run is economically promising but remains `CONTINUE_RESEARCH`: actual return +7.96 points, drawdown -5.49 points, zero-cost policy effect +2.00 points, but turnover reduction is 41.93% and strict liquidation-risk no-increase is not met.
+- Next: tune only the ordinary rebalance interval/deadbands while preserving immediate sign/risk-state transitions, then lock deterministic defaults and tests.
+- Locked the conservative challenger defaults at a 12-bar ordinary minimum, state-specific deadbands and 0.95 exposure scale. Immediate direction and risk-state transitions remain exempt.
+- The real v2 run now passes all internal research checks and is labeled `PROMISING_CHALLENGER`, while proposal creation, automatic change, activation and live execution remain explicitly false.
+- Next: add deterministic policy/accounting/API/CLI/UI tests and expose the read-only challenger surface.
+- Added the GET-only service/API, read-only CLI and task-centered challenger deck. The UI keeps stable evidence, actual-versus-zero-cost matrix, highest research disposition, checks, per-asset effects and non-activation authority visible.
+- Seven targeted MIL-3.27/3.28 tests pass with Python and JavaScript syntax checks.
+- Next: update milestone/operator/HMI documentation, then run the full regression and final safety review.
+- Added the MIL-3.28 contract and real-result document, main milestone commands/tests, continuous-shadow and Mac operating rules, and HMI v15 data/degraded/automation gates.
+- Targeted challenger, diagnostic and backward-compatible console regression passes 18 tests; UI syntax and whitespace checks pass.
+- Next: inspect the complete diff for accounting or authority mistakes, run all MIL-3 tests and execute the real CLI report once more.
+- Full MIL-3 regression passes 170 tests. Python compilation, JavaScript syntax, strict JSON, whitespace and no-live-path checks pass.
+- The final real CLI report is `READY / VERIFIED / PROMISING_CHALLENGER` and explicitly denies proposal creation, automatic strategy change and live execution.
+- Added separate deterministic coverage for same-direction defensive-state bypass and direction-sign bypass. MIL-3.28 is ready for the local milestone commit.
