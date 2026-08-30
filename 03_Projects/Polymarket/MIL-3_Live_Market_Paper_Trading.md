@@ -561,6 +561,9 @@ python run_forward_bot_operations.py \
   --db mil3_market.sqlite \
   --action STATUS \
   --sandbox-id aars-paper-sandbox
+python run_strategy_diagnostics.py \
+  --db mil3_market.sqlite \
+  --output-json reports/mil327-diagnostic.json
 python -m pytest -q
 ```
 
@@ -584,6 +587,7 @@ The ingestion and scheduler commands touch only public market-data endpoints. Re
 - MIL-3.24 deterministic tests cover four-bot isolation, common snapshot/configuration binding, stable account identity, parameterized 10x Futures Grid, simulated fill evidence, flatten-and-freeze risk stops, fleet/result tamper detection, duplicate reuse, read-only API and no-control UI visibility.
 - MIL-3.25 deterministic tests cover complete-candle gating, duplicate/still-open waits, next-boundary execution, cycle/account deltas, concurrent wake fencing, stale RESERVED alerts, 7/14-day continuity and reset, explicit CLI, deferred one-shot LaunchAgent generation, read-only API and no-control UI evidence.
 - MIL-3.26 deterministic tests cover synchronized closed-boundary selection, open-candle mutation immunity, canonical UTC-day uniqueness, idempotent reruns, legacy audit retention, v2-only promotion eligibility and archived-versus-eligible governance counts.
+- MIL-3.27 deterministic tests cover immutable-v2 replay reconciliation, asset/baseline/cost/direction/regime attribution, accounting add-back limitations, tamper/degraded behavior, GET-only API authority and task-centered HMI gates.
 
 ## Definition of Done
 

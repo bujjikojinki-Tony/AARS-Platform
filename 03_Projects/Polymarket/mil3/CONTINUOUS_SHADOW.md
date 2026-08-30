@@ -101,6 +101,16 @@ The stability response shows, in chronological order:
 All API methods other than GET, HEAD, and OPTIONS remain rejected. Reading the
 history or stability view never archives or modifies a snapshot.
 
+## MIL-3.27 diagnostic view
+
+`GET /api/v1/strategy-diagnostics` selects the latest eligible fully closed v2
+snapshot and replays its exact boundary through the common PAPER_ONLY ledger.
+The report is trusted only when every reconstructed AARS asset return matches
+the immutable archive. It then exposes asset, direction, regime, turnover and
+modeled-cost attribution plus the AARS-versus-Buy-and-Hold gap. Optimization
+ideas remain explicitly gated challenger hypotheses; reading diagnostics never
+creates evidence or changes a configuration. See `STRATEGY_DIAGNOSTICS.md`.
+
 ## MIL-3.13 local console
 
 The localhost console now includes a task-centered Continuous Shadow Evidence

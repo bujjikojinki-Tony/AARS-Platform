@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="AARS MIL-3.23 deterministic snapshot-to-paper-ledger runtime console" />
-    <title>AARS MIL-3.23 | Deterministic Paper Ledger Runtime</title>
+    <meta name="description" content="AARS MIL-3.27 PAPER_ONLY strategy diagnostic and cost attribution console" />
+    <title>AARS MIL-3.27 | Strategy Diagnostic &amp; Cost Attribution</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -13,7 +13,7 @@
     <div class="shell">
       <header class="status-bar" aria-label="System status">
         <div class="brand-lockup">
-          <span class="brand-index">AARS // 03.25</span>
+          <span class="brand-index">AARS // 03.25 · DIAGNOSTICS 03.27</span>
           <strong>SHADOW STRATEGY CONSOLE</strong>
         </div>
         <div class="status-cluster">
@@ -222,6 +222,38 @@
           <div id="diff-summary" class="diff-summary">Select two archived views from the same market.</div>
           <div id="diff-list" class="diff-list"></div>
         </article>
+      </section>
+
+      <section class="diagnostic-workspace" aria-labelledby="diagnostic-title">
+        <div class="diagnostic-heading">
+          <div>
+            <span class="panel-index">MIL-3.27 · IMMUTABLE STABLE-EVIDENCE DIAGNOSTIC</span>
+            <h2 id="diagnostic-title">Why did AARS gain or lose?</h2>
+            <p>Asset, market-state, direction, turnover and modeled-cost attribution. Evidence explains the ledger; hypotheses require a separate challenger test.</p>
+          </div>
+          <div class="diagnostic-locks" aria-label="Diagnostic authority boundary">
+            <span>READ ONLY</span><span>PAPER_ONLY</span><span>NO AUTO CHANGE</span>
+          </div>
+        </div>
+        <div class="diagnostic-state" role="status">
+          <div><span>DIAGNOSTIC STATUS</span><strong id="diagnostic-status">LOADING</strong></div>
+          <div><span>DATA TRUST</span><strong id="diagnostic-trust">VERIFYING</strong></div>
+          <div><span>HIGHEST DRAG</span><strong id="diagnostic-highest-drag">ASSESSING</strong></div>
+          <div><span>STABLE / LATEST RAW</span><strong id="diagnostic-boundary">READING</strong></div>
+        </div>
+        <p id="diagnostic-recovery" class="diagnostic-recovery">Reading the latest eligible v2 stable snapshot. No market order or configuration change can result.</p>
+        <div id="diagnostic-summary" class="diagnostic-summary" aria-label="Strategy diagnostic summary"></div>
+        <div class="diagnostic-grid">
+          <article>
+            <div class="panel-header compact"><div><span class="panel-index">01 / ASSET GAP</span><h3>Where performance came from</h3></div></div>
+            <div id="diagnostic-assets" class="diagnostic-assets"></div>
+          </article>
+          <article>
+            <div class="panel-header compact"><div><span class="panel-index">02 / EVIDENCE AND HYPOTHESES</span><h3>What to test next</h3></div></div>
+            <div id="diagnostic-findings" class="diagnostic-findings"></div>
+          </article>
+        </div>
+        <p class="diagnostic-limitation">ACCOUNTING ADD-BACK · NOT A FORECAST · NO AUTOMATIC STRATEGY CHANGE · LIVE EXECUTION DISALLOWED</p>
       </section>
 
       <section class="shadow-workspace" aria-labelledby="shadow-title">

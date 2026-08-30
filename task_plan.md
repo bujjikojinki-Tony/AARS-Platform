@@ -490,3 +490,21 @@ PWB-11 Complete
 - [x] Confirm forward runtime remains fail-safe PAPER_ONLY with no live path
 - [x] Record final database counts and test the relevant runtime path
 - **Status:** complete
+
+## MIL-3.27 Strategy Diagnostic and Cost Attribution
+- [x] Inspect replay traces, fills, strategy state, portfolio aggregation, API and console seams
+- [x] Define deterministic asset/regime/direction/cost/turnover attribution contracts
+- [x] Implement read-only diagnostics over immutable v2 snapshot evidence without adding a new calculation engine
+- [x] Add AARS-versus-Buy-and-Hold gap, cost counterfactual and actionable optimization findings
+- [x] Expose diagnostics through GET-only API and task-centered HMI with risk/data-trust/degraded states
+- [x] Add deterministic accounting, attribution, tamper/degraded, API and UI tests
+- [x] Update MIL-3.27, continuous-shadow, Mac operations and HMI documentation
+- [x] Run targeted and full verification, safety scan, diff review and local milestone commit
+- **Status:** complete
+
+## MIL-3.27 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| Nested mismatch-test SQLite parent directory did not exist | 1 | Create the deterministic fixture directory before initializing its database |
+| First full suite had 9 UI regressions because the long-lived console brand token changed from `03.25` | 1 | Preserve the backward-compatible base-console token and append the `DIAGNOSTICS 03.27` milestone label |
+| Local HTTP smoke server could not bind inside the managed filesystem/network sandbox | 1 | Do not broaden permissions for an optional check; rely on direct handler/API tests plus the real-database service/CLI verification |

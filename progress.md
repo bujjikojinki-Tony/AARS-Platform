@@ -446,3 +446,16 @@
 - Next: verify health, exact open-versus-closed boundary, forward fail-safe status, evidence counts and targeted tests.
 - Final health, finality, governance and safety verification passed. The open 04:00 candle was excluded from the closed 03:00 v2 evidence boundary.
 - Targeted regression passed 26 tests. No proposal, runtime session, runtime cycle, paper ledger or live path was created.
+
+## 2026-08-30 — MIL-3.27 strategy diagnostics kickoff
+- User selected Strategy Diagnostic and Cost Attribution as the next milestone.
+- Scope: deterministic read-only attribution from immutable PAPER_ONLY evidence, including asset, regime, Long/Flat/Short/Hedge, costs, turnover and AARS-versus-Buy-and-Hold gap explanation.
+- The HMI will be task-centered: current diagnostic state, highest drag, evidence freshness/finality, actionable optimization hypotheses, blockers and recovery remain visible without write controls.
+- Next: inspect replay result traces/fills, shadow snapshot contents, storage/service/API and current console composition.
+- Implemented the first diagnostics contract, stable-snapshot reconciliation, GET-only service route and deterministic accounting tests. The first targeted run passed the core reconciliation test and exposed two integration gaps: the nested temporary database directory was not created, and the diagnostic HMI had not yet been added. The fixture path is corrected; UI integration is next.
+- Added the task-centered diagnostic HMI, fail-closed rendering, read-only CLI, operator documentation and portfolio-trace reconciliation. Targeted diagnostics/dashboard/shadow/governance regression passes 26 tests and the real v2 snapshot verifies successfully.
+- Real evidence result: AARS -2.4357% versus equal-weight Buy & Hold +49.7583%, a -52.1940% gap; modeled cost drag is 13.3745%, fees are largest, ETH is the largest weighted asset drag, and per-asset nominal turnover is roughly 181.9x–193.8x. These are diagnostic evidence and a lower-turnover challenger hypothesis, not configuration authority.
+- Next: run the full MIL-3 suite, compilation/UI syntax, safety scan and diff review; then close planning records and commit locally.
+- The first full run reached 157 passes and 9 failures, all caused by older HMI contract tests that intentionally preserve the `AARS // 03.25` base-console token. Kept that compatibility token and appended `DIAGNOSTICS 03.27`; no runtime or accounting code failed.
+- After the compatibility fix, the complete suite passes 166 tests. Python compilation, JavaScript syntax and whitespace checks also pass. An optional localhost bind smoke test was denied by the managed sandbox; the direct API-handler test and real-database CLI/service path already verify the route without requesting broader network authority.
+- Final rerun remains green at 166 tests; strict JSON output, compilation, UI syntax, whitespace and no-live-path scans pass. MIL-3.27 is ready for the local milestone commit.

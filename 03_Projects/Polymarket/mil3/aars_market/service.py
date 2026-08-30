@@ -236,6 +236,13 @@ class DashboardService:
             raise KeyError(f"shadow snapshot not found: {snapshot_id}")
         return payload
 
+    def strategy_diagnostics(
+        self, *, snapshot_id: str | None = None
+    ) -> dict[str, Any]:
+        from .diagnostics import build_strategy_diagnostics
+
+        return build_strategy_diagnostics(self.store, snapshot_id=snapshot_id)
+
     def shadow_stability(
         self, *, limit: int = 90, target_strategy: str | None = None
     ) -> dict[str, Any]:

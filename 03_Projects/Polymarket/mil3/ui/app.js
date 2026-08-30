@@ -1696,6 +1696,77 @@ async function loadShadowEvidence() {
   }
 }
 
+function validateStrategyDiagnostics(payload) {
+  if (payload.schema_version !== "mil3.strategy-diagnostics.v1") throw new Error("unsupported strategy diagnostic schema");
+  if (payload.execution_mode !== "PAPER_ONLY" || payload.read_only !== true) throw new Error("unsafe strategy diagnostic rejected");
+  const authority = payload.authority || {};
+  if (authority.automatic_strategy_change_allowed !== false) throw new Error("diagnostic did not lock automatic strategy changes");
+  if (authority.paper_configuration_activation_allowed !== false) throw new Error("diagnostic did not lock configuration activation");
+  if (authority.live_execution_allowed !== false) throw new Error("diagnostic did not deny live execution");
+  return payload;
+}
+
+function renderStrategyDiagnostics(payload) {
+  const ready = payload.status === "READY" && payload.data_trust?.status === "VERIFIED";
+  $("#diagnostic-status").textContent = payload.status;
+  $("#diagnostic-status").className = ready ? "positive" : "warning";
+  $("#diagnostic-trust").textContent = payload.data_trust?.status || "UNAVAILABLE";
+  $("#diagnostic-trust").className = ready ? "positive" : "warning";
+  if (!ready || !payload.attribution) {
+    $("#diagnostic-highest-drag").textContent = "NOT TRUSTED";
+    $("#diagnostic-boundary").textContent = "NO VERIFIED BOUNDARY";
+    $("#diagnostic-recovery").textContent = `Diagnostic deferred: ${payload.data_trust?.reason || "verified evidence unavailable"}. Archive an eligible fully closed v2 snapshot or restore its exact replay inputs.`;
+    $("#diagnostic-summary").innerHTML = '<div><span>PERMITTED</span><strong>INSPECT SOURCE EVIDENCE</strong><small>No attribution decision is presented</small></div>';
+    $("#diagnostic-assets").innerHTML = '<p class="shadow-empty">Asset attribution is withheld until replay reconciliation passes.</p>';
+    $("#diagnostic-findings").innerHTML = '<p class="shadow-empty">No optimization hypothesis is issued from unverified evidence.</p>';
+    return;
+  }
+  const attribution = payload.attribution;
+  const rawTimes = Object.values(payload.data_trust.latest_raw_open_time || {}).filter(Boolean).map(formatDate);
+  $("#diagnostic-highest-drag").textContent = `${attribution.highest_asset_drag} · ${formatPercent(payload.assets.find((item) => item.symbol === attribution.highest_asset_drag)?.performance.weighted_gap_contribution, 2, true)}`;
+  $("#diagnostic-highest-drag").className = "warning";
+  $("#diagnostic-boundary").textContent = `${formatDate(payload.data_trust.stable_as_of)} / ${rawTimes.length ? rawTimes.sort().at(-1) : "—"}`;
+  $("#diagnostic-recovery").textContent = `Verified against immutable snapshot ${payload.data_trust.source_snapshot_id}. Raw market rows may be newer; this diagnosis remains pinned to the fully closed stable boundary.`;
+  $("#diagnostic-summary").innerHTML = `
+    <div><span>AARS RETURN</span><strong class="${trendClass(attribution.aars_total_return)}">${formatPercent(attribution.aars_total_return, 2, true)}</strong></div>
+    <div><span>BUY &amp; HOLD</span><strong class="${trendClass(attribution.buy_hold_total_return)}">${formatPercent(attribution.buy_hold_total_return, 2, true)}</strong></div>
+    <div><span>GAP VS BASELINE</span><strong class="${trendClass(attribution.return_gap_vs_buy_hold)}">${formatPercent(attribution.return_gap_vs_buy_hold, 2, true)}</strong></div>
+    <div><span>MODELED COST DRAG</span><strong>${formatPercent(attribution.weighted_cost_drag_return, 2)}</strong><small>${escapeHtml(attribution.largest_cost_component.toUpperCase())} is largest</small></div>
+    <div><span>ACCOUNTING ADD-BACK</span><strong>${formatPercent(attribution.accounting_cost_reversal_return, 2, true)}</strong><small>Not an execution forecast</small></div>`;
+  $("#diagnostic-assets").innerHTML = payload.assets.map((asset) => `
+    <article data-trust="${escapeHtml(asset.source_verification.status)}">
+      <span>${escapeHtml(asset.symbol)} · WEIGHT ${formatPercent(asset.weight)}</span>
+      <strong class="${trendClass(asset.performance.weighted_gap_contribution)}">${formatPercent(asset.performance.weighted_gap_contribution, 2, true)} weighted gap</strong>
+      <dl>
+        <dt>AARS / HOLD</dt><dd>${formatPercent(asset.performance.aars_total_return, 2, true)} / ${formatPercent(asset.performance.buy_hold_total_return, 2, true)}</dd>
+        <dt>COST DRAG</dt><dd>${formatPercent(asset.costs.cost_drag_return, 2)}</dd>
+        <dt>TURNOVER</dt><dd>${formatNumber(asset.activity.turnover_multiple)}×</dd>
+        <dt>WORST REGIME</dt><dd>${escapeHtml(asset.regime_attribution[0]?.regime || "UNKNOWN")}</dd>
+        <dt>REPLAY MATCH</dt><dd>${escapeHtml(asset.source_verification.status)}</dd>
+      </dl>
+    </article>`).join("");
+  $("#diagnostic-findings").innerHTML = payload.findings.map((finding) => `
+    <article data-kind="${escapeHtml(finding.kind)}" data-severity="${escapeHtml(finding.severity)}">
+      <span>${escapeHtml(finding.kind)} · ${escapeHtml(finding.code)}</span>
+      <strong>${escapeHtml(finding.statement)}</strong>
+      <small>${finding.requires_challenger_test ? "GATED: separate deterministic challenger required" : `Observed value ${formatPercent(finding.value, 2, true)}`}</small>
+    </article>`).join("");
+}
+
+function renderStrategyDiagnosticsUnavailable(error) {
+  renderStrategyDiagnostics(validateStrategyDiagnostics({
+    schema_version: "mil3.strategy-diagnostics.v1", execution_mode: "PAPER_ONLY", read_only: true,
+    status: "DEGRADED", data_trust: { status: "UNAVAILABLE", reason: error.message }, attribution: null, assets: [], findings: [],
+    authority: { automatic_strategy_change_allowed: false, paper_configuration_activation_allowed: false, live_execution_allowed: false },
+  }));
+}
+
+async function loadStrategyDiagnostics() {
+  const response = await fetch("/api/v1/strategy-diagnostics", { cache: "no-store" });
+  if (!response.ok) throw new Error(`strategy diagnostics returned ${response.status}`);
+  renderStrategyDiagnostics(validateStrategyDiagnostics(await response.json()));
+}
+
 async function loadPayload() {
   try {
     const endpoint = location.protocol === "file:" ? "./dashboard_payload.json" : "/api/v1/dashboard?symbol=SOLUSDT&interval=1h&window=90d";
@@ -1716,6 +1787,7 @@ async function loadPayload() {
     loadPortfolio().catch(renderPortfolioUnavailable),
     loadCurrentCadence(),
     loadShadowEvidence().catch(renderShadowUnavailable),
+    loadStrategyDiagnostics().catch(renderStrategyDiagnosticsUnavailable),
   ]);
 }
 

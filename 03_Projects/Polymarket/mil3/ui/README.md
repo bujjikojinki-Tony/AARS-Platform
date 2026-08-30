@@ -1,4 +1,4 @@
-# MIL-3.25 Forward Bot Operations Console HMI Design v13
+# MIL-3.27 Strategy Diagnostic and Cost Attribution Console HMI Design v14
 
 ## 1. Page Purpose
 
@@ -40,6 +40,9 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 28. Confirm that only a new synchronized fully closed candle makes a forward wake due.
 29. Review cycle-to-cycle account deltas and 7/14-day burn-in continuity.
 30. Act on stale data, funding, checkpoint, integrity and frozen-bot alerts without a browser control.
+31. Verify that the diagnostic replay matches immutable v2 asset returns before interpreting attribution.
+32. Identify the largest baseline gap, asset drag, cost component, direction and regime accounting loss.
+33. Keep observed evidence separate from optimization hypotheses and require a challenger test for every proposed change.
 19. Identify hard-stop triggers before considering extended paper observation.
 20. Trace the result to its proposal, source snapshot, exact settings and per-asset evidence.
 21. Confirm funding completeness and effective Binance cadence for each trial asset.
@@ -58,6 +61,7 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 - Right: liquidation-risk priority and actionable risk queue.
 - Lower deck: Latest Stable View, P&L attribution, cross-asset portfolio risk and Stable View differences.
 - Continuous-shadow deck: Latest Stable Snapshot, history trust, safe next step, stability trace, warning memory, daily change log and selected immutable evidence.
+- Strategy-diagnostic deck: stable/raw boundary, replay trust, baseline gap, cost add-back, per-asset attribution and gated challenger hypotheses.
 - Governance card: advisory disposition, permanent authority locks, evidence window, blocking/rejection counts, ordered checks and conservative policy thresholds.
 - Paper proposal card: immutable proposal status, deterministic selection provenance, before/after changes, risk boundary, stop condition and human review record.
 - Paper trial card: advisory result, authority locks, common comparison, cost/P&L deltas, hard-stop result, per-asset evidence and input hashes.
@@ -130,10 +134,14 @@ The desktop layout follows a flight-recorder/control-desk pattern with a persist
 - `BotAccountDeltaPanel`
 - `ForwardOperationsAlertList`
 - `BurnInContinuityPanel`
+- `StrategyDiagnosticTrustBanner`
+- `BaselineGapAndCostStrip`
+- `AssetDragAttributionList`
+- `EvidenceHypothesisQueue`
 
 ## 7. Data Model
 
-The page consumes the existing MIL-3 schemas plus `mil3.isolated-paper-configuration-index.v1`, `mil3.isolated-paper-sandbox-view.v1`, `mil3.isolated-paper-sandbox-event-index.v1`, `mil3.shadow-strategy-bot-fleet.v1` and `mil3.forward-bot-operations.v1`. The client rejects any execution mode other than `PAPER_ONLY`; configuration, sandbox, fleet and operations evidence must prove that external orders, browser control, shared automatic changes and live execution remain disabled. An effective configuration is accepted only when the sandbox state is exactly `ACTIVE`; all fail-safe states require a null effective configuration. Ledger v1 remains readable without inferring a bot fleet.
+The page consumes the existing MIL-3 schemas plus `mil3.strategy-diagnostics.v1`, `mil3.isolated-paper-configuration-index.v1`, `mil3.isolated-paper-sandbox-view.v1`, `mil3.isolated-paper-sandbox-event-index.v1`, `mil3.shadow-strategy-bot-fleet.v1` and `mil3.forward-bot-operations.v1`. The client rejects any execution mode other than `PAPER_ONLY`; diagnostics must also prove read-only mode and deny automatic change, activation and live execution. An effective configuration is accepted only when the sandbox state is exactly `ACTIVE`; all fail-safe states require a null effective configuration. Ledger v1 remains readable without inferring a bot fleet.
 
 ## 8. Alarm and Risk Design
 
@@ -195,6 +203,11 @@ If bot-fleet evidence is absent from a legacy ledger, the console labels it as
 legacy rather than inventing accounts. If fleet authority or identity is
 invalid, the entire ledger envelope is rejected. A FROZEN bot card shows the
 stop reasons and remains inspection-only.
+
+If strategy diagnostics are unavailable or replay reconciliation fails, the
+console shows `DEGRADED`, withholds attribution and issues no optimization
+hypothesis. Recovery points to the eligible v2 snapshot and exact closed-boundary
+inputs; it never falls back to current raw data or a demonstration result.
 
 ## 11. User Actions and Gates
 
@@ -267,6 +280,7 @@ python run_isolated_paper_config.py --db mil3_market.sqlite --action RECONCILE
 python run_isolated_paper_runtime.py --db mil3_market.sqlite --action CLEAR_KILL --sandbox-id aars-paper-sandbox --operator local-owner --note "Initialize runtime control."
 python run_isolated_paper_runtime.py --db mil3_market.sqlite --action RUN --sandbox-id aars-paper-sandbox --max-cycles 1
 python run_isolated_paper_runtime.py --db mil3_market.sqlite --action RECONCILE
+python run_strategy_diagnostics.py --db mil3_market.sqlite --output-json reports/mil327-diagnostic.json
 python run_api.py --db mil3_market.sqlite --port 8765
 ```
 

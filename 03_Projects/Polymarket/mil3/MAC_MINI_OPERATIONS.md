@@ -168,6 +168,12 @@ boundary. A changed same-day rerun fails closed, and legacy v1 snapshots remain
 auditable but do not count toward the 30-day promotion window. Do not schedule
 retries that attempt to manufacture additional same-day governance evidence.
 
+MIL-3.27 diagnostics are read-only and may be generated after the canonical
+daily v2 archive. They do not need a LaunchAgent. Keep the JSON report outside
+the SQLite database if retained, record its source snapshot ID, and treat a
+replay mismatch as an investigation stop rather than rebuilding or editing the
+immutable snapshot.
+
 ## Upgrade
 
 Stop the jobs before moving the repository or Python environment because the
