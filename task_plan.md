@@ -521,3 +521,24 @@ PWB-11 Complete
 - [x] Update MIL-3.28, continuous-shadow, Mac operations and HMI documentation
 - [x] Run targeted/full verification, safety scan, diff review and local milestone commit
 - **Status:** complete
+
+## MIL-3.29 Frozen Challenger Robustness Validation
+- [x] Inspect existing walk-forward fold contracts, state labels, challenger evidence and window availability
+- [x] Define and content-hash one immutable MIL-3.28 challenger specification with no validation-time tuning
+- [x] Implement multi-window and rolling out-of-sample baseline/challenger comparisons on identical bars
+- [x] Add state-regime coverage and per-regime return/turnover evidence without future leakage
+- [x] Add deterministic fee/slippage/funding stress scenarios around the actual-cost baseline
+- [x] Define conservative robustness gates for fold breadth, win rate, return, drawdown, turnover, risk and stress survival
+- [x] Expose GET-only robustness evidence and task-centered HMI with overfit/degraded/non-activation states
+- [x] Add deterministic freeze, fold, stress, regime, API, CLI and UI tests
+- [x] Run the frozen validation against the real v2 evidence and record the result without retuning
+- [x] Update MIL-3.29, continuous-shadow, Mac operations and HMI documentation
+- [x] Run targeted/full verification, safety scan, diff review and local milestone commit
+- **Status:** complete
+
+## MIL-3.29 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| Combined planning update used one stale cross-file context anchor | 1 | Split the append-only findings/progress and checklist edits into exact patches |
+| Final verification referenced root planning file from the nested MIL-3 directory | 1 | Use the explicit repository-root path, then rerun every verification command |
+| First weakest-fold HMI template omitted a closing JavaScript interpolation brace | 1 | Split the nested template into explicit weakest-fold and lineage row strings, then rerun syntax and tests |

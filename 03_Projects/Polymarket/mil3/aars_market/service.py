@@ -252,6 +252,15 @@ class DashboardService:
             self.store, snapshot_id=snapshot_id
         )
 
+    def frozen_challenger_robustness(
+        self, *, snapshot_id: str | None = None
+    ) -> dict[str, Any]:
+        from .robustness import build_frozen_challenger_robustness
+
+        return build_frozen_challenger_robustness(
+            self.store, snapshot_id=snapshot_id
+        )
+
     def shadow_stability(
         self, *, limit: int = 90, target_strategy: str | None = None
     ) -> dict[str, Any]:

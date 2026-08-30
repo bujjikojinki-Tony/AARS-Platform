@@ -17,7 +17,7 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
     root = str(Path(ui_root).resolve())
 
     class ReadOnlyHandler(SimpleHTTPRequestHandler):
-        server_version = "AARS-MIL3-ReadOnly/0.12"
+        server_version = "AARS-MIL3-ReadOnly/0.13"
 
         def __init__(self, *args: object, **kwargs: object) -> None:
             super().__init__(*args, directory=root, **kwargs)
@@ -103,6 +103,10 @@ def make_handler(service: DashboardService, ui_root: str | Path) -> type[SimpleH
                 )
             if parsed.path == "/api/v1/low-turnover-challenger":
                 return HTTPStatus.OK, service.low_turnover_challenger(
+                    snapshot_id=query.get("snapshot_id", [None])[0]
+                )
+            if parsed.path == "/api/v1/frozen-challenger-robustness":
+                return HTTPStatus.OK, service.frozen_challenger_robustness(
                     snapshot_id=query.get("snapshot_id", [None])[0]
                 )
             if parsed.path == "/api/v1/promotion-governance":

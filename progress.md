@@ -480,3 +480,17 @@
 - Full MIL-3 regression passes 170 tests. Python compilation, JavaScript syntax, strict JSON, whitespace and no-live-path checks pass.
 - The final real CLI report is `READY / VERIFIED / PROMISING_CHALLENGER` and explicitly denies proposal creation, automatic strategy change and live execution.
 - Added separate deterministic coverage for same-direction defensive-state bypass and direction-sign bypass. MIL-3.28 is ready for the local milestone commit.
+
+## 2026-08-30 — MIL-3.29 frozen robustness validation kickoff
+- User selected frozen-parameter multi-window, rolling walk-forward, market-state and stressed-cost validation.
+- The MIL-3.28 candidate is now treated as immutable evidence input: 12-bar ordinary interval, 0.95 exposure scale, fixed seven-state deadbands and fixed immediate-transition rules. Validation may not search, rank or change these values.
+- The HMI will keep overfit status, weakest fold/regime/stress, evidence breadth, stable boundary, blocked actions and recovery visible. No validation disposition can activate or create a proposal.
+- Next: inspect existing validation fold semantics and available real-data window length before choosing deterministic fold/window geometry.
+- Implemented the frozen-hash robustness core and corrected discovery lineage to stay anchored to the historical freeze boundary.
+- Real run at the fully closed `2026-08-30T04:00:00Z` boundary: 4/4 windows positive, 3/3 pre-discovery holdout folds positive, seven states covered, all stress scenarios pass, and mean rolling turnover reduction is 53.11%.
+- Current result is deliberately `WAIT_FOR_POST_FREEZE_EVIDENCE` / overfit `HIGH`: there are no complete post-freeze weekly folds, and no parameter was changed.
+- Added GET-only service/API/CLI access and HMI v16. The page puts overfit risk, time lineage, frozen hash, stress/state weaknesses and recovery ahead of any favorable aggregate.
+- Added five deterministic MIL-3.29 tests; the focused MIL-3.27–3.29 set passes 12 tests with Python and JavaScript syntax checks.
+- Added the MIL-3.29 evidence contract and real results, plus continuous-shadow, Mac operations, main milestone and HMI operating guidance.
+- Final real CLI verification is strict-JSON clean: 16 rolling folds, 93.75% positive, weakest fold -0.4792 point, only `POST_FREEZE_FORWARD_EVIDENCE` blocked, and every tuning/proposal/activation/live authority false.
+- Full MIL-3 regression passes 175 tests. Python compilation, JavaScript syntax, whitespace, database integrity and focused credential/authenticated-order/live-mode scans pass.

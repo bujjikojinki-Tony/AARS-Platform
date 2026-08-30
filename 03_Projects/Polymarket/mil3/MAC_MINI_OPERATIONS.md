@@ -179,6 +179,13 @@ them only after the canonical v2 snapshot and retain the source snapshot ID with
 the report. Do not schedule parameter sweeps or rewrite the fixed first result;
 the next step is independent walk-forward validation, not automatic activation.
 
+MIL-3.29 robustness reports remain on-demand and need no new LaunchAgent. Run
+them after ingestion and the canonical v2 archive, retain the frozen spec hash,
+and never edit old reports to incorporate new candles. Future fully closed data
+may add post-freeze weekly folds, but it must not change the frozen parameters,
+lineage boundary or gates. `WAIT_FOR_POST_FREEZE_EVIDENCE` is an operating wait
+state, not permission to schedule tuning or activate the challenger.
+
 ## Upgrade
 
 Stop the jobs before moving the repository or Python environment because the

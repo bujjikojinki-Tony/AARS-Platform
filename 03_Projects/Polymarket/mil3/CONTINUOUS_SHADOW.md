@@ -121,6 +121,17 @@ rebalances while preserving immediate direction and defensive state changes.
 strategy change, configuration activation and live execution remain false. See
 `LOW_TURNOVER_CHALLENGER.md`.
 
+## MIL-3.29 frozen robustness
+
+`GET /api/v1/frozen-challenger-robustness` keeps the MIL-3.28 specification
+content-hashed and fixed while comparing multiple windows, chronological weekly
+folds, market states and modeled-cost stresses. Fold lineage separates genuine
+pre-discovery holdout, reused discovery data, boundary-crossing data and new
+post-freeze evidence. Reused folds never count as forward confirmation. The
+current real disposition is `WAIT_FOR_POST_FREEZE_EVIDENCE`; no browser or
+report path can tune, propose or activate the challenger. See
+`FROZEN_CHALLENGER_ROBUSTNESS.md`.
+
 ## MIL-3.13 local console
 
 The localhost console now includes a task-centered Continuous Shadow Evidence

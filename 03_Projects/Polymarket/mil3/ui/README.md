@@ -1,4 +1,4 @@
-# MIL-3.28 Low-Turnover Challenger Console HMI Design v15
+# MIL-3.29 Frozen Robustness Console HMI Design v16
 
 ## 1. Page Purpose
 
@@ -43,6 +43,10 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 31. Verify that the diagnostic replay matches immutable v2 asset returns before interpreting attribution.
 32. Identify the largest baseline gap, asset drag, cost component, direction and regime accounting loss.
 33. Keep observed evidence separate from optimization hypotheses and require a challenger test for every proposed change.
+34. Confirm one frozen specification hash across every window, fold and stress scenario.
+35. Distinguish pre-discovery holdout, discovery reuse, boundary crossing and post-freeze forward evidence.
+36. Keep overfit risk and missing forward evidence visible above favorable retrospective results.
+37. Inspect adverse state attribution and stressed-cost survival without exposing a tuning or activation control.
 19. Identify hard-stop triggers before considering extended paper observation.
 20. Trace the result to its proposal, source snapshot, exact settings and per-asset evidence.
 21. Confirm funding completeness and effective Binance cadence for each trial asset.
@@ -63,6 +67,7 @@ The user is a research operator comparing Buy & Hold, Spot Grid, Leveraged Futur
 - Continuous-shadow deck: Latest Stable Snapshot, history trust, safe next step, stability trace, warning memory, daily change log and selected immutable evidence.
 - Strategy-diagnostic deck: stable/raw boundary, replay trust, baseline gap, cost add-back, per-asset attribution and gated challenger hypotheses.
 - Challenger deck: identical closed-evidence trust, actual/zero-cost matrix, turnover/risk checks, disposition and per-asset effects.
+- Frozen-robustness deck: overfit status, validation boundary, frozen hash, multi-window results, time lineage, stressed costs, state attribution and blocking gates.
 - Governance card: advisory disposition, permanent authority locks, evidence window, blocking/rejection counts, ordered checks and conservative policy thresholds.
 - Paper proposal card: immutable proposal status, deterministic selection provenance, before/after changes, risk boundary, stop condition and human review record.
 - Paper trial card: advisory result, authority locks, common comparison, cost/P&L deltas, hard-stop result, per-asset evidence and input hashes.
@@ -143,10 +148,17 @@ The desktop layout follows a flight-recorder/control-desk pattern with a persist
 - `ActualZeroCostComparisonMatrix`
 - `ChallengerResearchGate`
 - `PerAssetChallengerEffectList`
+- `FrozenSpecificationIdentity`
+- `OverfitRiskBanner`
+- `ValidationTimeLineage`
+- `MultiWindowConsistencyGrid`
+- `CostStressSurvivalGrid`
+- `MarketStateRobustnessList`
+- `RobustnessGateList`
 
 ## 7. Data Model
 
-The page consumes the existing MIL-3 schemas plus `mil3.strategy-diagnostics.v1`, `mil3.low-turnover-challenger.v1`, `mil3.isolated-paper-configuration-index.v1`, `mil3.isolated-paper-sandbox-view.v1`, `mil3.isolated-paper-sandbox-event-index.v1`, `mil3.shadow-strategy-bot-fleet.v1` and `mil3.forward-bot-operations.v1`. The client rejects any execution mode other than `PAPER_ONLY`; diagnostics and challenger evidence must also prove read-only mode and deny automatic change, activation and live execution. An effective configuration is accepted only when the sandbox state is exactly `ACTIVE`; all fail-safe states require a null effective configuration. Ledger v1 remains readable without inferring a bot fleet.
+The page consumes the existing MIL-3 schemas plus `mil3.strategy-diagnostics.v1`, `mil3.low-turnover-challenger.v1`, `mil3.frozen-challenger-robustness.v1`, `mil3.isolated-paper-configuration-index.v1`, `mil3.isolated-paper-sandbox-view.v1`, `mil3.isolated-paper-sandbox-event-index.v1`, `mil3.shadow-strategy-bot-fleet.v1` and `mil3.forward-bot-operations.v1`. The client rejects any execution mode other than `PAPER_ONLY`; diagnostics, challenger and robustness evidence must prove read-only mode and deny tuning, proposal creation, automatic change, activation and live execution. An effective configuration is accepted only when the sandbox state is exactly `ACTIVE`; all fail-safe states require a null effective configuration. Ledger v1 remains readable without inferring a bot fleet.
 
 ## 8. Alarm and Risk Design
 
@@ -169,6 +181,12 @@ MIL-3.15 proposal selection exposes its cross-asset mode and tie-break. Expected
 MIL-3.16 exposes the common-input rule, aggregation method, exact input hash and advisory scoring boundary. `ELIGIBLE_FOR_EXTENDED_PAPER_OBSERVATION` is not parameter authority.
 
 MIL-3.28 exposes the deadband, minimum interval, exposure scale, bypass rules and two cost modes. `PROMISING_CHALLENGER` means only that fixed replay checks pass. The interface states that independent validation is required and provides no proposal or activation action.
+
+MIL-3.29 exposes the canonical frozen hash and zero validation-time search before
+showing performance. It labels discovery reuse as non-independent, keeps the
+post-freeze fold count and overfit level in the primary status area, and renders
+every adverse state and blocked gate. `ROBUSTNESS_CANDIDATE`, if eventually
+reached, remains review evidence only and cannot create or activate anything.
 
 ## 10. Degraded Mode and Recovery
 
@@ -220,6 +238,12 @@ If the challenger source is unavailable, the console shows `DEFER`, withholds
 the cost matrix and per-asset effects, and identifies the exact stable-evidence
 recovery path. A promising result remains visibly non-activating and requires
 independent validation.
+
+If frozen robustness evidence is unavailable, the console shows `DEFER`, marks
+overfit as `UNKNOWN` and withholds every window, lineage, state, stress and gate
+row. If no post-freeze fold exists, the console shows `HIGH` overfit and the
+required collection horizon even when every retrospective check is favorable.
+It never substitutes reused discovery folds for forward evidence.
 
 ## 11. User Actions and Gates
 
@@ -294,6 +318,7 @@ python run_isolated_paper_runtime.py --db mil3_market.sqlite --action RUN --sand
 python run_isolated_paper_runtime.py --db mil3_market.sqlite --action RECONCILE
 python run_strategy_diagnostics.py --db mil3_market.sqlite --output-json reports/mil327-diagnostic.json
 python run_low_turnover_challenger.py --db mil3_market.sqlite --output-json reports/mil328-challenger.json
+python run_frozen_challenger_robustness.py --db mil3_market.sqlite --output-json reports/mil329-robustness.json
 python run_api.py --db mil3_market.sqlite --port 8765
 ```
 

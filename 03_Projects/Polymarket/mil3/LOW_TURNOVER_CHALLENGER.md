@@ -62,6 +62,10 @@ GET /api/v1/low-turnover-challenger?snapshot_id=<eligible_v2_snapshot_id>
 
 The browser uses GET only. It shows the identical evidence boundary, four-way cost matrix, turnover/risk checks and per-asset deltas. It cannot create a proposal, activate a challenger or execute a trade.
 
-## Next evidence gate
+## Frozen evidence gate
 
-MIL-3.29 should validate the fixed challenger without retuning across rolling train/test folds, several replay windows and adverse/sideways regimes. The MIL-3.28 real result must remain the frozen first experiment to avoid retrospective parameter selection.
+MIL-3.29 now validates this exact specification without retuning across rolling
+weekly folds, 30/60/90/120-day windows, seven observed states and four cost
+scenarios. The retrospective checks pass, but zero complete post-freeze folds
+exist, so the result remains `WAIT_FOR_POST_FREEZE_EVIDENCE`. See
+`FROZEN_CHALLENGER_ROBUSTNESS.md`.

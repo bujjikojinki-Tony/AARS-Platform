@@ -1832,6 +1832,67 @@ async function loadLowTurnoverChallenger() {
   renderLowTurnoverChallenger(validateLowTurnoverChallenger(await response.json()));
 }
 
+function validateFrozenRobustness(payload) {
+  if (payload.schema_version !== "mil3.frozen-challenger-robustness.v1") throw new Error("unsupported robustness schema");
+  if (payload.execution_mode !== "PAPER_ONLY") throw new Error("unsafe robustness mode rejected");
+  const authority = payload.authority || {};
+  if (authority.read_only !== true) throw new Error("robustness evidence is not read-only");
+  if (authority.parameter_tuning_allowed !== false) throw new Error("validation-time tuning was not denied");
+  if (authority.proposal_creation_allowed !== false) throw new Error("proposal creation was not denied");
+  if (authority.challenger_activation_allowed !== false) throw new Error("challenger activation was not denied");
+  if (authority.live_execution_allowed !== false) throw new Error("live execution was not denied");
+  return payload;
+}
+
+function renderFrozenRobustness(payload) {
+  const ready = payload.status === "READY" && payload.frozen_specification;
+  const disposition = payload.review_gate?.disposition || "DEFER";
+  $("#robustness-disposition").textContent = disposition;
+  $("#robustness-disposition").className = `stable-status ${disposition === "ROBUSTNESS_CANDIDATE" ? "positive" : "warning"}`;
+  $("#robustness-overfit").textContent = payload.overfit_assessment?.level || "UNKNOWN";
+  $("#robustness-boundary").textContent = payload.data_trust?.validation_as_of || "UNAVAILABLE";
+  $("#robustness-spec").textContent = payload.frozen_specification?.spec_sha256?.slice(0, 16) || "UNAVAILABLE";
+  if (!ready) {
+    $("#robustness-recovery").textContent = `Robustness evidence withheld: ${payload.data_trust?.reason || "verified evidence unavailable"}. Restore the immutable v2 source; no fallback result is used.`;
+    ["windows", "lineage", "stress", "states", "checks"].forEach((name) => {
+      $(`#robustness-${name}`).innerHTML = '<p class="shadow-empty">Evidence unavailable.</p>';
+    });
+    return;
+  }
+  const post = payload.walk_forward.lineage_summary.find((row) => row.lineage === "POST_FREEZE_FORWARD");
+  const blocking = payload.review_gate.blocking_checks.join(", ") || "none";
+  $("#robustness-recovery").textContent = `${payload.overfit_assessment.reason} ${post.folds} complete post-freeze folds observed. Blocking: ${blocking}. Keep the specification frozen; no result grants activation authority.`;
+  $("#robustness-windows").innerHTML = payload.multi_window.map((row) => `
+    <div><span>${escapeHtml(row.window)} · ${row.evaluated_bars} BARS</span><strong class="${trendClass(row.deltas.total_return)}">${formatPercent(row.deltas.total_return, 2, true)} return delta</strong><small>${formatPercent(row.deltas.turnover_reduction, 1)} turnover reduction${row.truncated ? " · truncated" : ""}</small></div>`).join("");
+  const weakestFold = payload.walk_forward.weakest_fold;
+  const weakestFoldRow = weakestFold ? `<div><span>WEAKEST FOLD · ${escapeHtml(weakestFold.lineage)}</span><strong class="${trendClass(weakestFold.deltas.total_return)}">${formatPercent(weakestFold.deltas.total_return, 2, true)}</strong><small>${escapeHtml(weakestFold.test_start_at)} → ${escapeHtml(weakestFold.test_end_at)}</small></div>` : "";
+  const lineageRows = payload.walk_forward.lineage_summary.map((row) => `
+    <div><span>${escapeHtml(row.lineage)}</span><strong>${row.challenger_wins}/${row.folds} wins</strong><small>${formatPercent(row.mean_return_delta, 2, true)} mean delta · reuse is not independent evidence</small></div>`).join("");
+  $("#robustness-lineage").innerHTML = weakestFoldRow + lineageRows;
+  $("#robustness-stress").innerHTML = payload.stress_matrix.map((row) => `
+    <div><span>${escapeHtml(row.id)}</span><strong class="${trendClass(row.deltas.total_return)}">${formatPercent(row.deltas.total_return, 2, true)} return delta</strong><small>${formatPercent(row.deltas.max_drawdown, 2, true)} drawdown delta · ${row.challenger.liquidation_events} liquidation events</small></div>`).join("");
+  $("#robustness-states").innerHTML = payload.market_state_evidence.map((row) => `
+    <div><span>${escapeHtml(row.market_state)} · ${row.bars} BARS</span><strong class="${trendClass(row.return_delta)}">${formatPercent(row.return_delta, 2, true)}</strong><small>Challenger minus baseline; diagnostic only</small></div>`).join("");
+  $("#robustness-checks").innerHTML = payload.review_gate.checks.map((check) => `
+    <article data-status="${escapeHtml(check.status)}"><span>${escapeHtml(check.status)} · ${escapeHtml(check.id)}</span><strong>${escapeHtml(check.requirement)}</strong><small>${escapeHtml(check.impact)} Recovery: ${escapeHtml(check.recovery_condition)}</small></article>`).join("");
+}
+
+function renderFrozenRobustnessUnavailable(error) {
+  renderFrozenRobustness(validateFrozenRobustness({
+    schema_version: "mil3.frozen-challenger-robustness.v1", execution_mode: "PAPER_ONLY", status: "DEGRADED",
+    data_trust: { status: "UNAVAILABLE", reason: error.message }, frozen_specification: null, multi_window: [], walk_forward: null, market_state_evidence: [], stress_matrix: [],
+    overfit_assessment: { level: "UNKNOWN", reason: error.message },
+    authority: { read_only: true, parameter_tuning_allowed: false, proposal_creation_allowed: false, challenger_activation_allowed: false, automatic_strategy_change_allowed: false, live_execution_allowed: false },
+    review_gate: { disposition: "DEFER", checks: [], proposal_creation_allowed: false, challenger_activation_allowed: false, live_execution_allowed: false },
+  }));
+}
+
+async function loadFrozenRobustness() {
+  const response = await fetch("/api/v1/frozen-challenger-robustness", { cache: "no-store" });
+  if (!response.ok) throw new Error(`frozen robustness returned ${response.status}`);
+  renderFrozenRobustness(validateFrozenRobustness(await response.json()));
+}
+
 async function loadPayload() {
   try {
     const endpoint = location.protocol === "file:" ? "./dashboard_payload.json" : "/api/v1/dashboard?symbol=SOLUSDT&interval=1h&window=90d";
@@ -1854,6 +1915,7 @@ async function loadPayload() {
     loadShadowEvidence().catch(renderShadowUnavailable),
     loadStrategyDiagnostics().catch(renderStrategyDiagnosticsUnavailable),
     loadLowTurnoverChallenger().catch(renderLowTurnoverChallengerUnavailable),
+    loadFrozenRobustness().catch(renderFrozenRobustnessUnavailable),
   ]);
 }
 
