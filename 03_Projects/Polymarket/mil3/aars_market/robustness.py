@@ -294,6 +294,12 @@ def build_frozen_challenger_robustness(
         for candles in candles_by_symbol.values()
     ):
         return _degraded("UNALIGNED_VALIDATION_HISTORY", source_id)
+    interval = timeframe_duration(timeframe)
+    if any(
+        right - left != interval
+        for left, right in zip(reference_times, reference_times[1:])
+    ):
+        return _degraded("VALIDATION_HISTORY_GAP", source_id)
     weights = {
         str(symbol): float(weight)
         for symbol, weight in snapshot["portfolio"]["weights"].items()
@@ -388,6 +394,18 @@ def build_frozen_challenger_robustness(
             total["baseline_return"] += float(values["baseline_return"])
             total["challenger_return"] += float(values["challenger_return"])
             total["folds"] += 1
+        fold_state_rows = sorted(
+            (
+                {
+                    "market_state": state,
+                    **values,
+                    "return_delta": float(values["challenger_return"])
+                    - float(values["baseline_return"]),
+                }
+                for state, values in fold_states.items()
+            ),
+            key=lambda item: item["market_state"],
+        )
         fold_rows.append(
             {
                 "fold_index": fold_index,
@@ -397,6 +415,7 @@ def build_frozen_challenger_robustness(
                 "lineage": lineage,
                 "selection_uses_fold": False,
                 "spec_sha256": spec["spec_sha256"],
+                "market_state_evidence": fold_state_rows,
                 **comparison,
             }
         )

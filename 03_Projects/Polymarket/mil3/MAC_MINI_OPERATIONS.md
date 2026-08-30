@@ -186,6 +186,14 @@ may add post-freeze weekly folds, but it must not change the frozen parameters,
 lineage boundary or gates. `WAIT_FOR_POST_FREEZE_EVIDENCE` is an operating wait
 state, not permission to schedule tuning or activate the challenger.
 
+MIL-3.30 adds a bounded frozen-evidence monitor but does not install it. Before
+the Mac mini is ready, use `STATUS` or a supervised one-cycle `WAKE`. A future
+separate user LaunchAgent may invoke `FOREGROUND --max-cycles 0` after ingestion,
+but must retain an hourly throttle, absolute paths, independent logs and no
+KeepAlive restart loop that can create CPU pressure during a long replay. The
+browser remains GET-only. Never merge this evaluator into public ingestion or
+any isolated runtime worker.
+
 ## Upgrade
 
 Stop the jobs before moving the repository or Python environment because the

@@ -494,3 +494,17 @@
 - Added the MIL-3.29 evidence contract and real results, plus continuous-shadow, Mac operations, main milestone and HMI operating guidance.
 - Final real CLI verification is strict-JSON clean: 16 rolling folds, 93.75% positive, weakest fold -0.4792 point, only `POST_FREEZE_FORWARD_EVIDENCE` blocked, and every tuning/proposal/activation/live authority false.
 - Full MIL-3 regression passes 175 tests. Python compilation, JavaScript syntax, whitespace, database integrity and focused credential/authenticated-order/live-mode scans pass.
+
+## 2026-08-30 — MIL-3.30 kickoff
+- User selected automatic accumulation of frozen post-freeze weekly evidence, market-state/cost drift monitoring, and unchanged-gate re-evaluation after at least four complete folds.
+- Scope remains local PAPER_ONLY research: no validation-time search, parameter update, proposal creation, configuration activation or live execution.
+- Added an append-only `frozen_robustness_checkpoints` store with content-hash verification, unique spec/fold identity, source-snapshot binding and conflict-on-drift semantics.
+- Extended each MIL-3.29 fold with deterministic state evidence and reject-gapped validation history, enabling forward-only state drift without a second calculation engine.
+- Implemented canonical fold scheduling, checkpoint-zero reference capture, bounded sequential catch-up, unchanged MIL-3.29 gate recomputation, state-mix/outcome and cost/fold drift alarms, and a read-only monitor view.
+- Added the GET-only API, explicit STATUS/WAKE/FOREGROUND CLI and HMI forward-evidence surface with fold progress, next eligible time, highest drift alarm, checkpoint lineage and recovery guidance.
+- Six MIL-3.30 deterministic tests cover exact baseline identity, repeat reuse, ordered catch-up, unchanged gates, actionable drift, tamper/gap fail-closed behavior, bounded scheduling, API/CLI authority and HMI visibility. The focused MIL-3.28–3.30 set passes 15 tests.
+- Real persistent-database WAKE archived checkpoint zero once at the exact freeze boundary; an immediate second WAKE returned `WAITING` with zero writes. SQLite integrity remains `ok`.
+- Real forward status: 0/4 complete weekly folds, no drift claim, and next evidence becomes eligible after `2026-09-08T08:00:00Z` (`16:00` Asia/Shanghai).
+- Added the MIL-3.30 evidence contract and real checkpoint record, plus main milestone, continuous-shadow, Mac deployment-defer and HMI v17 guidance.
+- Final hardening re-verifies checkpoint IDs from canonical fields, embedded report and authority locks, and exact scheduled boundaries on every read; checkpoints ahead of available market history fail closed.
+- Full MIL-3 regression passes 181 tests. Python compilation, JavaScript syntax, strict JSON, whitespace, SQLite integrity and focused network/credential/authenticated-order/live-mode scans pass.

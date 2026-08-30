@@ -132,6 +132,16 @@ current real disposition is `WAIT_FOR_POST_FREEZE_EVIDENCE`; no browser or
 report path can tune, propose or activate the challenger. See
 `FROZEN_CHALLENGER_ROBUSTNESS.md`.
 
+## MIL-3.30 frozen forward evidence
+
+`GET /api/v1/frozen-forward-evidence` verifies the immutable weekly checkpoint
+chain and shows current/required folds, next eligible time, state and cost drift,
+active alarms and the latest unchanged MIL-3.29 gate. GET never archives a
+checkpoint. Only the explicit local `WAKE` or `FOREGROUND` monitor performs
+idempotent checkpoint writes. Checkpoint zero is the frozen reference; later
+records are appended only after a complete canonical weekly fold. See
+`FROZEN_FORWARD_EVIDENCE.md`.
+
 ## MIL-3.13 local console
 
 The localhost console now includes a task-centered Continuous Shadow Evidence

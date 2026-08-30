@@ -78,3 +78,7 @@ The endpoint and console are GET-only. Missing or mismatched source evidence
 fails closed, withholds all evaluation rows and displays the exact recovery
 condition. No MIL-3.29 result can tune parameters, create a proposal, activate
 the challenger or submit an order.
+
+MIL-3.30 now preserves checkpoint zero and automatically appends each new
+complete post-freeze weekly fold under this same specification and gate. See
+`FROZEN_FORWARD_EVIDENCE.md`.

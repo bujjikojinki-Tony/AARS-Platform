@@ -299,6 +299,25 @@
             <article><span>MARKET STATES</span><div id="robustness-states" class="robustness-list"></div></article>
           </div>
           <div><span class="panel-index">ROBUSTNESS GATES</span><div id="robustness-checks" class="challenger-checks"></div></div>
+          <section class="frozen-forward-deck" aria-labelledby="frozen-forward-title">
+            <div class="panel-header compact">
+              <div><span class="panel-index">MIL-3.30 · IMMUTABLE WEEKLY FORWARD EVIDENCE</span><h3 id="frozen-forward-title">Has a new complete fold arrived, and is it drifting?</h3></div>
+              <strong id="frozen-forward-disposition" class="stable-status">LOADING</strong>
+            </div>
+            <div class="frozen-forward-state" role="status">
+              <div><span>ARCHIVED / REQUIRED</span><strong id="frozen-forward-progress">READING</strong></div>
+              <div><span>NEXT ELIGIBLE AFTER</span><strong id="frozen-forward-next">CALCULATING</strong></div>
+              <div><span>DRIFT STATUS</span><strong id="frozen-forward-drift">ASSESSING</strong></div>
+              <div><span>DATA TRUST</span><strong id="frozen-forward-trust">VERIFYING</strong></div>
+            </div>
+            <p id="frozen-forward-recovery" class="diagnostic-recovery">Reading immutable checkpoint lineage. This GET request cannot create evidence.</p>
+            <div class="frozen-forward-grid">
+              <article><span>ACTIVE DRIFT ALARMS</span><div id="frozen-forward-alerts" class="frozen-forward-alerts"></div></article>
+              <article><span>CHECKPOINT LINEAGE</span><div id="frozen-forward-history" class="robustness-list"></div></article>
+              <article><span>STATE-MIX DRIFT</span><div id="frozen-forward-states" class="robustness-list"></div></article>
+              <article><span>COST SENSITIVITY</span><div id="frozen-forward-costs" class="robustness-list"></div></article>
+            </div>
+          </section>
         </section>
         <p class="diagnostic-limitation">ACCOUNTING ADD-BACK · NOT A FORECAST · NO AUTOMATIC STRATEGY CHANGE · LIVE EXECUTION DISALLOWED</p>
       </section>

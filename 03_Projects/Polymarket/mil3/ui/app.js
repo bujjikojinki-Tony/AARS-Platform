@@ -1893,6 +1893,69 @@ async function loadFrozenRobustness() {
   renderFrozenRobustness(validateFrozenRobustness(await response.json()));
 }
 
+function validateFrozenForwardEvidence(payload) {
+  if (payload.schema_version !== "mil3.frozen-forward-evidence-monitor.v1") throw new Error("unsupported frozen forward schema");
+  if (payload.execution_mode !== "PAPER_ONLY") throw new Error("unsafe frozen forward mode rejected");
+  const authority = payload.authority || {};
+  if (authority.read_only !== true) throw new Error("frozen forward evidence is not read-only");
+  if (authority.parameter_tuning_allowed !== false) throw new Error("frozen forward tuning was not denied");
+  if (authority.proposal_creation_allowed !== false) throw new Error("frozen forward proposal creation was not denied");
+  if (authority.challenger_activation_allowed !== false) throw new Error("frozen forward activation was not denied");
+  if (authority.live_execution_allowed !== false) throw new Error("frozen forward live execution was not denied");
+  if (payload.status === "READY" && payload.collection?.checkpoint_count > 0 && payload.data_trust?.checkpoint_hashes_verified !== true) throw new Error("checkpoint hashes are not verified");
+  return payload;
+}
+
+function renderFrozenForwardEvidence(payload) {
+  const ready = payload.status === "READY" && payload.collection;
+  const disposition = payload.review_gate?.disposition || "DEFER";
+  $("#frozen-forward-disposition").textContent = disposition;
+  $("#frozen-forward-disposition").className = `stable-status ${disposition === "EVIDENCE_GATE_RECALCULATED" ? "positive" : "warning"}`;
+  $("#frozen-forward-trust").textContent = payload.collection?.checkpoint_count === 0 ? "BASELINE REQUIRED" : (payload.data_trust?.status || "UNAVAILABLE");
+  if (!ready) {
+    $("#frozen-forward-progress").textContent = "0 / 4";
+    $("#frozen-forward-next").textContent = "UNAVAILABLE";
+    $("#frozen-forward-drift").textContent = "UNKNOWN";
+    $("#frozen-forward-recovery").textContent = `Forward evidence withheld: ${payload.data_trust?.reason || "source unavailable"}. Restore the frozen source and checkpoint lineage; no fallback is used.`;
+    ["alerts", "history", "states", "costs"].forEach((name) => {
+      $(`#frozen-forward-${name}`).innerHTML = '<p class="shadow-empty">Evidence unavailable.</p>';
+    });
+    return;
+  }
+  const collection = payload.collection;
+  $("#frozen-forward-progress").textContent = `${collection.latest_archived_post_freeze_fold_count} / ${collection.minimum_required_post_freeze_folds}`;
+  $("#frozen-forward-next").textContent = collection.next_eligible_after;
+  $("#frozen-forward-drift").textContent = `${payload.drift.status} · ${payload.drift.highest_severity}`;
+  $("#frozen-forward-recovery").textContent = collection.checkpoint_count === 0
+    ? "Frozen checkpoint zero is missing. Run the explicit local PAPER_ONLY WAKE; this browser remains GET-only."
+    : `${collection.new_checkpoint_count_due} checkpoint(s) due. Latest MIL-3.29 gate: ${payload.review_gate.latest_mil329_disposition}. Keep parameters frozen and review every drift alarm before any later governance step.`;
+  $("#frozen-forward-alerts").innerHTML = payload.drift.alerts.length ? payload.drift.alerts.map((alert) => `
+    <article data-severity="${escapeHtml(alert.severity)}"><span>${escapeHtml(alert.severity)} · ${escapeHtml(alert.code)}</span><strong>${escapeHtml(alert.trigger)}</strong><small>${escapeHtml(alert.impact)} Recommended: ${escapeHtml(alert.recommended_response)} Closure: ${escapeHtml(alert.closure_condition)}</small></article>`).join("") : '<p class="shadow-empty">No active drift alarm. Continue frozen evidence collection.</p>';
+  $("#frozen-forward-history").innerHTML = collection.checkpoints.length ? collection.checkpoints.slice().reverse().map((row) => `
+    <div><span>FOLD ${row.post_freeze_fold_count} · ${escapeHtml(row.overfit_level)}</span><strong>${escapeHtml(row.disposition)}</strong><small>${escapeHtml(row.validation_as_of)} · ${escapeHtml(row.checkpoint_id)}</small></div>`).join("") : '<p class="shadow-empty">Baseline checkpoint required.</p>';
+  const stateRows = payload.drift.state_mix.slice().sort((a, b) => Math.abs(b.share_delta) - Math.abs(a.share_delta));
+  $("#frozen-forward-states").innerHTML = stateRows.length ? stateRows.map((row) => `
+    <div><span>${escapeHtml(row.market_state)} · ${row.forward_bars} FORWARD BARS</span><strong class="${trendClass(-Math.abs(row.share_delta))}">${formatPercent(row.share_delta, 1, true)} share drift</strong><small>${formatPercent(row.reference_share, 1)} reference → ${formatPercent(row.forward_share, 1)} forward</small></div>`).join("") : '<p class="shadow-empty">Awaiting the first complete post-freeze fold.</p>';
+  $("#frozen-forward-costs").innerHTML = payload.drift.cost_sensitivity.length ? payload.drift.cost_sensitivity.map((row) => `
+    <div><span>${escapeHtml(row.scenario)}</span><strong class="${trendClass(row.current_return_delta)}">${formatPercent(row.current_return_delta, 2, true)} current delta</strong><small>${formatPercent(row.deterioration, 2, true)} versus frozen reference</small></div>`).join("") : '<p class="shadow-empty">Awaiting the first complete post-freeze fold.</p>';
+}
+
+function renderFrozenForwardEvidenceUnavailable(error) {
+  renderFrozenForwardEvidence(validateFrozenForwardEvidence({
+    schema_version: "mil3.frozen-forward-evidence-monitor.v1", execution_mode: "PAPER_ONLY", status: "DEGRADED",
+    data_trust: { status: "UNAVAILABLE", reason: error.message }, collection: null,
+    drift: { status: "UNKNOWN", highest_severity: "NONE", alerts: [], state_mix: [], cost_sensitivity: [] },
+    authority: { read_only: true, parameter_tuning_allowed: false, proposal_creation_allowed: false, challenger_activation_allowed: false, automatic_strategy_change_allowed: false, live_execution_allowed: false },
+    review_gate: { disposition: "DEFER", parameter_tuning_allowed: false, proposal_creation_allowed: false, challenger_activation_allowed: false, live_execution_allowed: false },
+  }));
+}
+
+async function loadFrozenForwardEvidence() {
+  const response = await fetch("/api/v1/frozen-forward-evidence", { cache: "no-store" });
+  if (!response.ok) throw new Error(`frozen forward evidence returned ${response.status}`);
+  renderFrozenForwardEvidence(validateFrozenForwardEvidence(await response.json()));
+}
+
 async function loadPayload() {
   try {
     const endpoint = location.protocol === "file:" ? "./dashboard_payload.json" : "/api/v1/dashboard?symbol=SOLUSDT&interval=1h&window=90d";
@@ -1916,6 +1979,7 @@ async function loadPayload() {
     loadStrategyDiagnostics().catch(renderStrategyDiagnosticsUnavailable),
     loadLowTurnoverChallenger().catch(renderLowTurnoverChallengerUnavailable),
     loadFrozenRobustness().catch(renderFrozenRobustnessUnavailable),
+    loadFrozenForwardEvidence().catch(renderFrozenForwardEvidenceUnavailable),
   ]);
 }
 

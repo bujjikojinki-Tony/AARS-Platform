@@ -117,6 +117,23 @@ ON shadow_daily_snapshots(created_at DESC, snapshot_id DESC);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_shadow_daily_target_utc_date
 ON shadow_daily_snapshots(substr(as_of, 1, 10), target_strategy);
 
+CREATE TABLE IF NOT EXISTS frozen_robustness_checkpoints (
+    checkpoint_id TEXT PRIMARY KEY,
+    spec_sha256 TEXT NOT NULL,
+    source_snapshot_id TEXT NOT NULL,
+    validation_as_of TEXT NOT NULL,
+    post_freeze_fold_count INTEGER NOT NULL CHECK (post_freeze_fold_count >= 0),
+    created_at TEXT NOT NULL,
+    report_sha256 TEXT NOT NULL,
+    schema_version TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    UNIQUE (spec_sha256, post_freeze_fold_count),
+    FOREIGN KEY (source_snapshot_id) REFERENCES shadow_daily_snapshots(snapshot_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_frozen_robustness_spec_count
+ON frozen_robustness_checkpoints(spec_sha256, post_freeze_fold_count DESC);
+
 CREATE TABLE IF NOT EXISTS paper_configuration_proposals (
     proposal_id TEXT PRIMARY KEY,
     created_at TEXT NOT NULL,
@@ -948,6 +965,206 @@ class MarketStore:
                 (snapshot_id,),
             ).fetchone()
         return json.loads(row["payload_json"]) if row is not None else None
+
+    def archive_frozen_robustness_checkpoint(
+        self, payload: dict[str, Any]
+    ) -> str:
+        if payload.get("schema_version") != "mil3.frozen-forward-evidence-checkpoint.v1":
+            raise ValueError("unsupported frozen robustness checkpoint schema")
+        if payload.get("execution_mode") != "PAPER_ONLY":
+            raise ValueError("frozen robustness checkpoint must be PAPER_ONLY")
+        authority = payload.get("authority", {})
+        for field in (
+            "parameter_tuning_allowed",
+            "proposal_creation_allowed",
+            "challenger_activation_allowed",
+            "automatic_strategy_change_allowed",
+            "live_execution_allowed",
+        ):
+            if authority.get(field) is not False:
+                raise ValueError(f"frozen robustness checkpoint must deny {field}")
+        if authority.get("read_only") is not True:
+            raise ValueError("frozen robustness checkpoint must be read-only")
+        report = payload.get("robustness_report")
+        if not isinstance(report, dict):
+            raise ValueError("frozen robustness checkpoint requires a report")
+        if report.get("execution_mode") != "PAPER_ONLY" or report.get("status") != "READY":
+            raise ValueError("frozen robustness checkpoint requires a ready PAPER_ONLY report")
+        report_authority = report.get("authority", {})
+        if report_authority.get("read_only") is not True:
+            raise ValueError("frozen robustness report must be read-only")
+        for field in (
+            "parameter_tuning_allowed",
+            "proposal_creation_allowed",
+            "challenger_activation_allowed",
+            "automatic_strategy_change_allowed",
+            "live_execution_allowed",
+        ):
+            if report_authority.get(field) is not False:
+                raise ValueError(f"frozen robustness report must deny {field}")
+        report_gate = report.get("review_gate", {})
+        for field in (
+            "parameter_tuning_allowed",
+            "proposal_creation_allowed",
+            "challenger_activation_allowed",
+            "live_execution_allowed",
+        ):
+            if report_gate.get(field) is not False:
+                raise ValueError(f"frozen robustness report gate must deny {field}")
+        report_canonical = json.dumps(
+            report, sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
+        report_sha256 = hashlib.sha256(report_canonical.encode("utf-8")).hexdigest()
+        if report_sha256 != payload.get("report_sha256"):
+            raise ValueError("frozen robustness report hash mismatch")
+        spec_sha256 = str(payload.get("spec_sha256", ""))
+        if report.get("frozen_specification", {}).get("spec_sha256") != spec_sha256:
+            raise ValueError("frozen robustness specification mismatch")
+        source_snapshot_id = str(payload.get("source_snapshot_id", ""))
+        if report.get("data_trust", {}).get("source_snapshot_id") != source_snapshot_id:
+            raise ValueError("frozen robustness source snapshot mismatch")
+        validation_as_of = str(payload.get("validation_as_of", ""))
+        if report.get("data_trust", {}).get("validation_as_of") != validation_as_of:
+            raise ValueError("frozen robustness validation boundary mismatch")
+        fold_count = int(payload.get("post_freeze_fold_count", -1))
+        post = next(
+            (
+                item for item in report.get("walk_forward", {}).get("lineage_summary", [])
+                if item.get("lineage") == "POST_FREEZE_FORWARD"
+            ),
+            None,
+        )
+        if post is None or int(post.get("folds", -1)) != fold_count:
+            raise ValueError("frozen robustness forward fold count mismatch")
+        identity = {
+            "schema_version": payload["schema_version"],
+            "spec_sha256": spec_sha256,
+            "source_snapshot_id": source_snapshot_id,
+            "validation_as_of": validation_as_of,
+            "post_freeze_fold_count": fold_count,
+            "report_sha256": report_sha256,
+        }
+        identity_json = json.dumps(
+            identity, sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
+        checkpoint_id = hashlib.sha256(identity_json.encode("utf-8")).hexdigest()[:24]
+        if payload.get("checkpoint_id") not in (None, checkpoint_id):
+            raise ValueError("frozen robustness checkpoint identity mismatch")
+        stored = {**payload, "checkpoint_id": checkpoint_id}
+        canonical = json.dumps(
+            stored, sort_keys=True, separators=(",", ":"), allow_nan=False
+        )
+        with self.connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            source = conn.execute(
+                "SELECT snapshot_id FROM shadow_daily_snapshots WHERE snapshot_id=?",
+                (source_snapshot_id,),
+            ).fetchone()
+            if source is None:
+                raise ValueError("frozen robustness source snapshot is not archived")
+            existing = conn.execute(
+                """SELECT checkpoint_id, report_sha256, validation_as_of
+                   FROM frozen_robustness_checkpoints
+                   WHERE spec_sha256=? AND post_freeze_fold_count=?""",
+                (spec_sha256, fold_count),
+            ).fetchone()
+            if existing is not None:
+                if (
+                    existing["checkpoint_id"] == checkpoint_id
+                    and existing["report_sha256"] == report_sha256
+                    and existing["validation_as_of"] == validation_as_of
+                ):
+                    return str(existing["checkpoint_id"])
+                raise ValueError("frozen robustness checkpoint source drift detected")
+            conn.execute(
+                """INSERT INTO frozen_robustness_checkpoints(
+                       checkpoint_id, spec_sha256, source_snapshot_id,
+                       validation_as_of, post_freeze_fold_count, created_at,
+                       report_sha256, schema_version, payload_json
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    checkpoint_id,
+                    spec_sha256,
+                    source_snapshot_id,
+                    validation_as_of,
+                    fold_count,
+                    payload["created_at"],
+                    report_sha256,
+                    payload["schema_version"],
+                    canonical,
+                ),
+            )
+        return checkpoint_id
+
+    def load_frozen_robustness_checkpoints(
+        self, *, spec_sha256: str, limit: int = 100
+    ) -> list[tuple[str, dict[str, Any]]]:
+        if limit <= 0:
+            raise ValueError("limit must be positive")
+        with self.connect() as conn:
+            rows = conn.execute(
+                """SELECT checkpoint_id, report_sha256, payload_json
+                   FROM frozen_robustness_checkpoints
+                   WHERE spec_sha256=?
+                   ORDER BY post_freeze_fold_count ASC LIMIT ?""",
+                (spec_sha256, limit),
+            ).fetchall()
+        result = []
+        for row in rows:
+            payload = json.loads(row["payload_json"])
+            if payload.get("schema_version") != "mil3.frozen-forward-evidence-checkpoint.v1":
+                raise ValueError("stored frozen robustness checkpoint schema mismatch")
+            if payload.get("spec_sha256") != spec_sha256:
+                raise ValueError("stored frozen robustness specification mismatch")
+            authority = payload.get("authority", {})
+            if authority.get("read_only") is not True or any(
+                authority.get(field) is not False
+                for field in (
+                    "parameter_tuning_allowed",
+                    "proposal_creation_allowed",
+                    "challenger_activation_allowed",
+                    "automatic_strategy_change_allowed",
+                    "live_execution_allowed",
+                )
+            ):
+                raise ValueError("stored frozen robustness authority mismatch")
+            report_canonical = json.dumps(
+                payload.get("robustness_report"),
+                sort_keys=True,
+                separators=(",", ":"),
+                allow_nan=False,
+            )
+            calculated_report_sha256 = hashlib.sha256(
+                report_canonical.encode("utf-8")
+            ).hexdigest()
+            if calculated_report_sha256 != row["report_sha256"]:
+                raise ValueError("stored frozen robustness checkpoint failed hash verification")
+            if payload.get("report_sha256") != calculated_report_sha256:
+                raise ValueError("stored frozen robustness report identity mismatch")
+            report = payload.get("robustness_report", {})
+            if report.get("frozen_specification", {}).get("spec_sha256") != spec_sha256:
+                raise ValueError("stored frozen robustness report specification mismatch")
+            identity = {
+                "schema_version": payload["schema_version"],
+                "spec_sha256": spec_sha256,
+                "source_snapshot_id": payload.get("source_snapshot_id"),
+                "validation_as_of": payload.get("validation_as_of"),
+                "post_freeze_fold_count": payload.get("post_freeze_fold_count"),
+                "report_sha256": calculated_report_sha256,
+            }
+            identity_json = json.dumps(
+                identity, sort_keys=True, separators=(",", ":"), allow_nan=False
+            )
+            calculated_checkpoint_id = hashlib.sha256(
+                identity_json.encode("utf-8")
+            ).hexdigest()[:24]
+            if (
+                payload.get("checkpoint_id") != row["checkpoint_id"]
+                or row["checkpoint_id"] != calculated_checkpoint_id
+            ):
+                raise ValueError("stored frozen robustness checkpoint identity mismatch")
+            result.append((str(row["checkpoint_id"]), payload))
+        return result
 
     def load_shadow_daily_snapshots(
         self,

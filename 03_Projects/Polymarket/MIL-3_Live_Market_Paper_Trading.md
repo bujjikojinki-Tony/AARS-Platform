@@ -570,6 +570,9 @@ python run_low_turnover_challenger.py \
 python run_frozen_challenger_robustness.py \
   --db mil3_market.sqlite \
   --output-json reports/mil329-robustness.json
+python run_frozen_evidence_monitor.py \
+  --db mil3_market.sqlite \
+  --action WAKE
 python -m pytest -q
 ```
 
@@ -596,6 +599,7 @@ The ingestion and scheduler commands touch only public market-data endpoints. Re
 - MIL-3.27 deterministic tests cover immutable-v2 replay reconciliation, asset/baseline/cost/direction/regime attribution, accounting add-back limitations, tamper/degraded behavior, GET-only API authority and task-centered HMI gates.
 - MIL-3.28 deterministic tests cover state deadbands, ordinary interval holds, immediate direction/risk transitions, true zero-cost engine reruns, turnover/cost/risk deltas, degraded evidence, GET-only API/CLI authority and non-activation HMI gates.
 - MIL-3.29 deterministic tests cover content-addressed parameter freezing, no-search chronological folds, fixed time lineage, forward-fold accumulation, multi-window and cost-stress evidence, state attribution, degraded source behavior, GET-only API/CLI authority and non-activation HMI gates.
+- MIL-3.30 deterministic tests cover exact checkpoint-zero identity, weekly boundary eligibility, ordered catch-up, idempotent reuse, unchanged gate recomputation, state/cost drift alarms, source/hash/gap fail-closed behavior, bounded scheduling, GET-only API/CLI authority and no-control HMI evidence.
 
 ## Definition of Done
 

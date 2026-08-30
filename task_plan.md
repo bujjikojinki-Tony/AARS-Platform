@@ -542,3 +542,24 @@ PWB-11 Complete
 | Combined planning update used one stale cross-file context anchor | 1 | Split the append-only findings/progress and checklist edits into exact patches |
 | Final verification referenced root planning file from the nested MIL-3 directory | 1 | Use the explicit repository-root path, then rerun every verification command |
 | First weakest-fold HMI template omitted a closing JavaScript interpolation brace | 1 | Split the nested template into explicit weakest-fold and lineage row strings, then rerun syntax and tests |
+
+## MIL-3.30 Frozen Forward Evidence Accumulation and Drift Monitoring
+- [x] Inspect scheduler, immutable archive, content identity, alert and HMI seams
+- [x] Define an idempotent weekly evidence checkpoint bound to the MIL-3.29 frozen specification
+- [x] Accumulate only complete synchronized post-freeze folds without retroactive mutation or tuning
+- [x] Recompute unchanged MIL-3.29 review gates after each new eligible boundary
+- [x] Add state-mixture, per-state outcome and modeled-cost sensitivity drift baselines and alarms
+- [x] Expose evidence age, next eligible boundary, fold continuity, drift alarms and recovery through GET-only API/HMI
+- [x] Add bounded background scheduling without adding activation, proposal or live-order authority
+- [x] Add deterministic idempotency, boundary, drift, tamper, degraded, API, CLI and UI tests
+- [x] Run against the real persistent database and confirm the no-new-fold wait state
+- [x] Update MIL-3.30, continuous-shadow, Mac operations and HMI documentation
+- [x] Run targeted/full verification, safety scan, diff review and local milestone commit
+- **Status:** complete
+
+## MIL-3.30 errors encountered
+| Error | Attempt | Resolution |
+|---|---:|---|
+| Nested MIL-3 inspection used `task_plan.md` without the repository-root prefix | 1 | Preserve the successful UI inspection and use the absolute planning path for subsequent plan reads |
+| First drift-alert test rejected the safe phrase `do not retune` merely because it contained `retune` | 1 | Assert an explicit frozen/no-retune boundary instead of banning the word itself |
+| Combined hardening patch assumed a duplicated drift key that was only duplicated in truncated console output | 1 | Inspect exact source ranges, remove only real unused imports, and apply identity/boundary hardening separately |

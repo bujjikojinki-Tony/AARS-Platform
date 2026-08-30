@@ -261,6 +261,15 @@ class DashboardService:
             self.store, snapshot_id=snapshot_id
         )
 
+    def frozen_forward_evidence(
+        self, *, snapshot_id: str | None = None
+    ) -> dict[str, Any]:
+        from .frozen_monitor import build_frozen_forward_evidence_view
+
+        return build_frozen_forward_evidence_view(
+            self.store, snapshot_id=snapshot_id
+        )
+
     def shadow_stability(
         self, *, limit: int = 90, target_strategy: str | None = None
     ) -> dict[str, Any]:
