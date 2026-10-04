@@ -1,0 +1,2 @@
+# Runtime is standard-library only; pytest is included for local verification.
+pytest>=8,<9
