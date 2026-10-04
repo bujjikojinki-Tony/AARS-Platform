@@ -20,3 +20,7 @@ The scheduler writes public BTC/ETH/SOL market/funding data to `data/mil3_market
 This build is PAPER_ONLY. It contains no authenticated exchange order path and requires no exchange secret.
 
 If you already have `mil3_market.sqlite`, put it in `data/` before startup. Otherwise the scheduler creates and bootstraps it.
+
+## Optional LLM Research Layer
+
+Set `OPENAI_API_KEY` in `.env` and optionally `AARS_LLM_MODEL`. The LLM path is RESEARCH_ONLY and has no execution authority. See `LLM_RESEARCH_LAYER.md`.
