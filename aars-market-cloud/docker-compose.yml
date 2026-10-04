@@ -1,0 +1,15 @@
+services:
+  scheduler:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    command: ["sh","deploy/run-scheduler.sh"]
+    volumes: ["./data:/data"]
+  api:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    command: ["sh","deploy/run-api.sh"]
+    volumes: ["./data:/data"]
+    ports: ["${AARS_PORT:-8765}:8765"]
+    depends_on: [scheduler]
