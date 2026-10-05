@@ -5,6 +5,13 @@ services:
     env_file: .env
     command: ["sh","deploy/run-scheduler.sh"]
     volumes: ["./data:/data"]
+  cognitive-trial:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    command: ["sh","deploy/run-cognitive-trial.sh"]
+    volumes: ["./data:/data"]
+    depends_on: [scheduler]
   api:
     build: .
     restart: unless-stopped
@@ -12,4 +19,4 @@ services:
     command: ["sh","deploy/run-api.sh"]
     volumes: ["./data:/data"]
     ports: ["${AARS_PORT:-8765}:8765"]
-    depends_on: [scheduler]
+    depends_on: [scheduler, cognitive-trial]
