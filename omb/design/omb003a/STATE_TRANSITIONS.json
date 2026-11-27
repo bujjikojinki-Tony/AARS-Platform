@@ -1,0 +1,211 @@
+{
+  "status": "DESIGN_ONLY",
+  "states": [
+    "DRAFT",
+    "READY",
+    "RUNNING",
+    "PAUSED",
+    "REVIEW_PENDING",
+    "COMPLETED",
+    "REJECTED",
+    "FAILED",
+    "CANCELLED"
+  ],
+  "terminal_states": [
+    "COMPLETED",
+    "REJECTED",
+    "FAILED",
+    "CANCELLED"
+  ],
+  "default": "DENY",
+  "transitions": [
+    {
+      "from": null,
+      "action": "create",
+      "to": "DRAFT",
+      "roles": [
+        "BOT"
+      ],
+      "guards": "TASK_STATE_MACHINE.md and HUMAN_REVIEW_APPROVAL.md; role alone is insufficient"
+    },
+    {
+      "from": "DRAFT",
+      "action": "approve_plan",
+      "to": "READY",
+      "roles": [
+        "OPERATOR"
+      ],
+      "guards": "TASK_STATE_MACHINE.md and HUMAN_REVIEW_APPROVAL.md; role alone is insufficient"
+    },
+    {
+      "from": "DRAFT",
+      "action": "cancel",
+      "to": "CANCELLED",
+      "roles": [
+        "OPERATOR",
+        "OWNER_BOT"
+      ],
+      "guards": "TASK_STATE_MACHINE.md and HUMAN_REVIEW_APPROVAL.md; role alone is insufficient"
+    },
+    {
+      "from": "READY",
+      "action": "start",
+      "to": "RUNNING",
+      "roles": [
+        "ASSIGNED_BOT"
+      ],
+      "guards": "TASK_STATE_MACHINE.md and HUMAN_REVIEW_APPROVAL.md; role alone is insufficient"
+    },
+    {
+      "from": "READY",
+      "action": "return_to_draft",
+      "to": "DRAFT",
+      "roles": [
+        "OPERATOR"
+      ],
+      "guards": "TASK_STATE_MACHINE.md and HUMAN_REVIEW_APPROVAL.md; role alone is insufficient"
+    },
+    {
+      "from": "READY",
+      "action": "cancel",
+      "to": "CANCELLED",
+      "roles": [
+        "OPERATOR",
+        "OWNER_BOT"
+      ],
+      "guards": "TASK_STATE_MACHINE.md and HUMAN_REVIEW_APPROVAL.md; role alone is insufficient"
+    },
+    {
+      "from": "RUNNING",
+      "action": "pause",
+      "to": "PAUSED",
+      "roles": [
+        "LEASE_HOLDER",
+        "OPERATOR"
+      ],
+      "guards": "TASK_STATE_MACHINE.md and HUMAN_REVIEW_APPROVAL.md; role alone is insufficient"
+    },
+    {
+      "from": "RUNNING",
+      "action": "request_review",
+      "to": "REVIEW_PENDING",
+      "roles": [
+        "LEASE_HOLDER"
+      ],
+      "guards": "TASK_STATE_MACHINE.md and HUMAN_REVIEW_APPROVAL.md; role alone is insufficient"
+    },
+    {
+      "from": "RUNNING",
+      "action": "fail",
+      "to": "FAILED",
+      "roles": [
+        "LEASE_HOLDER",
+        "SERVICE"
+      ],
+      "guards": "TASK_STATE_MACHINE.md and HUMAN_REVIEW_APPROVAL.md; role alone is insufficient"
+    },
+    {
+      "from": "RUNNING",
+      "action": "cancel",
+      "to": "CANCELLED",
+      "roles": [
+        "OPERATOR",
+        "LEASE_HOLDER"
+      ],
+      "guards": "TASK_STATE_MACHINE.md and HUMAN_REVIEW_APPROVAL.md; role alone is insufficient"
+    },
+    {
+      "from": "RUNNING",
+      "action": "lease_expired",
+      "to": "PAUSED",
+      "roles": [
+        "SERVICE"
+      ],
+      "guards": "TASK_STATE_MACHINE.md and HUMAN_REVIEW_APPROVAL.md; role alone is insufficient"
+    },
+    {
+      "from": "PAUSED",
+      "action": "resume_authorize",
+      "to": "READY",
+      "roles": [
+        "OPERATOR"
+      ],
+      "guards": "TASK_STATE_MACHINE.md and HUMAN_REVIEW_APPROVAL.md; role alone is insufficient"
+    },
+    {
+      "from": "PAUSED",
+      "action": "return_to_draft",
+      "to": "DRAFT",
+      "roles": [
+        "OPERATOR"
+      ],
+      "guards": "TASK_STATE_MACHINE.md and HUMAN_REVIEW_APPROVAL.md; role alone is insufficient"
+    },
+    {
+      "from": "PAUSED",
+      "action": "cancel",
+      "to": "CANCELLED",
+      "roles": [
+        "OPERATOR",
+        "OWNER_BOT"
+      ],
+      "guards": "TASK_STATE_MACHINE.md and HUMAN_REVIEW_APPROVAL.md; role alone is insufficient"
+    },
+    {
+      "from": "REVIEW_PENDING",
+      "action": "approve_result",
+      "to": "COMPLETED",
+      "roles": [
+        "OPERATOR"
+      ],
+      "guards": "TASK_STATE_MACHINE.md and HUMAN_REVIEW_APPROVAL.md; role alone is insufficient"
+    },
+    {
+      "from": "REVIEW_PENDING",
+      "action": "reject_result",
+      "to": "REJECTED",
+      "roles": [
+        "OPERATOR"
+      ],
+      "guards": "TASK_STATE_MACHINE.md and HUMAN_REVIEW_APPROVAL.md; role alone is insufficient"
+    },
+    {
+      "from": "REVIEW_PENDING",
+      "action": "request_changes",
+      "to": "READY",
+      "roles": [
+        "OPERATOR"
+      ],
+      "guards": "TASK_STATE_MACHINE.md and HUMAN_REVIEW_APPROVAL.md; role alone is insufficient"
+    },
+    {
+      "from": "REVIEW_PENDING",
+      "action": "review_invalidated",
+      "to": "PAUSED",
+      "roles": [
+        "SERVICE"
+      ],
+      "guards": "TASK_STATE_MACHINE.md and HUMAN_REVIEW_APPROVAL.md; role alone is insufficient"
+    },
+    {
+      "from": "REVIEW_PENDING",
+      "action": "cancel",
+      "to": "CANCELLED",
+      "roles": [
+        "OPERATOR"
+      ],
+      "guards": "TASK_STATE_MACHINE.md and HUMAN_REVIEW_APPROVAL.md; role alone is insufficient"
+    }
+  ],
+  "same_state_mutations": [
+    "draft_update",
+    "evidence_link",
+    "lease_renew",
+    "prepare_control_review",
+    "usage_invalidation",
+    "task_acl_update",
+    "review_challenge_invalidated"
+  ],
+  "every_committed_mutation_increments_version": true,
+  "replayed_idempotent_request_increments_version": false
+}

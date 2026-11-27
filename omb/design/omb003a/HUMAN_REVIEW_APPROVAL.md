@@ -1,0 +1,31 @@
+# WP-08 审核与人工审批
+
+Bot可生成ReviewRequest或文字建议，不能生成有效ApprovalDecision，也没有MCP approve工具。仅隐藏工具名称或检查actor="human"不足以阻止自批；同UID普通CLI、共享secret、JSON批准文件也不足。
+
+设计选定独立操作者审批界面+本机在场签名broker。签名密钥由macOS Secure Enclave创建的P-256 Keychain key持有；私钥操作要求privateKeyUsage与userPresence，禁用可复用的认证上下文/生物认证缓存。只固定公钥/签名验证标识进入Task服务；不用Ed25519冒充Secure Enclave原生能力，不导出私钥，不自动降级为软件密钥或无人值守token。官方依据：[Secure Enclave密钥](https://developer.apple.com/documentation/security/protecting-keys-with-the-secure-enclave.md)、[userPresence](https://developer.apple.com/documentation/security/secaccesscontrolcreateflags/userpresence)。这是待验证的设计，不宣称当前已实现或Mac硬件/GUI桥接已验收。
+
+每个决定步骤：
+
+1. 人工控制面请求PLAN/RESULT/CONTROL review。RESULT由Bot提交且state=REVIEW_PENDING；PLAN/CONTROL由操作者界面准备。聚合服务在事务内生成review_id和随机256位nonce，仅存nonce hash，锁定task version/definition/evidence_set/policy/binding版本，准备后不持有DB事务等待人。
+2. PLAN/CONTROL准备本身追加事件、version+1，subject_version取提交后版本；当前状态不变。结果review的subject_version亦取RUNNING→REVIEW_PENDING后的版本。一个Task至多一个PENDING review。CONTROL取代旧RESULT时将旧项标记STALE并追加原因，不能同时保留两项待批准。
+3. 审批界面从服务读取锁定快照，以本机可信UI显示任务ID、用途、修改摘要、Evidence性质、来源/许可状态、决定动作和影响；不使用Bot提供的HTML/任意提示作为认证UI。人工明确选择决定并确认，随后由Keychain逐次要求在场认证。单纯解锁Mac不能算这次决定在场。
+4. broker在可信签名组件内仅对固定域分隔符`AARS-OMB-TASK-APPROVAL-V1`与canonical challenge digest签名，不能提供任意消息签名接口。receipt含workspace/db_instance_id/task/review/subject_version、definition/evidence_set hash、purpose、decision、policy_version、binding_version、nonce、issued_at、expires_at、key_id、signature。nonce有效期120秒，不向Bot暴露可复用批准凭证。
+5. 服务经独立本机控制通道接收receipt（不是MCP）。在BEGIN IMMEDIATE内核对公钥签名、review pending状态、nonce一次性、时间、数据库实例、全部hash/版本与操作者principal。全部一致才写ApprovalDecision、相应状态事件/Revision、已消费nonce与幂等结果；否则默认拒绝。过期、签名验证失败、时钟倒退或认证取消均不批准。
+
+同一Task PENDING控制面review期间禁止Bot写操作，包括续租；租约自然过期由服务使review STALE并转PAUSED，人工必须重新读取，不以延长租约保住陈旧审批。RESULT期间任何证据/许可/绑定改变也使review STALE。审批完成后的新版本与签名receipt对应subject_version的关系由事件明确记录，不要求旧签名覆盖未来状态。
+
+拒绝/要求修改理由必填。Bot文本建议原样归入不可信ReviewMaterial，不成为签名决定；模型说“已批准”而无有效receipt时状态保持不变。COMPLETED后撤销许可只改变usage_state并追加事件，不删除决定或伪造历史。
+
+平台准入：003D之前必须验证Mac支持Secure Enclave/P-256、逐次userPresence、无交互调用不能签名、可执行签名/Keychain ACL与公钥登记完整性、同UID程序不能修改绑定公钥后通过完整性门。该机制不是对已完全攻陷操作者账户的强安全保证；无法验证时审批维持LOCKED，不改用Bot可调用的普通CLI。003B可以在未来授权后开发纯管理聚合，但所有需要人工许可的分支必须保持拒绝，不能用测试stub批准。
+
+## 控制动作与签名字节规范
+
+assign_worker/revoke_worker仅允许DRAFT或PAUSED，改变TaskAcl并使旧计划许可失效；它们是同状态operator变更，不是新的状态出边。所有review与receipt还绑定authorization_scope_hash，避免签名后替换协作范围。
+
+ECDSA_P256_SHA256_DER签名输入为：UTF8固定域名加换行，再拼接UTF8(AARS_CANONICAL_JSON_V1(receipt中除signature_base64以外的全部字段))。由ECDSA SHA-256签名API处理这段原文，不重复对digest再套不明hash。signature_base64解码后为ASN.1 DER P-256 ECDSA签名；严格检查base64、签名格式、算法、key_id和域。nonce_hash=sha256:SHA256(bytes.fromhex(nonce))。有效期最多120秒，允许时钟偏差最多5秒；时钟倒退或不可信时拒绝。审批请求的完整receipt只有控制面可提交；MCP返回不包含可消费nonce或签名权限。
+
+Broker的公钥登记、可信可执行签名及ACL完整性是本机验证门，不能因密钥存在Keychain就假定Bot无法冒充。此门未通过前，操作许可全部LOCKED；这是003D实施前需验证的风险，并非当前已安装能力。
+
+服务重启使内存中的未消费challenge全部失效，不持久化原始nonce。已有RESULT pending转STALE并通过review_invalidated使Task PAUSED；PLAN/CONTROL pending转STALE，任务状态不变但追加同状态事件、version+1。恢复后必须重新准备人工审核，不允许通过旧nonce或已缓存认证自动完成。
+
+独立operator通道只接受prepare_challenge和submit_receipt两类操作，读取可信签名broker的本机peer身份；不暴露HTTP端口、不接受普通stdin当operator。prepare携task_id、expected_version、idempotency_key、允许的decision/control_action；RESULT必须已有未过期RESULT review，禁止凭prepare直接从RUNNING造已审核结果。PLAN/CONTROL按前述规则创建唯一review。submit携同一review_id、idempotency_key和严格ApprovalReceipt。原key重试返回原决定；prepare响应丢失只能在同一服务boot中恢复当前nonce，失效后返回CHALLENGE_EXPIRED，不能用旧key生成另一review。通道身份与broker签名/Keychain ACL是003D实机验证项，未通过就不开放operator动作。

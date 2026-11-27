@@ -1,11 +1,11 @@
 {
   "current": {
-    "version": "omb-002-fix",
+    "version": "omb-003a",
     "local_source_commit": null,
-    "source_archive": "AARS_OMB_002_FIX_BASELINE.zip",
-    "source_archive_sha256": "c36b6ef5ec43f543d8f7e08867d7c23bb7ef04a369fc5e0d13eb314bf65bd7aa",
-    "status": "Frozen for the local single-operator synthetic deployment",
-    "original_local_automated_tests_passed": 32
+    "source_archive": "AARS_OMB_003A_DETAILED_DESIGN.zip",
+    "source_archive_sha256": "266d07b438b57e9ef3bfa3ab1182baaeb43ac5b96391718f101d894187568b62",
+    "status": "Detailed design complete with accepted source registration exception",
+    "original_local_automated_tests_passed": null
   },
   "history": [
     {
@@ -15,12 +15,21 @@
       "source_archive_sha256": "c36b6ef5ec43f543d8f7e08867d7c23bb7ef04a369fc5e0d13eb314bf65bd7aa",
       "status": "Frozen for the local single-operator synthetic deployment",
       "original_local_automated_tests_passed": 32
+    },
+    {
+      "version": "omb-003a",
+      "local_source_commit": null,
+      "source_archive": "AARS_OMB_003A_DETAILED_DESIGN.zip",
+      "source_archive_sha256": "266d07b438b57e9ef3bfa3ab1182baaeb43ac5b96391718f101d894187568b62",
+      "status": "Detailed design complete with accepted source registration exception",
+      "original_local_automated_tests_passed": null
     }
   ],
   "original_frozen_historical_commit": null,
   "post_freeze_source_registration_commit": "161d08556c4c7e84fa1489feb0026cd2c6a17200",
   "post_freeze_registration_is_not_original_history": true,
-  "source_exception_accepted": false,
+  "source_exception_accepted": true,
   "publication_scope": "Source, tests, reviewed design contracts and synthetic fixture. The public tree has separate Git history and excludes local runtime evidence.",
-  "fixture_sha256": null
+  "fixture_sha256": null,
+  "source_exception_acceptance_archive_sha256": "dd00692143f2cef44c0e30e231646b849bfee2b071651c0f9074ff1b9ff71ce2"
 }

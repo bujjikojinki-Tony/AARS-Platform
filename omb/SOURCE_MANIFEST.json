@@ -1,15 +1,95 @@
 {
-  "version": "omb-002-fix",
+  "version": "omb-003a",
   "files": [
     {
       "path": "README.md",
-      "sha256": "1bc722b7a0a9a2bf5c149c375a856ff45376270ef0a2e64cbfa43725fc3c6a8b",
-      "bytes": 871
+      "sha256": "11528ca73f8a68a2a29cb7fb53e176b16209d15c42504837434052eed8662c54",
+      "bytes": 979
     },
     {
       "path": "VERSIONS.json",
-      "sha256": "629f9dbf3b4452d288e658081510d1dff1d2c0fd4b90cb12f4fc987bc4a67bfc",
-      "bytes": 1168
+      "sha256": "e111386b666324e9947c6c1efc08c576e9b45ffc2ebd3276f8242a3a9cc39565",
+      "bytes": 1674
+    },
+    {
+      "path": "design/omb003a/BOT_IDENTITY_AUTHORIZATION.md",
+      "sha256": "6e918972d40a98d0b3da2225035fa34cfd54b0abf764907a3b070291518ba15b",
+      "bytes": 3044
+    },
+    {
+      "path": "design/omb003a/COMPONENT_AND_PHASE_ALLOCATION.md",
+      "sha256": "d20662fb71232657de42374b224f9286e7cbb575d73c9fb4c2d002e4bd14c172",
+      "bytes": 2536
+    },
+    {
+      "path": "design/omb003a/DEPLOYMENT_ROLLBACK_AND_MAC_GATE.md",
+      "sha256": "8c367b01f76f689245068b4a361af84110c412fe55e2b00e6b9f21fd45d7f841",
+      "bytes": 2766
+    },
+    {
+      "path": "design/omb003a/HUMAN_REVIEW_APPROVAL.md",
+      "sha256": "d52e69b92478ce563edb8e8e9ec29634a389e47e909b816013adfbd4346b5109",
+      "bytes": 6326
+    },
+    {
+      "path": "design/omb003a/MCP_INTERFACE_CONTRACT.md",
+      "sha256": "92d85167f69f25e5b81b3dfd1644e3e397b5271c081ee99e90b1009fdaca3cd6",
+      "bytes": 6151
+    },
+    {
+      "path": "design/omb003a/MCP_RESULT_SCHEMA.json",
+      "sha256": "ea7c388e424033dabfb28231c7548ad30e608da6b44f512c35ac638fe2e3fd94",
+      "bytes": 33588
+    },
+    {
+      "path": "design/omb003a/MCP_TOOLS_CONTRACT.json",
+      "sha256": "1fde0bfe8ad0cd5af7ea37e2c02b6bc436f98eb9faf05d3d92da5c4af89040ba",
+      "bytes": 14614
+    },
+    {
+      "path": "design/omb003a/REQUIREMENTS_TRACEABILITY.md",
+      "sha256": "f80443eb71c0a764fe1d8a0df89ea91e707d86119d3ac9cab3694e914f56556d",
+      "bytes": 2220
+    },
+    {
+      "path": "design/omb003a/SQLITE_DATABASE_DESIGN.md",
+      "sha256": "58b4274c735e7a6026650cf6d91ecd6cbb82cfeabc65c2884fa23146b82d7578",
+      "bytes": 12516
+    },
+    {
+      "path": "design/omb003a/STATE_TRANSITIONS.json",
+      "sha256": "4ed7bb3e6ac670a09a3fdd87eb6ac85aaecd8a6a6e4cbfadd8de3ed9a69e579a",
+      "bytes": 5233
+    },
+    {
+      "path": "design/omb003a/TASK_EVIDENCE_LINKAGE.md",
+      "sha256": "434c162de9bd432adfe8dac6d481c8b9bfb7f2126dfbc80e3d0bdd69a9336b7d",
+      "bytes": 4181
+    },
+    {
+      "path": "design/omb003a/TASK_MANAGER_METAMODEL.md",
+      "sha256": "b1dc0ae3505a7aba20958df762909979b8efb03b8bec0ff571a72e41c61b8aa7",
+      "bytes": 6918
+    },
+    {
+      "path": "design/omb003a/TASK_MANAGER_SCHEMA.json",
+      "sha256": "cd2710e63e33b4a4ae3bb666bb433bb00a823e12667310948ac206fc835b4854",
+      "bytes": 27421
+    },
+    {
+      "path": "design/omb003a/TASK_STATE_MACHINE.md",
+      "sha256": "1e20d99a0f642f47d202812905a2f2b7c940e258a5b7ef80779e32aee26bd588",
+      "bytes": 3902
+    },
+    {
+      "path": "design/omb003a/TEST_MATRIX.json",
+      "sha256": "c286ca1666a4abe350c40c072fe2cb124c9fd42b888c59ba947c3493eb3faeda",
+      "bytes": 30827
+    },
+    {
+      "path": "design/omb003a/TEST_MATRIX.md",
+      "sha256": "fffe5d42986f43d65fea19333f26cbf55c59c62407555de100ced828b649324a",
+      "bytes": 12048
     },
     {
       "path": "frozen_payload/source/README-OMB-002.md",

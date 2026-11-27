@@ -1,0 +1,1142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aars:omb003a:task-manager:design:1.0",
+  "title": "OMB-003A design artifact; not implemented",
+  "description": "Cross-object authorization, transitions, hash/crypto validation and temporal invariants require the specified future semantic validator; JSON Schema alone is not sufficient.",
+  "$defs": {
+    "Task": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "pattern": "^task\\.[0-9a-f]{32}$"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^workspace\\.[0-9a-f]{32}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "purpose": {
+          "enum": [
+            "LOCAL_SYNTHETIC_VALIDATION",
+            "CATALOG_METADATA"
+          ]
+        },
+        "owner_principal_id": {
+          "type": "string",
+          "pattern": "^principal\\.[0-9a-f]{32}$"
+        },
+        "state": {
+          "enum": [
+            "DRAFT",
+            "READY",
+            "RUNNING",
+            "PAUSED",
+            "REVIEW_PENDING",
+            "COMPLETED",
+            "REJECTED",
+            "FAILED",
+            "CANCELLED"
+          ]
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775806
+        },
+        "definition_revision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775806
+        },
+        "definition_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "usage_state": {
+          "enum": [
+            "USABLE",
+            "REVIEW_REQUIRED",
+            "UNUSABLE"
+          ]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "due_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "Z$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "supersedes_task_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^task\\.[0-9a-f]{32}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scope": {
+          "type": "object",
+          "properties": {
+            "workspace_id": {
+              "type": "string",
+              "pattern": "^workspace\\.[0-9a-f]{32}$"
+            },
+            "data_mode": {
+              "enum": [
+                "SYNTHETIC_ONLY",
+                "CATALOG_METADATA"
+              ]
+            },
+            "external_execution_allowed": {
+              "const": false
+            }
+          },
+          "required": [
+            "workspace_id",
+            "data_mode",
+            "external_execution_allowed"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "task_id",
+        "workspace_id",
+        "title",
+        "description",
+        "purpose",
+        "owner_principal_id",
+        "state",
+        "version",
+        "definition_revision",
+        "definition_hash",
+        "usage_state",
+        "created_at",
+        "updated_at",
+        "priority",
+        "due_at",
+        "supersedes_task_id",
+        "scope"
+      ],
+      "additionalProperties": false
+    },
+    "PrincipalBinding": {
+      "type": "object",
+      "properties": {
+        "principal_id": {
+          "type": "string",
+          "pattern": "^principal\\.[0-9a-f]{32}$"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^workspace\\.[0-9a-f]{32}$"
+        },
+        "binding_id": {
+          "type": "string",
+          "pattern": "^binding\\.[0-9a-f]{32}$"
+        },
+        "binding_version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775806
+        },
+        "host_bot_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 128
+        },
+        "kind": {
+          "enum": [
+            "BOT",
+            "OPERATOR",
+            "SERVICE"
+          ]
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "capabilities": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 20,
+          "items": {
+            "enum": [
+              "task.create",
+              "task.read",
+              "task.update",
+              "task.work",
+              "evidence.link",
+              "review.request",
+              "operator.control",
+              "service.recover"
+            ]
+          }
+        }
+      },
+      "required": [
+        "principal_id",
+        "workspace_id",
+        "binding_id",
+        "binding_version",
+        "host_bot_id",
+        "kind",
+        "active",
+        "capabilities"
+      ],
+      "additionalProperties": false
+    },
+    "Attempt": {
+      "type": "object",
+      "properties": {
+        "attempt_id": {
+          "type": "string",
+          "pattern": "^attempt\\.[0-9a-f]{32}$"
+        },
+        "task_id": {
+          "type": "string",
+          "pattern": "^task\\.[0-9a-f]{32}$"
+        },
+        "attempt_no": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775806
+        },
+        "actor_principal_id": {
+          "type": "string",
+          "pattern": "^principal\\.[0-9a-f]{32}$"
+        },
+        "fencing_token": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775806
+        },
+        "boot_id": {
+          "type": "string",
+          "pattern": "^boot\\.[0-9a-f]{32}$"
+        },
+        "status": {
+          "enum": [
+            "ACQUIRED",
+            "RUNNING",
+            "SUBMITTED",
+            "PAUSED",
+            "FAILED",
+            "EXPIRED",
+            "CANCELLED"
+          ]
+        },
+        "lease_expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "Z$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "attempt_id",
+        "task_id",
+        "attempt_no",
+        "actor_principal_id",
+        "fencing_token",
+        "boot_id",
+        "status",
+        "lease_expires_at",
+        "started_at",
+        "finished_at"
+      ],
+      "additionalProperties": false
+    },
+    "EvidenceLink": {
+      "type": "object",
+      "properties": {
+        "link_id": {
+          "type": "string",
+          "pattern": "^link\\.[0-9a-f]{32}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775806
+        },
+        "task_id": {
+          "type": "string",
+          "pattern": "^task\\.[0-9a-f]{32}$"
+        },
+        "snapshot_id": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "purpose": {
+          "enum": [
+            "LOCAL_SYNTHETIC_VALIDATION",
+            "CATALOG_METADATA"
+          ]
+        },
+        "scope": {
+          "type": "object",
+          "properties": {
+            "workspace_id": {
+              "type": "string",
+              "pattern": "^workspace\\.[0-9a-f]{32}$"
+            },
+            "task_definition_hash": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "workspace_id",
+            "task_definition_hash"
+          ],
+          "additionalProperties": false
+        },
+        "source_verification": {
+          "enum": [
+            "FIXTURE_VERIFIED",
+            "UNVERIFIED",
+            "SOURCE_VERIFIED"
+          ]
+        },
+        "license_basis": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "use_state": {
+          "enum": [
+            "USABLE_FIXTURE",
+            "REVIEW_REQUIRED",
+            "UNUSABLE",
+            "REVOKED"
+          ]
+        }
+      },
+      "required": [
+        "link_id",
+        "revision",
+        "task_id",
+        "snapshot_id",
+        "purpose",
+        "scope",
+        "source_verification",
+        "license_basis",
+        "use_state"
+      ],
+      "additionalProperties": false
+    },
+    "ReviewRequest": {
+      "type": "object",
+      "properties": {
+        "review_id": {
+          "type": "string",
+          "pattern": "^review\\.[0-9a-f]{32}$"
+        },
+        "task_id": {
+          "type": "string",
+          "pattern": "^task\\.[0-9a-f]{32}$"
+        },
+        "kind": {
+          "enum": [
+            "PLAN",
+            "RESULT",
+            "CONTROL"
+          ]
+        },
+        "subject_version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775806
+        },
+        "definition_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "evidence_set_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "policy_version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775806
+        },
+        "binding_version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775806
+        },
+        "action": {
+          "enum": [
+            "approve_plan",
+            "approve_result",
+            "reject_result",
+            "request_changes",
+            "cancel",
+            "return_to_draft",
+            "resume_authorize",
+            "assign_worker",
+            "revoke_worker"
+          ]
+        },
+        "status": {
+          "enum": [
+            "PENDING",
+            "APPROVED",
+            "REJECTED",
+            "CHANGES_REQUESTED",
+            "STALE",
+            "EXPIRED"
+          ]
+        },
+        "nonce_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "authorization_scope_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "review_id",
+        "task_id",
+        "kind",
+        "subject_version",
+        "definition_hash",
+        "evidence_set_hash",
+        "policy_version",
+        "binding_version",
+        "action",
+        "status",
+        "nonce_hash",
+        "expires_at",
+        "authorization_scope_hash"
+      ],
+      "additionalProperties": false
+    },
+    "TaskEvent": {
+      "type": "object",
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "pattern": "^event\\.[0-9a-f]{32}$"
+        },
+        "task_id": {
+          "type": "string",
+          "pattern": "^task\\.[0-9a-f]{32}$"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775806
+        },
+        "event_type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "actor_principal_id": {
+          "type": "string",
+          "pattern": "^principal\\.[0-9a-f]{32}$"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "from_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "to_version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775806
+        },
+        "from_state": {
+          "anyOf": [
+            {
+              "enum": [
+                "DRAFT",
+                "READY",
+                "RUNNING",
+                "PAUSED",
+                "REVIEW_PENDING",
+                "COMPLETED",
+                "REJECTED",
+                "FAILED",
+                "CANCELLED"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "to_state": {
+          "enum": [
+            "DRAFT",
+            "READY",
+            "RUNNING",
+            "PAUSED",
+            "REVIEW_PENDING",
+            "COMPLETED",
+            "REJECTED",
+            "FAILED",
+            "CANCELLED"
+          ]
+        },
+        "payload_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "prev_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "event_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "reason": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000
+            },
+            "definition_hash": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "evidence_set_hash": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "authorization_scope_hash": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "request_hash": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "related_ids": {
+              "type": "array",
+              "maxItems": 100,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              }
+            }
+          },
+          "required": [
+            "reason",
+            "definition_hash",
+            "evidence_set_hash",
+            "authorization_scope_hash",
+            "request_hash",
+            "related_ids"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "event_id",
+        "task_id",
+        "seq",
+        "event_type",
+        "actor_principal_id",
+        "at",
+        "from_version",
+        "to_version",
+        "from_state",
+        "to_state",
+        "payload_hash",
+        "prev_hash",
+        "event_hash",
+        "payload"
+      ],
+      "additionalProperties": false
+    },
+    "ApprovalReceipt": {
+      "type": "object",
+      "properties": {
+        "domain": {
+          "const": "AARS-OMB-TASK-APPROVAL-V1"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^workspace\\.[0-9a-f]{32}$"
+        },
+        "db_instance_id": {
+          "type": "string",
+          "pattern": "^db\\.[0-9a-f]{32}$"
+        },
+        "task_id": {
+          "type": "string",
+          "pattern": "^task\\.[0-9a-f]{32}$"
+        },
+        "review_id": {
+          "type": "string",
+          "pattern": "^review\\.[0-9a-f]{32}$"
+        },
+        "subject_version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775806
+        },
+        "definition_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "evidence_set_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "purpose": {
+          "enum": [
+            "LOCAL_SYNTHETIC_VALIDATION",
+            "CATALOG_METADATA"
+          ]
+        },
+        "decision": {
+          "enum": [
+            "APPROVE_PLAN",
+            "APPROVE_RESULT",
+            "REJECT_RESULT",
+            "REQUEST_CHANGES",
+            "AUTHORIZE_CONTROL"
+          ]
+        },
+        "control_action": {
+          "anyOf": [
+            {
+              "enum": [
+                "cancel",
+                "return_to_draft",
+                "resume_authorize",
+                "assign_worker",
+                "revoke_worker"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "policy_version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775806
+        },
+        "binding_version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775806
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "key_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "algorithm": {
+          "const": "ECDSA_P256_SHA256_DER"
+        },
+        "signature_base64": {
+          "type": "string",
+          "minLength": 80,
+          "maxLength": 128,
+          "contentEncoding": "base64"
+        },
+        "authorization_scope_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "domain",
+        "workspace_id",
+        "db_instance_id",
+        "task_id",
+        "review_id",
+        "subject_version",
+        "definition_hash",
+        "evidence_set_hash",
+        "purpose",
+        "decision",
+        "control_action",
+        "reason",
+        "policy_version",
+        "binding_version",
+        "nonce",
+        "issued_at",
+        "expires_at",
+        "key_id",
+        "algorithm",
+        "signature_base64",
+        "authorization_scope_hash"
+      ],
+      "additionalProperties": false
+    },
+    "Workspace": {
+      "type": "object",
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^workspace\\.[0-9a-f]{32}$"
+        },
+        "db_instance_id": {
+          "type": "string",
+          "pattern": "^db\\.[0-9a-f]{32}$"
+        },
+        "mode": {
+          "enum": [
+            "LOCAL_SYNTHETIC",
+            "CATALOG_METADATA"
+          ]
+        },
+        "policy_version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775806
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        }
+      },
+      "required": [
+        "workspace_id",
+        "db_instance_id",
+        "mode",
+        "policy_version",
+        "created_at"
+      ],
+      "additionalProperties": false
+    },
+    "TaskRevision": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "pattern": "^task\\.[0-9a-f]{32}$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775806
+        },
+        "event_id": {
+          "type": "string",
+          "pattern": "^event\\.[0-9a-f]{32}$"
+        },
+        "snapshot_json": {
+          "type": "string",
+          "contentMediaType": "application/json",
+          "maxLength": 16384
+        },
+        "snapshot_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "task_id",
+        "version",
+        "event_id",
+        "snapshot_json",
+        "snapshot_hash"
+      ],
+      "additionalProperties": false
+    },
+    "ObjectSnapshot": {
+      "type": "object",
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^workspace\\.[0-9a-f]{32}$"
+        },
+        "snapshot_id": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "object_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "object_type": {
+          "enum": [
+            "observation",
+            "evidence",
+            "claim",
+            "decision",
+            "outcome",
+            "lesson",
+            "memory",
+            "knowledge",
+            "policy"
+          ]
+        },
+        "canonical_json": {
+          "type": "string",
+          "maxLength": 1048576,
+          "contentMediaType": "application/json"
+        },
+        "graph_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "source_verification": {
+          "enum": [
+            "FIXTURE_VERIFIED",
+            "UNVERIFIED",
+            "SOURCE_VERIFIED"
+          ]
+        },
+        "source_record": {
+          "type": "object",
+          "properties": {
+            "source_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "source_type": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "collected_at": {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "Z$"
+            },
+            "source_uri": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2048
+            },
+            "original_bytes_hash": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^sha256:[0-9a-f]{64}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "license_basis": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            }
+          },
+          "required": [
+            "source_id",
+            "source_type",
+            "collected_at",
+            "source_uri",
+            "original_bytes_hash",
+            "license_basis"
+          ],
+          "additionalProperties": false
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        }
+      },
+      "required": [
+        "workspace_id",
+        "snapshot_id",
+        "object_id",
+        "object_type",
+        "canonical_json",
+        "graph_digest",
+        "source_verification",
+        "source_record",
+        "created_at"
+      ],
+      "additionalProperties": false
+    },
+    "ApprovalDecision": {
+      "type": "object",
+      "properties": {
+        "approval_id": {
+          "type": "string",
+          "pattern": "^approval\\.[0-9a-f]{32}$"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^workspace\\.[0-9a-f]{32}$"
+        },
+        "task_id": {
+          "type": "string",
+          "pattern": "^task\\.[0-9a-f]{32}$"
+        },
+        "review_id": {
+          "type": "string",
+          "pattern": "^review\\.[0-9a-f]{32}$"
+        },
+        "actor_principal_id": {
+          "type": "string",
+          "pattern": "^principal\\.[0-9a-f]{32}$"
+        },
+        "receipt": {
+          "$ref": "#/$defs/ApprovalReceipt"
+        },
+        "receipt_sha256": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "decided_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        }
+      },
+      "required": [
+        "approval_id",
+        "workspace_id",
+        "task_id",
+        "review_id",
+        "actor_principal_id",
+        "receipt",
+        "receipt_sha256",
+        "decided_at"
+      ],
+      "additionalProperties": false
+    },
+    "IdempotencyRecord": {
+      "type": "object",
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^workspace\\.[0-9a-f]{32}$"
+        },
+        "principal_id": {
+          "type": "string",
+          "pattern": "^principal\\.[0-9a-f]{32}$"
+        },
+        "key": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "request_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "response_json": {
+          "type": "string",
+          "maxLength": 16384,
+          "contentMediaType": "application/json"
+        },
+        "result_version": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9223372036854775806
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        }
+      },
+      "required": [
+        "workspace_id",
+        "principal_id",
+        "key",
+        "method",
+        "request_hash",
+        "response_json",
+        "result_version",
+        "created_at"
+      ],
+      "additionalProperties": false
+    },
+    "TaskAcl": {
+      "type": "object",
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^workspace\\.[0-9a-f]{32}$"
+        },
+        "task_id": {
+          "type": "string",
+          "pattern": "^task\\.[0-9a-f]{32}$"
+        },
+        "principal_id": {
+          "type": "string",
+          "pattern": "^principal\\.[0-9a-f]{32}$"
+        },
+        "permission": {
+          "enum": [
+            "READ",
+            "PROPOSE",
+            "WORK"
+          ]
+        },
+        "granted_by": {
+          "type": "string",
+          "pattern": "^principal\\.[0-9a-f]{32}$"
+        },
+        "grant_event_id": {
+          "type": "string",
+          "pattern": "^event\\.[0-9a-f]{32}$"
+        },
+        "active": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "workspace_id",
+        "task_id",
+        "principal_id",
+        "permission",
+        "granted_by",
+        "grant_event_id",
+        "active"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/Task"
+    },
+    {
+      "$ref": "#/$defs/PrincipalBinding"
+    },
+    {
+      "$ref": "#/$defs/Attempt"
+    },
+    {
+      "$ref": "#/$defs/EvidenceLink"
+    },
+    {
+      "$ref": "#/$defs/ReviewRequest"
+    },
+    {
+      "$ref": "#/$defs/TaskEvent"
+    },
+    {
+      "$ref": "#/$defs/ApprovalReceipt"
+    },
+    {
+      "$ref": "#/$defs/Workspace"
+    },
+    {
+      "$ref": "#/$defs/TaskRevision"
+    },
+    {
+      "$ref": "#/$defs/ObjectSnapshot"
+    },
+    {
+      "$ref": "#/$defs/ApprovalDecision"
+    },
+    {
+      "$ref": "#/$defs/IdempotencyRecord"
+    },
+    {
+      "$ref": "#/$defs/TaskAcl"
+    }
+  ]
+}
