@@ -135,7 +135,7 @@ def test_retry_requires_the_issuing_store_and_a_live_boot(system, same_boot):
     repo = system['repo']
 
     def assert_expired(boot):
-        replacement = ResultDecisionStore(repo, boot_id=boot, operator_id=store.operator_id,
+        replacement = ResultDecisionStore(repo, boot_id=boot, anchor=store.anchor,
                                           now=store.now, monotonic_now=store.monotonic_now)
         with pytest.raises(TaskError, match='^APPROVAL_CHALLENGE_EXPIRED$'):
             prepare(replacement, review, idem)
@@ -152,7 +152,7 @@ def test_retry_requires_the_issuing_store_and_a_live_boot(system, same_boot):
 @pytest.mark.parametrize('change,code', [
     ('revoke', 'REVIEW_STALE'),
     ('binding', 'REVIEW_STALE'),
-    ('instance', 'REVIEW_STALE'),
+    ('instance', 'APPROVAL_CONTEXT_STALE'),
     ('operator', 'APPROVAL_KEY_UNTRUSTED'),
     ('challenge-history', 'APPROVAL_CHALLENGE_EXPIRED'),
 ])

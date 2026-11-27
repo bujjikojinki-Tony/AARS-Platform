@@ -1,0 +1,24 @@
+{
+  "phase": "OMB-003E",
+  "time_utc": "2026-11-27T10:55:56.064649+00:00",
+  "decision": "BLOCKED",
+  "source_base_commit": "e01610304dda467f2b15f2685b5435f09a35215a",
+  "source_state": "UNCOMMITTED",
+  "tests": {
+    "passed": 328,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "historical": 32
+  },
+  "mcp_harness_exit_code": 3,
+  "remaining": {
+    "application_integration": "PENDING",
+    "ui_rendering": "PENDING",
+    "unknown_protocol_explicit_reject_clause": "FAIL_CONTRACT_MISMATCH",
+    "approval_platform": "BLOCKED"
+  },
+  "003F": "HOLD",
+  "003G": "HOLD",
+  "frozen_inputs_unchanged": true
+}

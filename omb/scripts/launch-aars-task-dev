@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+umask 077
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+export PYTHONPATH="$ROOT/src:$ROOT/frozen_payload/source/src"
+export PYTHONDONTWRITEBYTECODE=1
+exec "$ROOT/.venv/bin/python" -m aars_task_manager.mcp_server --supervise \
+  --data-root "$ROOT/.devdata/openmausbot-task-dev"

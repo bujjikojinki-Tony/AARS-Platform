@@ -1,33 +1,14 @@
-# AARS OMB
+# AARS OMB-003E review candidate
 
-Current snapshot `omb-003d-f02-peer`. Signed peer identity preflight and same-process XPC refusal tests.
+328 local tests passed, including 32 historical tests. Approval platform BLOCKED; application integration and UI rendering PENDING; unknown-version explicit-rejection design clause remains unmet. 003F and 003G HOLD. This snapshot is not a frozen release.
 
-| Version | Scope | Local regression |
-|---|---|---:|
-| `omb-002-fix` | Frozen for the local single-operator synthetic deployment | 32 |
-| `omb-003a` | Detailed design complete with accepted source registration exception | Design only |
-| `omb-003b` | Task Manager foundation code review | 159 |
-| `omb-003c` | Task events and synthetic Evidence integration code review | 175 |
-| `omb-003d-b3` | Local MCP and review request verified; approval platform blocked | 189 |
-| `omb-003d-b4` | Local MCP framing hardened; approval platform blocked | 194 |
-| `omb-003d-b5` | Context-bound approval receipt validation and native interoperability | 237 |
-| `omb-003d-b6` | Transactional result decisions and one-time challenge consumption | 260 |
-| `omb-003d-b7` | Same-session output-loss recovery for approval challenges | 278 |
-| `omb-003d-b8` | Evidence authorization expiry and result usability audit | 289 |
-| `omb-003d-b9` | D4 to D5 offline-copy migration and rollback verification | 298 |
-| `omb-003d-f02-platform` | Native human-presence diagnostic with a locked approval gate | 298 |
-| `omb-003d-f02-window` | AppKit diagnostic and hardware primitive retest evidence | 298 |
-| `omb-003d-f02-peer` | Signed peer identity preflight and same-process XPC refusal tests | 298 |
-
-Run from the `omb/` directory with Python 3.13.
-
+Run on macOS with Python 3.13:
 ```sh
 python3 -m venv .venv
 .venv/bin/python -m pip install -r docs/requirements-development-lock.txt
 .venv/bin/python scripts/run_tests.py --scope full
 ```
 
-The approval gate is `BLOCKED_APPROVAL_PLATFORM`. OMB-003E through OMB-003G remain on hold.
-Source provenance and hashes are recorded in `VERSIONS.json`. Published examples use synthetic data.
+Source includes initialization locking, bounded configuration loading, binding validation and the independent stdio launcher. Public frozen runtime paths are placeholders. The private-host MCP acceptance harness needs the original local frozen binding and registered hashes; it is not a portable standalone acceptance command. No application configuration, live database, credentials or signing identity is included.
 
-[Signed peer test evidence and limits](docs/OMB_003D_F02_PEER.md)
+See evidence/003e for test evidence, provenance and outstanding gates. Evidence is sanitized; raw local XML and reports remain in the local review package.

@@ -10,15 +10,17 @@ import math
 import secrets
 
 from . import approval_history as history, approval_receipts as receipts
+from .approval_enrollment import EnrollmentAnchor
 from .domain import canonical, new_id, parse_time, require_id, require_key, require_version, stamp
 from .errors import TaskError
 
 
 class ResultDecisionStore:
-    def __init__(self, repository, *, boot_id, operator_id, now, monotonic_now):
+    def __init__(self, repository, *, boot_id, anchor: EnrollmentAnchor, now, monotonic_now):
         self.repository = repository
         self.boot_id = require_id(boot_id, 'boot')
-        self.operator_id = require_id(operator_id, 'principal')
+        self.anchor = anchor
+        self.operator_id = anchor.operator_id
         self.now = now
         self.monotonic_now = monotonic_now
         # One store per trusted host session. Neither this key nor the derived
@@ -26,19 +28,17 @@ class ResultDecisionStore:
         self._preparation_key = secrets.token_bytes(32)
 
     def _context(self, db):
-        repo = self.repository
-        if repo.meta(db, 'active_boot') != self.boot_id:
-            raise TaskError('RUNTIME_INACTIVE')
-        repo.assert_runtime(self.boot_id)
-        workspace = repo.meta(db, 'workspace_id')
+        self.anchor.check_context(self.repository, db, self.boot_id)
+        workspace = self.anchor.workspace_id
         row = db.execute(
-            'SELECT key_id,public_point,pin_sha256 FROM result_operator_pins pin '
-            'WHERE workspace_id=? AND operator_id=? AND active=1 AND NOT EXISTS '
-            '(SELECT 1 FROM principals p WHERE p.workspace_id=pin.workspace_id AND p.principal_id=pin.operator_id)',
+            'SELECT key_id,public_point,pin_sha256 FROM result_operator_pins '
+            'WHERE workspace_id=? AND operator_id=? AND active=1',
             (workspace, self.operator_id)).fetchone()
         if row is None:
             raise TaskError('APPROVAL_KEY_UNTRUSTED')
-        return workspace, receipts.PinnedKey(*row)
+        pin = receipts.PinnedKey(*row)
+        self.anchor.check_pin(pin)
+        return workspace, pin
 
     def _challenge(self, db, workspace, key):
         return db.execute(
@@ -94,7 +94,6 @@ class ResultDecisionStore:
 
         def write(db):
             workspace, pin = self._context(db)
-            pin.load()
             now = self.now()
             existing = self._challenge(db, workspace, idempotency_key)
             if existing is not None:

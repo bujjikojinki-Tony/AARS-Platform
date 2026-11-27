@@ -3,6 +3,7 @@ import sqlite3
 
 import pytest
 
+from aars_task_manager.approval_enrollment import EnrollmentAnchor
 from aars_task_manager.approval_transactions import ResultDecisionStore
 from aars_task_manager.domain import new_id
 from aars_task_manager.errors import TaskError
@@ -72,8 +73,9 @@ def test_copy_preserves_d4_history_and_rotates_runtime_identity(system, tmp_path
         assert inspected['usage_state'] == ('REVIEW_REQUIRED' if revoked else 'USABLE')
         events = manager.events(task_id)['data']['events']
         assert events[decision['task_version']-1]['event_type'] == 'RESULT_DECIDED'
-        operator = new.read(lambda db: db.execute('SELECT operator_id FROM result_operator_pins').fetchone()[0])
-        store = ResultDecisionStore(new, boot_id=runtime.boot_id, operator_id=operator,
+        workspace, operator, key_id, _, fingerprint, _ = original['result_operator_pins'][0]
+        anchor = EnrollmentAnchor(workspace, old_instance, operator, key_id, fingerprint)
+        store = ResultDecisionStore(new, boot_id=runtime.boot_id, anchor=anchor,
                                     now=system['clock'].now, monotonic_now=lambda: 100.0)
         with pytest.raises(TaskError, match='^APPROVAL_CONTEXT_STALE$'):
             store.submit(raw, idempotency_key=idem)

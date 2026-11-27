@@ -1,0 +1,8 @@
+{
+  "passed": 328,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 0,
+  "scope": "Exact sanitized public source staging tree",
+  "junit_sha256": "d1294dbb38e490d86a26799db429ca271ac8d5dc8e26fca223a618d6ac31e515"
+}

@@ -65,11 +65,16 @@ struct ApprovalPeerIdentity {
         return listener
     }
 
+    /// Apply the peer requirement to an inactive connection, exactly once.
+    func configurePeerCheck(on connection: NSXPCConnection) {
+        connection.setCodeSigningRequirement(expression)
+    }
+
     /// Set the service requirement before the broker sends its first message.
     func makeServiceConnection(to endpoint: NSXPCListenerEndpoint) -> NSXPCConnection {
         precondition(role == .service)
         let connection = NSXPCConnection(listenerEndpoint: endpoint)
-        connection.setCodeSigningRequirement(expression)
+        configurePeerCheck(on: connection)
         return connection
     }
 }

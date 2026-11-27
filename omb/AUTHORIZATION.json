@@ -1,4 +1,4 @@
 {
-  "scope": "Public source and test distribution. Runtime authorization uses local bindings.",
-  "version": "omb-003d-f02-peer"
+  "scope": "Public source/test distribution; no runtime approval or deployment grant",
+  "version": "omb-003e-review"
 }

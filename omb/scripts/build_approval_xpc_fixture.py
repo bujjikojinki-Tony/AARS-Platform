@@ -6,22 +6,28 @@ import shutil
 import subprocess
 
 
-def build(binary, host):
-    service = host/'Contents/XPCServices/local.aars.f02.peer-test-service.xpc'
+def create_layout(binary, host, *, expected_team=None):
+    service_id = 'local.aars.omb.approval-service'
+    service = host/'Contents/XPCServices'/f'{service_id}.xpc'
     for bundle, identifier, is_service in ((host, 'local.aars.omb.approval-broker', False),
-                                          (service, 'local.aars.f02.peer-test-service', True)):
+                                          (service, service_id, True)):
         executable = bundle/'Contents/MacOS/PeerFixture'
         executable.parent.mkdir(parents=True)
         shutil.copy2(binary, executable)
         metadata = {'CFBundleIdentifier':identifier, 'CFBundleName':'F02 Peer Fixture',
                     'CFBundleExecutable':'PeerFixture', 'CFBundleVersion':'1',
                     'CFBundlePackageType':'XPC!' if is_service else 'APPL'}
+        if expected_team is not None:
+            metadata['AARSExpectedAppleTeamID'] = expected_team
         if is_service:
             metadata['XPCService'] = {'ServiceType':'Application', 'RunLoopType':'NSRunLoop'}
         (bundle/'Contents/Info.plist').write_bytes(plistlib.dumps(metadata))
-    for bundle, identifier in ((service, 'local.aars.omb.approval-service'),
-                               (host, 'local.aars.omb.approval-broker')):
-        subprocess.run(['codesign', '--force', '--sign', '-', '--identifier', identifier, str(bundle)], check=True)
+    return service, host
+
+
+def build(binary, host):
+    for bundle in create_layout(binary, host):
+        subprocess.run(['codesign', '--force', '--sign', '-', str(bundle)], check=True)
     subprocess.run(['codesign', '--verify', '--strict', '--deep', str(host)], check=True)
 
 

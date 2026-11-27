@@ -138,20 +138,25 @@ def _signed_bytes(receipt: dict) -> bytes:
 
 
 def _verify_deadline(challenge: ReceiptChallenge, now: datetime, monotonic_now: float):
+    _verify_challenge_deadline(challenge.issued_at, challenge.expires_at, challenge.issued_monotonic,
+                               now, monotonic_now, cutoff=challenge.subject.review_expires_at)
+
+
+def _verify_challenge_deadline(issued_at, expires_at, issued_monotonic, now, monotonic_now, *, cutoff=None):
     try:
-        start = parse_time(challenge.issued_at)
-        expires = parse_time(challenge.expires_at)
-        review_expires = parse_time(challenge.subject.review_expires_at)
+        start = parse_time(issued_at)
+        expires = parse_time(expires_at)
+        maximum_expiry = parse_time(cutoff) if cutoff is not None else expires
         wall = parse_time(stamp(now))
     except TaskError:
         raise TaskError('APPROVAL_CLOCK_UNTRUSTED') from None
     duration = (expires - start).total_seconds()
-    clock_values = (monotonic_now, challenge.issued_monotonic)
+    clock_values = (monotonic_now, issued_monotonic)
     if any(type(value) not in (int, float) or not math.isfinite(value) for value in clock_values):
         raise TaskError('APPROVAL_CLOCK_UNTRUSTED')
-    elapsed = monotonic_now - challenge.issued_monotonic
+    elapsed = monotonic_now - issued_monotonic
     wall_elapsed = (wall - start).total_seconds()
-    if (not math.isfinite(elapsed) or not 0 < duration <= MAX_CHALLENGE_SECONDS or expires > review_expires
+    if (not math.isfinite(elapsed) or not 0 < duration <= MAX_CHALLENGE_SECONDS or expires > maximum_expiry
             or elapsed < 0 or wall_elapsed < 0 or abs(elapsed - wall_elapsed) > CLOCK_SKEW_SECONDS):
         raise TaskError('APPROVAL_CLOCK_UNTRUSTED')
     if wall >= expires or elapsed >= duration:
@@ -192,10 +197,17 @@ def _verify_parsed_result(receipt, *, current_subject, challenge, pinned_key, bo
 def _verify_signature(receipt, pinned_key):
     if receipt['key_id'] != pinned_key.key_id:
         raise TaskError('APPROVAL_KEY_UNTRUSTED')
-    key = pinned_key.load()
     signed = _signed_bytes(receipt)
+    _verify_p256_signature(receipt['signature_base64'], signed, pinned_key.load())
+    return VerifiedReceipt(receipt['review_id'], receipt['decision'], pinned_key.key_id,
+                           _sha256(signed), _sha256(canonical(receipt).encode('utf-8')))
+
+
+def _verify_p256_signature(signature_base64, signed, key):
+    if not isinstance(signature_base64, str) or not 1 <= len(signature_base64) <= 96:
+        raise TaskError('APPROVAL_INVALID_SIGNATURE')
     try:
-        encoded = receipt['signature_base64'].encode('ascii')
+        encoded = signature_base64.encode('ascii')
         signature = base64.b64decode(encoded, validate=True)
         if base64.b64encode(signature) != encoded or len(signature) > 72:
             raise ValueError()
@@ -205,8 +217,6 @@ def _verify_signature(receipt, pinned_key):
         key.verify(signature, signed, ec.ECDSA(hashes.SHA256()))
     except (UnicodeError, binascii.Error, ValueError, InvalidSignature):
         raise TaskError('APPROVAL_INVALID_SIGNATURE') from None
-    return VerifiedReceipt(receipt['review_id'], receipt['decision'], pinned_key.key_id,
-                           _sha256(signed), _sha256(canonical(receipt).encode('utf-8')))
 
 
 def result_subject_from_host(repository, task_id, *, boot_id, now):

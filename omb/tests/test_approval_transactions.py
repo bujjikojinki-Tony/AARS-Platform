@@ -8,6 +8,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 import pytest
 
+from aars_task_manager.approval_enrollment import EnrollmentAnchor
 from aars_task_manager.approval_receipts import DOMAIN
 from aars_task_manager.approval_transactions import ResultDecisionStore
 from aars_task_manager.domain import new_id
@@ -28,10 +29,14 @@ def setup(system, *, operator=None, expires_at=None):
     point = signer.public_key().public_bytes(serialization.Encoding.X962,
                                             serialization.PublicFormat.UncompressedPoint)
     operator = operator or new_id('principal')
+    ws, instance = repo.read(lambda db: tuple(db.execute(
+        'SELECT workspace_id,db_instance_id FROM workspaces').fetchone()))
+    anchor = EnrollmentAnchor(ws, instance, operator, 'fixture-key', 'sha256:' + sha256(point).hexdigest())
+    # Explicit fixture pin. Production enrollment remains inactive.
     repo.write(lambda db: db.execute('INSERT INTO result_operator_pins VALUES (?,?,?,?,?,?)',
-        (repo.meta(db, 'workspace_id'), operator, 'fixture-key', point, 'sha256:' + sha256(point).hexdigest(), 1)))
+        (ws, operator, anchor.key_id, point, anchor.pin_sha256, 1)))
     start = clock.now()
-    store = ResultDecisionStore(repo, boot_id=runtime.boot_id, operator_id=operator, now=clock.now,
+    store = ResultDecisionStore(repo, boot_id=runtime.boot_id, anchor=anchor, now=clock.now,
                                 monotonic_now=lambda: 100 + (clock.now() - start).total_seconds())
     return store, review, signer
 
@@ -150,7 +155,7 @@ def test_failure_after_task_write_rolls_back_everything_and_retry_succeeds(syste
     ('expired', 'REVIEW_STALE'),
     ('binding', 'REVIEW_STALE'),
     ('policy', 'REVIEW_STALE'),
-    ('database', 'REVIEW_STALE'),
+    ('database', 'APPROVAL_CONTEXT_STALE'),
     ('disabled-pin', 'APPROVAL_KEY_UNTRUSTED'),
     ('rotated-pin', 'APPROVAL_KEY_UNTRUSTED'),
 ])
@@ -206,7 +211,7 @@ def test_pending_challenge_expires_across_boot(system):
     with pytest.raises(TaskError, match='^RUNTIME_INACTIVE$'):
         store.submit(raw, idempotency_key=idem)
     with TaskRuntime(system['repo'], clock=system['clock']) as current:
-        new = ResultDecisionStore(system['repo'], boot_id=current.boot_id, operator_id=store.operator_id,
+        new = ResultDecisionStore(system['repo'], boot_id=current.boot_id, anchor=store.anchor,
                                   now=store.now, monotonic_now=store.monotonic_now)
         with pytest.raises(TaskError, match='^APPROVAL_CONTEXT_STALE$'):
             new.submit(raw, idempotency_key=idem)
@@ -222,7 +227,7 @@ def test_committed_result_survives_restart_and_later_evidence_revocation(system)
     repo = system['repo']
     system['runtime'].close()
     with TaskRuntime(repo, clock=system['clock']) as current:
-        new = ResultDecisionStore(repo, boot_id=current.boot_id, operator_id=store.operator_id,
+        new = ResultDecisionStore(repo, boot_id=current.boot_id, anchor=store.anchor,
                                   now=store.now, monotonic_now=store.monotonic_now)
         assert current.revoke_frozen_fixture('fixture retired') == 1
         task = current.manager(system['bindings'][0].binding_id).get(review['task_id'])['data']['task']

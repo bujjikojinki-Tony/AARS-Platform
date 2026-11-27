@@ -1,11 +1,10 @@
 {
   "current": {
-    "version": "omb-003d-f02-peer",
-    "local_source_commit": "d5ea4436fd680decef230bf6b8568a1ac9ef2a59",
-    "source_archive": "AARS_OMB_003D_F02_PEER_EVIDENCE.zip",
-    "source_archive_sha256": "e67fc38cf5bddb57f77e925f0c1e7459b0eec55fe327694068f733d85a866d23",
-    "status": "Signed peer identity preflight and same-process XPC refusal tests",
-    "original_local_automated_tests_passed": 298
+    "version": "omb-003e-review",
+    "local_source_base_commit": "e01610304dda467f2b15f2685b5435f09a35215a",
+    "local_source_state": "includes working tree changes",
+    "status": "BLOCKED_REVIEW_CANDIDATE",
+    "original_local_automated_tests_passed": 328
   },
   "history": [
     {
@@ -119,6 +118,13 @@
       "source_archive_sha256": "e67fc38cf5bddb57f77e925f0c1e7459b0eec55fe327694068f733d85a866d23",
       "status": "Signed peer identity preflight and same-process XPC refusal tests",
       "original_local_automated_tests_passed": 298
+    },
+    {
+      "version": "omb-003e-review",
+      "local_source_base_commit": "e01610304dda467f2b15f2685b5435f09a35215a",
+      "local_source_state": "includes working tree changes",
+      "status": "BLOCKED_REVIEW_CANDIDATE",
+      "original_local_automated_tests_passed": 328
     }
   ],
   "original_frozen_historical_commit": null,

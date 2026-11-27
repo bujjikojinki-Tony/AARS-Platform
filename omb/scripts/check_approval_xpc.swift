@@ -59,9 +59,43 @@ struct Observation: Encodable {
     var pid: Int32?
     var errorDomain: String?
     var errorCode: Int?
+    var category: String?
+
+    static func rejected(_ error: NSError) -> Observation {
+        let message = error.localizedDescription.lowercased()
+        let category: String
+        if message.contains("failed at lookup") || message.contains("no such process") {
+            category = "SERVICE_LOOKUP"
+        } else if message.contains("operation not permitted") || message.contains("permission denied") ||
+                    message.contains("sandbox") {
+            category = "PERMISSION"
+        } else if error.domain == NSCocoaErrorDomain && error.code == 4102 {
+            category = "CODE_SIGNING_REQUIREMENT"
+        } else if message.contains("entitlement") || message.contains("code signing") {
+            category = "IDENTITY"
+        } else {
+            category = "CONNECTION"
+        }
+        return Observation(outcome: "REFUSED", errorDomain: error.domain, errorCode: error.code, category: category)
+    }
+}
+
+enum BootstrapFailure: Error {
+    case missingProxy
+    case noReply
+    case peer(NSError)
+
+    var observation: Observation {
+        switch self {
+        case .missingProxy: return Observation(outcome: "NO_PROXY")
+        case .noReply: return Observation(outcome: "TIMEOUT")
+        case let .peer(error): return .rejected(error)
+        }
+    }
 }
 
 @objc protocol ProbeBootstrap {
+    func hello(reply: @escaping (Int32) -> Void)
     func endpoint(restricted: Bool, reply: @escaping (NSXPCListenerEndpoint) -> Void)
     func restrictedAccepts(reply: @escaping (Int32) -> Void)
 }
@@ -89,6 +123,8 @@ final class BootstrapDelegate: NSObject, NSXPCListenerDelegate, ProbeBootstrap, 
         connection.activate()
         return true
     }
+
+    func hello(reply: @escaping (Int32) -> Void) { reply(getpid()) }
 
     func endpoint(restricted: Bool, reply: @escaping (NSXPCListenerEndpoint) -> Void) {
         reply(restricted ? self.restricted.endpoint : normal.endpoint)
@@ -146,7 +182,7 @@ final class ProbeWindow: NSObject, NSApplicationDelegate {
 struct ApprovalXPCProbe {
     struct Case: Encodable {
         let name: String
-        let accepted: Int
+        let accepted: Int?
         let observation: Observation
     }
 
@@ -170,63 +206,74 @@ struct ApprovalXPCProbe {
         connection.remoteObjectInterface = NSXPCInterface(with: ProbePing.self)
         let reply = ProbeReply<Observation>()
         let proxy = connection.remoteObjectProxyWithErrorHandler { error in
-            let error = error as NSError
-            reply.record(Observation(outcome: "REFUSED", errorDomain: error.domain, errorCode: error.code))
+            reply.record(.rejected(error as NSError))
         } as? ProbePing
         connection.activate()
         proxy?.ping { pid in reply.record(Observation(outcome: "REPLY", pid: pid)) }
         return reply.wait() ?? Observation(outcome: "TIMEOUT")
     }
 
+    private static func callBootstrap<Value>(
+        _ connection: NSXPCConnection, _ request: (ProbeBootstrap, @escaping (Value) -> Void) -> Void
+    ) throws -> Value {
+        let result = ProbeReply<Result<Value, BootstrapFailure>>()
+        guard let proxy = connection.remoteObjectProxyWithErrorHandler({ error in
+            result.record(.failure(.peer(error as NSError)))
+        }) as? ProbeBootstrap else {
+            throw BootstrapFailure.missingProxy
+        }
+        request(proxy) { result.record(.success($0)) }
+        guard let reply = result.wait() else { throw BootstrapFailure.noReply }
+        return try reply.get()
+    }
+
     static func separated(service: ApprovalPeerIdentity) -> [Case] {
-        let connection = NSXPCConnection(serviceName: "local.aars.f02.peer-test-service")
+        let connection = NSXPCConnection(serviceName: service.role.identifier)
         defer { connection.invalidate() }
         connection.remoteObjectInterface = NSXPCInterface(with: ProbeBootstrap.self)
-        let unrestricted = ProbeReply<Result<NSXPCListenerEndpoint, NSError>>()
-        let restricted = ProbeReply<NSXPCListenerEndpoint>()
-        let count = ProbeReply<Int32>()
-        let proxy = connection.remoteObjectProxyWithErrorHandler { error in
-            unrestricted.record(.failure(error as NSError))
-        } as? ProbeBootstrap
         connection.activate()
-        proxy?.endpoint(restricted: false) { endpoint in unrestricted.record(.success(endpoint)) }
-        guard let handshake = unrestricted.wait() else {
-            return [Case(name: "embedded_service_unavailable", accepted: 0, observation: Observation(outcome: "TIMEOUT"))]
+        var cases: [Case] = []
+        var stage = "embedded_service_hello"
+        do {
+            let pid: Int32 = try callBootstrap(connection) { proxy, reply in proxy.hello(reply: reply) }
+            guard pid > 0, pid != getpid() else {
+                return [Case(name: stage, accepted: 0, observation: Observation(outcome: "WRONG_PROCESS", pid: pid))]
+            }
+            cases.append(Case(name: stage, accepted: 1, observation: Observation(outcome: "REPLY", pid: pid)))
+            stage = "embedded_service_normal_endpoint"
+            let endpoint: NSXPCListenerEndpoint = try callBootstrap(connection) { proxy, reply in
+                proxy.endpoint(restricted: false, reply: reply)
+            }
+            let baseline = sendPing(to: endpoint)
+            cases.append(Case(name: "separate_process_ping_baseline",
+                              accepted: baseline.outcome == "REPLY" ? 1 : 0, observation: baseline))
+            guard baseline.outcome == "REPLY" && baseline.pid == pid else { return cases }
+            stage = "embedded_service_restricted_endpoint"
+            let restrictedEndpoint: NSXPCListenerEndpoint = try callBootstrap(connection) { proxy, reply in
+                proxy.endpoint(restricted: true, reply: reply)
+            }
+            let listenerCheck = sendPing(to: restrictedEndpoint)
+            stage = "embedded_service_restricted_accept_count"
+            let count: Int32 = try callBootstrap(connection) { proxy, reply in proxy.restrictedAccepts(reply: reply) }
+            cases.append(Case(name: "separate_process_listener_rejects_ad_hoc_broker",
+                              accepted: Int(count), observation: listenerCheck))
+            cases.append(Case(name: "separate_process_client_rejects_ad_hoc_service",
+                              accepted: nil, observation: sendPing(to: endpoint, service: service)))
+        } catch let failure as BootstrapFailure {
+            cases.append(Case(name: stage, accepted: 0, observation: failure.observation))
+        } catch {
+            cases.append(Case(name: stage, accepted: 0, observation: .rejected(error as NSError)))
         }
-        let endpoint: NSXPCListenerEndpoint
-        switch handshake {
-        case .success(let value):
-            endpoint = value
-        case .failure(let error):
-            return [Case(name: "embedded_service_unavailable", accepted: 0,
-                         observation: Observation(outcome: "REFUSED", errorDomain: error.domain, errorCode: error.code))]
-        }
-        let baseline = sendPing(to: endpoint)
-        let remoteCheck = sendPing(to: endpoint, service: service)
-        proxy?.endpoint(restricted: true) { restricted.record($0) }
-        guard let restrictedEndpoint = restricted.wait() else {
-            return [Case(name: "embedded_service_endpoint_unavailable", accepted: 0,
-                         observation: Observation(outcome: "TIMEOUT"))]
-        }
-        let listenerCheck = sendPing(to: restrictedEndpoint)
-        proxy?.restrictedAccepts { count.record($0) }
-        return [
-            Case(name: "separate_process_ping_baseline", accepted: baseline.outcome == "REPLY" ? 1 : 0,
-                 observation: baseline),
-            Case(name: "separate_process_listener_rejects_ad_hoc_broker",
-                 accepted: Int(count.wait() ?? -1), observation: listenerCheck),
-            Case(name: "separate_process_client_rejects_ad_hoc_service", accepted: 1, observation: remoteCheck),
-        ]
+        return cases
     }
 
     static func passedSeparated(_ cases: [Case]) -> Bool {
-        // NSXPCConnectionCodeSigningRequirementFailure in FoundationErrors.h.
-        let signingRequirementFailure = 4102
-        guard cases.count == 3, let other = cases[0].observation.pid else { return false }
-        return other != getpid() && cases[0].observation.outcome == "REPLY"
-            && cases[1].accepted == 0 && cases[1].observation.outcome == "REFUSED"
-            && cases[2].observation.errorDomain == NSCocoaErrorDomain
-            && cases[2].observation.errorCode == signingRequirementFailure
+        guard cases.count == 4, let pid = cases[0].observation.pid else { return false }
+        return pid != getpid() && cases[1].observation.pid == pid
+            && cases[1].observation.outcome == "REPLY"
+            && cases[2].accepted == 0 && cases[2].observation.outcome == "REFUSED"
+            && cases[3].observation.outcome == "REFUSED"
+            && cases[3].observation.category == "CODE_SIGNING_REQUIREMENT"
     }
 
     static func report(_ cases: [Case]) throws -> Data {

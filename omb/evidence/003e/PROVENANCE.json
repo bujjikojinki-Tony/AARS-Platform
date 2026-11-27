@@ -1,0 +1,9 @@
+{
+  "local_source_base_commit": "e01610304dda467f2b15f2685b5435f09a35215a",
+  "source_state": "working tree changes included in publication snapshot",
+  "local_tests": 328,
+  "historical_tests": 32,
+  "decision": "BLOCKED",
+  "redaction": "Personal absolute paths removed from evidence; public launcher resolves checkout directory. Raw local evidence remains local.",
+  "host_harness": "check_003e_mcp.py requires private frozen runtime bindings and FROZEN_INPUT_HASHES; not self-contained in public snapshot."
+}
