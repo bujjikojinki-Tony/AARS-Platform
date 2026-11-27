@@ -1,5 +1,5 @@
 {
-  "version": "omb-003d-b4",
+  "version": "omb-003d-b5",
   "files": [
     {
       "path": ".gitignore",
@@ -8,18 +8,18 @@
     },
     {
       "path": "AUTHORIZATION.json",
-      "sha256": "7f65c97e28780d260d079ce7545a481e87245dd1c726b415f504d747cf0cb22f",
-      "bytes": 163
+      "sha256": "4e40559da57f554d9451ab5194cc07f47fac3ce55e8f839a8194e869d057eb4e",
+      "bytes": 125
     },
     {
       "path": "README.md",
-      "sha256": "65a3e4a49462fe26036c4c4d48f1483433a3124a6dc7d0562b163d97aad54045",
-      "bytes": 1423
+      "sha256": "6ee586a651f77f32710bd178336576f351656426dcbf7fdebe276d1836f383c4",
+      "bytes": 1162
     },
     {
       "path": "VERSIONS.json",
-      "sha256": "ed4d441ee4d9f4f28a3111b36317705e32edacdc9a084a9675a3ff5af7fc8d45",
-      "bytes": 3381
+      "sha256": "f2c4e787e8e86ee4aab2eb4b2faa0da15996496bc6fd69eaea3232d69cc86eaa",
+      "bytes": 3832
     },
     {
       "path": "design/omb003a/BOT_IDENTITY_AUTHORIZATION.md",
@@ -353,13 +353,18 @@
     },
     {
       "path": "pyproject.toml",
-      "sha256": "d3756c58a5b98dc5190ef18816d0cf3edc3b5d225df584735b1d17960e9e4787",
+      "sha256": "30ddfa773c678cc902a7dc8be8dd6fed2c841557b9fe104a1bf6090c6b354bc1",
       "bytes": 321
     },
     {
       "path": "scripts/check_approval_platform.swift",
       "sha256": "1e83180e5a09ad5bd3a19f46b3fc19100ee662531779be286832fbd4fa583c44",
       "bytes": 961
+    },
+    {
+      "path": "scripts/check_receipt_interop.swift",
+      "sha256": "da73b65861e7d7f581ace8865aeff86d5da91e6d3c8eeef59a40df6ded3e08e6",
+      "bytes": 1704
     },
     {
       "path": "scripts/mcp_smoke.py",
@@ -375,6 +380,11 @@
       "path": "src/aars_task_manager/__init__.py",
       "sha256": "17f3fd1bfbdec87f0fe3c7e6a393956daf84b8d4e9aebb03ca536e17323ed02e",
       "bytes": 340
+    },
+    {
+      "path": "src/aars_task_manager/approval_receipts.py",
+      "sha256": "6dbcdd14f61487c691dcf67ac606fd4e55492a46d15d3c52f838560fa11aa2be",
+      "bytes": 10043
     },
     {
       "path": "src/aars_task_manager/domain.py",
@@ -393,7 +403,7 @@
     },
     {
       "path": "src/aars_task_manager/mcp_server.py",
-      "sha256": "a79ba55ac74e06546595068cb239bffa278bb06baddb56e146b0e8aee10ae53f",
+      "sha256": "e5438837fe849c9c3c8b82a915ee2707817380ded920c65315e69d29988a7c1a",
       "bytes": 8386
     },
     {
@@ -435,6 +445,11 @@
       "path": "tests/support.py",
       "sha256": "8f93c4a16c7b91f1fa1d8b7987fd8d55fde0773327214afeaea51a92cd6734f5",
       "bytes": 3286
+    },
+    {
+      "path": "tests/test_approval_receipts.py",
+      "sha256": "b21037f5557f6f82f739f0acdecf04013ca10eb68c320726fc353340f1b15de2",
+      "bytes": 9674
     },
     {
       "path": "tests/test_evidence_integration.py",

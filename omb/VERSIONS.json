@@ -1,11 +1,11 @@
 {
   "current": {
-    "version": "omb-003d-b4",
-    "local_source_commit": "918038226486eb75da839cbc8744dd74622b7659",
-    "source_archive": "AARS_OMB_003D_HARDENING_REVIEW.zip",
-    "source_archive_sha256": "bae8d2e42bb15112cdfac063481ff3f7fe7dbcd1a9120a35a6ec866b07e7e7fb",
-    "status": "Local MCP framing hardened; approval platform blocked",
-    "original_local_automated_tests_passed": 194
+    "version": "omb-003d-b5",
+    "local_source_commit": "54ed61e04285df448791df3dee87505a69e6399a",
+    "source_archive": "AARS_OMB_003D_APPROVAL_RECEIPTS_REVIEW.zip",
+    "source_archive_sha256": "854bd681ce68f812e8230e045f19e7473ae84cdc51e300c8f3014d6b1716ad2b",
+    "status": "Context-bound approval receipt validation and native interoperability",
+    "original_local_automated_tests_passed": 237
   },
   "history": [
     {
@@ -55,6 +55,14 @@
       "source_archive_sha256": "bae8d2e42bb15112cdfac063481ff3f7fe7dbcd1a9120a35a6ec866b07e7e7fb",
       "status": "Local MCP framing hardened; approval platform blocked",
       "original_local_automated_tests_passed": 194
+    },
+    {
+      "version": "omb-003d-b5",
+      "local_source_commit": "54ed61e04285df448791df3dee87505a69e6399a",
+      "source_archive": "AARS_OMB_003D_APPROVAL_RECEIPTS_REVIEW.zip",
+      "source_archive_sha256": "854bd681ce68f812e8230e045f19e7473ae84cdc51e300c8f3014d6b1716ad2b",
+      "status": "Context-bound approval receipt validation and native interoperability",
+      "original_local_automated_tests_passed": 237
     }
   ],
   "original_frozen_historical_commit": null,
