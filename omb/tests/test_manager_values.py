@@ -75,8 +75,8 @@ def test_operator_actions_locked_for_every_entry(system,action):
     with pytest.raises(TaskError,match='APPROVAL_LOCKED'):m.execute('transition',{'task_id':t['task_id'],'expected_version':1,'idempotency_key':key(),'action':action})
     assert m.get(t['task_id'])['data']['task']==t
 
-def test_later_phase_operations_stay_on_hold(system):
-    with pytest.raises(TaskError,match='PHASE_HOLD'):system['manager'].execute('review_request',{})
+def test_review_request_requires_complete_request(system):
+    with pytest.raises(TaskError,match='INVALID_ARGUMENT'):system['manager'].execute('review_request',{})
 
 def test_exhaustive_b_stage_transition_denials(system):
     from dataclasses import replace

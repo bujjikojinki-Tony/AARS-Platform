@@ -1,5 +1,5 @@
 {
-  "version": "omb-003c",
+  "version": "omb-003d-b3",
   "files": [
     {
       "path": ".gitignore",
@@ -8,18 +8,18 @@
     },
     {
       "path": "AUTHORIZATION.json",
-      "sha256": "145823750e3b48c232005dd646a9019270dabdd273988a37cf77c8fec5ab20e6",
-      "bytes": 160
+      "sha256": "5cbf7d1538d9fbce4fd1cf2d45e5ab33de9b2a401881daeb6e1835621d775826",
+      "bytes": 163
     },
     {
       "path": "README.md",
-      "sha256": "99b94c2cad1d223e868a7af7fcd3c9411e5ee160059f73e5602fecd7633242e4",
-      "bytes": 1254
+      "sha256": "c54d5033622f6ef4fde550a570b4add3ac9b5b16f2c882eaebdaee9560ea97b3",
+      "bytes": 1354
     },
     {
       "path": "VERSIONS.json",
-      "sha256": "33de6e5886f596dc97477177d6e8e401e9b6c875654183a3a0950fd22184612f",
-      "bytes": 2566
+      "sha256": "e5e3e8c288282d6f216a941ed983cd57167148622d84e0b2dfcb330b58b1b447",
+      "bytes": 2994
     },
     {
       "path": "design/omb003a/BOT_IDENTITY_AUTHORIZATION.md",
@@ -353,8 +353,18 @@
     },
     {
       "path": "pyproject.toml",
-      "sha256": "f091f36e17b806cbdec188fda080f8a7716b26c4d62cc13d0ae0b5dfa2a35e41",
-      "bytes": 327
+      "sha256": "0f40b8d36f17b59c66ccde0e42efe514eec7a8704e9e261d6edd98516ce79cdb",
+      "bytes": 321
+    },
+    {
+      "path": "scripts/check_approval_platform.swift",
+      "sha256": "6ac4a853cc2ae2f4b3c62a6552a26d20a8b15f115fa08373228dacee562aa4ea",
+      "bytes": 669
+    },
+    {
+      "path": "scripts/mcp_smoke.py",
+      "sha256": "1afb07acc2accae4f91793babc158a2be53297b89f6c776dc2d9cc9cd3b6d8fc",
+      "bytes": 5422
     },
     {
       "path": "scripts/run_tests.py",
@@ -378,28 +388,38 @@
     },
     {
       "path": "src/aars_task_manager/evidence.py",
-      "sha256": "0f83ebeb1db146c33526cb6741b6b704d4704be1ed383bdb134046ec34c22628",
-      "bytes": 14421
+      "sha256": "d28a75ec99ed47d382d74d2a45113ba95fa6679aef55bf60f4274f51bfca2d0a",
+      "bytes": 14425
+    },
+    {
+      "path": "src/aars_task_manager/mcp_server.py",
+      "sha256": "5e86da2d8a619945b639471edf6694f0bbac70dfd0a0721450d0c98d7d0bc2c4",
+      "bytes": 7036
     },
     {
       "path": "src/aars_task_manager/migration.py",
-      "sha256": "68c02b7f0fb0cccf7bdba7640ffcda8980e8c7df6227232c507eb35311fe7c73",
-      "bytes": 3915
+      "sha256": "82f2e24d51cdbd2141d30105f45226be3274f87a92056bb74cd4439901e6f966",
+      "bytes": 4421
+    },
+    {
+      "path": "src/aars_task_manager/reviews.py",
+      "sha256": "ef8c1686cbecb4c88040d2f288e07e50a87860ff3b86b99f76392f1139ab0fda",
+      "bytes": 7991
     },
     {
       "path": "src/aars_task_manager/runtime.py",
-      "sha256": "77d9a9de517533397eeb2d9e939692223e5177e7daaf58b5380ae2ac17b10c25",
-      "bytes": 8839
+      "sha256": "80c01606094d91f6db642f0ff57250ed266aea9e2ae83b0fbd725451bdb347f6",
+      "bytes": 9459
     },
     {
       "path": "src/aars_task_manager/service.py",
-      "sha256": "29d6c94b3e3855014706ea968288138709d350195d3e9691766cd03bb49fd3f7",
-      "bytes": 15183
+      "sha256": "b26253c0fdfd0801e2c57372d4d59486afecb8027367fa1f94cb56a1f7753b97",
+      "bytes": 16622
     },
     {
       "path": "src/aars_task_manager/storage.py",
-      "sha256": "7d4532a54d0859fcd242d993c6f0d7137eb0a5967aacefc6bde4763edb780300",
-      "bytes": 24224
+      "sha256": "832270bac305431d3acbca1eaed6aa8247bf8e3f7a7d272d0d71fcde13bab645",
+      "bytes": 24371
     },
     {
       "path": "tests/__init__.py",
@@ -408,8 +428,8 @@
     },
     {
       "path": "tests/conftest.py",
-      "sha256": "bb4e8efb62934d3d11ac7e671c97774d9e1e495966778478eab9bdd52617d3e8",
-      "bytes": 1133
+      "sha256": "4e1739c6459a93f4a3f5413294434e8738e023cb947a1db89a415c6c1be8ca1f",
+      "bytes": 1150
     },
     {
       "path": "tests/support.py",
@@ -418,8 +438,8 @@
     },
     {
       "path": "tests/test_evidence_integration.py",
-      "sha256": "73262cc3b1dce30c6b4db39ace6ad6a0b1ab8acfc7936f22911fc2b88adbab30",
-      "bytes": 13266
+      "sha256": "3b6a9e2b04624d9e2675e33e597a3d2d7b2856bb879dd72d3f036991b1f9992d",
+      "bytes": 13318
     },
     {
       "path": "tests/test_manager_paging.py",
@@ -443,8 +463,18 @@
     },
     {
       "path": "tests/test_manager_values.py",
-      "sha256": "df5a0c057fe80baaf9aa37c4c1db0a98aa3a96123fa025b5e2afba38b7a90ff1",
-      "bytes": 6177
+      "sha256": "70b4c95a9ca60a354c7e5c3129a7edfa42a76fc60fef65d63e20abc8857c041c",
+      "bytes": 6188
+    },
+    {
+      "path": "tests/test_mcp_adapter.py",
+      "sha256": "63079fa39ffcdbdca534e12a920b80ddb98dcecf6bfa444f51cda5b62d18d903",
+      "bytes": 3251
+    },
+    {
+      "path": "tests/test_review_gate.py",
+      "sha256": "43b3789fb329963b010423ea5fbca2fac5310cf8ba574feebf1f804529c7a389",
+      "bytes": 7461
     }
   ]
 }

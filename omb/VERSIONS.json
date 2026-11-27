@@ -1,11 +1,11 @@
 {
   "current": {
-    "version": "omb-003c",
-    "local_source_commit": "0a26c4a50572c27bc921124549fcf6b6ea5b9eff",
-    "source_archive": "AARS_OMB_003C_IMPLEMENTATION_REVIEW.zip",
-    "source_archive_sha256": "1a3b3d26b0f24e7208c0e9ca4a3b6de96428c40422a53a61bded197fd5fc7b3c",
-    "status": "Task events and synthetic Evidence integration code review",
-    "original_local_automated_tests_passed": 175
+    "version": "omb-003d-b3",
+    "local_source_commit": "62fe34d851c1c3ce44b64149cccf3c3fa2dbefff",
+    "source_archive": "AARS_OMB_003D_IMPLEMENTATION_REVIEW.zip",
+    "source_archive_sha256": "2d8b064f24a0954b202dd2a3a13940c4c73fe73f8510bf54db577b482767b9c3",
+    "status": "Local MCP and review request verified; approval platform blocked",
+    "original_local_automated_tests_passed": 189
   },
   "history": [
     {
@@ -39,6 +39,14 @@
       "source_archive_sha256": "1a3b3d26b0f24e7208c0e9ca4a3b6de96428c40422a53a61bded197fd5fc7b3c",
       "status": "Task events and synthetic Evidence integration code review",
       "original_local_automated_tests_passed": 175
+    },
+    {
+      "version": "omb-003d-b3",
+      "local_source_commit": "62fe34d851c1c3ce44b64149cccf3c3fa2dbefff",
+      "source_archive": "AARS_OMB_003D_IMPLEMENTATION_REVIEW.zip",
+      "source_archive_sha256": "2d8b064f24a0954b202dd2a3a13940c4c73fe73f8510bf54db577b482767b9c3",
+      "status": "Local MCP and review request verified; approval platform blocked",
+      "original_local_automated_tests_passed": 189
     }
   ],
   "original_frozen_historical_commit": null,

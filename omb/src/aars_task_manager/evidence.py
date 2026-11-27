@@ -229,7 +229,7 @@ def verify_history(db, task, events, revisions):
                   or (link['use_state'] == 'REVOKED' and not revoked)
                   or (link['use_state'] == 'REVIEW_REQUIRED' and not expired)):
                 raise TaskError('INTEGRITY_FAILURE')
-            if event['payload']['related_ids'] != [link['link_id'], link['snapshot_id']]:
+            if event['payload']['related_ids'][:2] != [link['link_id'], link['snapshot_id']]:
                 raise TaskError('INTEGRITY_FAILURE')
             current[link['link_id']] = link
         elif event['event_type'] in {'EVIDENCE_LINKED', 'EVIDENCE_INVALIDATED'}:

@@ -12,7 +12,7 @@ from uuid import uuid4
 from .domain import (Task, State, OPERATOR_ACTIONS, canonical, hash_json, new_id, parse_time,
                      request_shape, require_id, require_key, require_version, stamp, text)
 from .errors import TaskError
-from . import evidence
+from . import evidence, reviews
 
 class Clock:
     def now(self):return datetime.now(timezone.utc)
@@ -34,8 +34,8 @@ class TaskManager:
         return now
 
     @staticmethod
-    def _view(task,attempt=None,link=None):
-        return {'task':task.snapshot(),'attempt':attempt,'review':None,'link':link}
+    def _view(task,attempt=None,link=None,review=None):
+        return {'task':task.snapshot(),'attempt':attempt,'review':review,'link':link}
 
     @staticmethod
     def _envelope(data,*,replayed=False):
@@ -46,7 +46,6 @@ class TaskManager:
     def execute(self,operation,arguments):
         if not isinstance(operation,str):raise TaskError('INVALID_ARGUMENT')
         if operation in OPERATOR_ACTIONS:raise TaskError('APPROVAL_LOCKED')
-        if operation == 'review_request':raise TaskError('PHASE_HOLD')
         if operation=='get':return self.get(**self._read_args(arguments,{'task_id'}))
         if operation=='list':
             request_shape(arguments,(),('state','limit','cursor'));return self.list_tasks(**arguments)
@@ -59,7 +58,7 @@ class TaskManager:
             capability='task.create';permission='READ'
         elif operation=='update':
             request_shape(arguments,('task_id','expected_version','idempotency_key','patch'));capability='task.update';permission='READ'
-        elif operation in {'transition','renew','evidence_link'}:
+        elif operation in {'transition','renew','evidence_link','review_request'}:
             required=['task_id','expected_version','idempotency_key']
             if operation=='transition':required+=['action']
             else:required+=['attempt_id','fencing_token']
@@ -74,7 +73,7 @@ class TaskManager:
                 if action in {'pause','fail','cancel'}:text(arguments.get('reason'),2000)
                 elif 'reason' in arguments:text(arguments['reason'],2000)
             if operation == 'evidence_link':evidence.require_snapshot_id(arguments['snapshot_id'])
-            capability='evidence.link' if operation=='evidence_link' else 'task.work';permission='WORK'
+            capability={'evidence_link':'evidence.link','review_request':'review.request'}.get(operation,'task.work');permission='WORK'
         else:raise TaskError('UNKNOWN_COMMAND')
         key=require_key(arguments['idempotency_key'])
         if operation!='create':
@@ -87,7 +86,7 @@ class TaskManager:
         def change(db):
             p=self._principal(db,capability);ws=p['workspace_id'];pid=p['principal_id']
             task=None
-            if operation=='evidence_link':
+            if operation in {'evidence_link','review_request'}:
                 _, caps = self.repository.principal(db,self.binding_id)
                 if 'task.work' not in caps:raise TaskError('FORBIDDEN')
             if operation!='create':
@@ -102,10 +101,14 @@ class TaskManager:
                 if operation=='create':self.repository.task(db,data['task']['task_id'],p)
                 if operation=='evidence_link' and not evidence.grant_usable(db, evidence.verified_graph(db,ws), self._now(task)):
                     raise TaskError('EVIDENCE_UNUSABLE')
+                if operation=='review_request' and (reviews.current(db,task)!=data['review']
+                        or reviews.invalidation_reason(db,task,self._now(task)) is not None):
+                    raise TaskError('REVIEW_STALE')
                 return self._envelope(data,replayed=True)
             if task and task.version!=arguments['expected_version']:raise TaskError('VERSION_CONFLICT')
+            if task and task.state==State.REVIEW_PENDING:raise TaskError('REVIEW_LOCKED')
             now=self._now(task)
-            link=None
+            link=None;review=None
             if operation=='create':
                 result=Task(task_id=new_id('task'),workspace_id=ws,owner_principal_id=pid,title=arguments['title'],description=arguments['description'],purpose=arguments['purpose'],state=State.DRAFT,version=1,definition_revision=1,created_at=now,updated_at=now)
                 self.repository.save(db,None,result,actor=pid,event_type='CREATED',now=now,request_hash=request_hash)
@@ -120,6 +123,15 @@ class TaskManager:
                 result=replace(task,version=task.version+1,updated_at=now)
                 self.repository.save(db,task,result,actor=pid,event_type='EVIDENCE_LINKED',now=now,
                     request_hash=request_hash,related_ids=(link['link_id'],link['snapshot_id']))
+            elif operation=='review_request':
+                if task.purpose != 'LOCAL_SYNTHETIC_VALIDATION':raise TaskError('PURPOSE_NOT_EXECUTABLE')
+                if task.state != State.RUNNING:raise TaskError('INVALID_TRANSITION')
+                attempt=self._lease(db,task,p,arguments,now)
+                review,commitment=reviews.request(db,task,p,attempt,now)
+                db.execute("UPDATE attempts SET status='SUBMITTED',finished_at=? WHERE attempt_id=?",(now,attempt['attempt_id']))
+                result=replace(task,state=State.REVIEW_PENDING,version=task.version+1,updated_at=now)
+                self.repository.save(db,task,result,actor=pid,event_type='REVIEW_REQUESTED',now=now,
+                    request_hash=request_hash,related_ids=(review['review_id'],attempt['attempt_id'],commitment))
             elif operation=='renew':
                 # Operator plan verification belongs to 003D; there is no production bypass hook.
                 if task.state!=State.RUNNING:raise TaskError('INVALID_TRANSITION')
@@ -135,7 +147,7 @@ class TaskManager:
                 if task.state==State.RUNNING:
                     db.execute("UPDATE attempts SET status=?,finished_at=? WHERE workspace_id=? AND task_id=? AND status IN ('ACQUIRED','RUNNING')",({'pause':'PAUSED','fail':'FAILED','cancel':'CANCELLED'}[action],now,ws,task.task_id))
                 self.repository.save(db,task,result,actor=pid,event_type={'pause':'PAUSED','fail':'FAILED','cancel':'CANCELLED'}[action],now=now,request_hash=request_hash,reason=arguments.get('reason'))
-            data=self._view(result,link=link)
+            data=self._view(result,link=link,review=review)
             response=self._envelope(data)
             db.execute('INSERT INTO idempotency_records VALUES (?,?,?,?,?,?,?,?)',(ws,pid,key,operation,request_hash,canonical(data),hash_json(data),result.version))
             return response
@@ -156,7 +168,10 @@ class TaskManager:
         require_id(task_id,'task')
         def read(db):
             p=self._principal(db,'task.read');task=self.repository.task(db,task_id,p)
-            return self._envelope(self._view(task))
+            review=reviews.current(db,task) if task.state==State.REVIEW_PENDING else None
+            if review and (status:=reviews.invalidation_reason(db,task,self._now(task))):
+                review={**review,'status':status}
+            return self._envelope(self._view(task,review=review))
         return self.repository.read(read)
 
     def list_tasks(self,*,state=None,limit=50,cursor=None):

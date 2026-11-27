@@ -1,8 +1,8 @@
 [project]
 name = "aars-task-manager"
-version = "0.3.0b2"
+version = "0.3.0b3"
 requires-python = ">=3.13,<3.14"
-description = "OMB-003C isolated Task Manager events and fixture evidence"
+description = "OMB-003D review request gate and local MCP transport"
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "frozen_payload/source/src"]

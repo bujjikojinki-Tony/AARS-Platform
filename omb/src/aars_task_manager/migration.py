@@ -1,4 +1,4 @@
-"""Offline B1 to C2 migration into a new private database file."""
+"""Offline B1 or C2 to D3 migration into a new private database file."""
 from contextlib import closing
 import fcntl
 import os
@@ -8,13 +8,19 @@ import stat
 import time
 from tempfile import TemporaryDirectory
 
-from . import evidence
+from . import evidence, reviews
 from .domain import new_id
 from .errors import TaskError
 from .storage import APPLICATION_ID, SCHEMA_VERSION, Repository, expected_schema_hash, schema_hash
 
 
 def migrate_b1_copy(source, target, *, source_root, target_root, protected_roots):
+    return _migrate(source, target, source_root=source_root, target_root=target_root, protected_roots=protected_roots, version=1)
+
+def migrate_c2_copy(source, target, *, source_root, target_root, protected_roots):
+    return _migrate(source, target, source_root=source_root, target_root=target_root, protected_roots=protected_roots, version=2)
+
+def _migrate(source, target, *, source_root, target_root, protected_roots, version):
     source = Path(source)
     protected = tuple(map(Path, protected_roots))
     old = Repository(source, allowed_root=source_root, protected_roots=protected)
@@ -42,10 +48,10 @@ def migrate_b1_copy(source, target, *, source_root, target_root, protected_roots
             with closing(sqlite3.connect(old.path.as_uri() + '?mode=ro', uri=True, timeout=.5)) as src:
                 if (src.execute('PRAGMA journal_mode').fetchone()[0] != 'delete'
                     or src.execute('PRAGMA application_id').fetchone()[0] != APPLICATION_ID
-                    or src.execute('PRAGMA user_version').fetchone()[0] != 1
-                    or schema_hash(src) != expected_schema_hash(1)):
+                    or src.execute('PRAGMA user_version').fetchone()[0] != version
+                    or schema_hash(src) != expected_schema_hash(version)):
                     raise TaskError('SCHEMA_VERSION_MISMATCH')
-                if src.execute("SELECT value FROM meta WHERE key='schema_hash'").fetchone() != (expected_schema_hash(1),):
+                if src.execute("SELECT value FROM meta WHERE key='schema_hash'").fetchone() != (expected_schema_hash(version),):
                     raise TaskError('INTEGRITY_FAILURE')
                 with closing(sqlite3.connect(destination, isolation_level=None)) as dst:
                     deadline = time.monotonic() + 5
@@ -54,7 +60,7 @@ def migrate_b1_copy(source, target, *, source_root, target_root, protected_roots
                             raise TaskError('DB_BUSY', retryable=True)
                     src.backup(dst, pages=128, progress=check_deadline, sleep=.05)
                     dst.execute('PRAGMA foreign_keys=ON')
-                    dst.executescript('BEGIN IMMEDIATE;' + evidence.SCHEMA)
+                    dst.executescript('BEGIN IMMEDIATE;' + (evidence.SCHEMA if version == 1 else '') + reviews.SCHEMA)
                     dst.execute(f'PRAGMA user_version={SCHEMA_VERSION}')
                     dst.execute("UPDATE meta SET value=? WHERE key='schema_hash'", (expected_schema_hash(),))
                     dst.execute("UPDATE meta SET value='' WHERE key='active_boot'")

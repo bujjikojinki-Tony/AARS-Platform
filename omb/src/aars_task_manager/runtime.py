@@ -7,7 +7,7 @@ import stat
 
 from .domain import State, canonical, hash_json, new_id, parse_time, stamp
 from .errors import TaskError
-from . import evidence
+from . import evidence, reviews
 from .service import Clock,TaskManager
 
 class TaskRuntime:
@@ -43,13 +43,24 @@ class TaskRuntime:
             task=repo.verify_task(db,row)
             if parse_time(now)<parse_time(task.updated_at):raise TaskError('CLOCK_UNTRUSTED')
             attempt=db.execute("SELECT a.*,p.active AS principal_active FROM attempts a JOIN principals p ON p.workspace_id=a.workspace_id AND p.principal_id=a.actor_principal_id WHERE a.workspace_id=? AND a.task_id=? AND a.status IN ('ACQUIRED','RUNNING')",(ws,task.task_id)).fetchone()
-            if not all_previous:
-                if task.state!=State.RUNNING:continue
-                if attempt is None:raise TaskError('INTEGRITY_FAILURE')
-                if parse_time(attempt['lease_expires_at'])>parse_time(now) and attempt['principal_active']:continue
-            result=task.interrupted(now)
-            db.execute("UPDATE attempts SET status='EXPIRED',finished_at=? WHERE workspace_id=? AND task_id=? AND status IN ('ACQUIRED','RUNNING')",(now,ws,task.task_id))
-            repo.save(db,task,result,actor=actor,event_type='RECOVERED',now=now,request_hash=hash_json({'reason':reason,'boot':self.boot_id,'task':task.task_id}),reason=reason)
+            review_status = None
+            if task.state == State.REVIEW_PENDING:
+                review_status = 'STALE' if all_previous else reviews.invalidation_reason(db, task, now)
+                if review_status is None:
+                    continue
+            elif not all_previous and parse_time(attempt['lease_expires_at']) > parse_time(now) and attempt['principal_active']:
+                continue
+            result = task.interrupted(now)
+            related = ()
+            event_type = 'RECOVERED'
+            if review_status:
+                related = (reviews.close(db, task, review_status), review_status)
+                event_type = 'REVIEW_INVALIDATED'
+            else:
+                db.execute("UPDATE attempts SET status='EXPIRED',finished_at=? WHERE workspace_id=? AND task_id=? AND status IN ('ACQUIRED','RUNNING')", (now, ws, task.task_id))
+            repo.save(db, task, result, actor=actor, event_type=event_type, now=now,
+                request_hash=hash_json({'reason':reason,'boot':self.boot_id,'task':task.task_id}), reason=reason,
+                related_ids=related)
             count+=1
         return count
 
@@ -132,9 +143,12 @@ class TaskRuntime:
                     task.task_id, link['link_id'], link['revision'] + 1, link['snapshot_id'], updated.version,
                     target, link['scope_hash'], link['verification_hash']))
                 reason = 'fixture_revoked' if revoked else 'fixture_expired'
+                related = (link['link_id'],link['snapshot_id'])
+                if task.state == State.REVIEW_PENDING:
+                    related += (reviews.close(db, task, 'STALE'), 'STALE')
                 repo.save(db, task, updated, actor=actor, event_type='EVIDENCE_INVALIDATED', now=now,
                     request_hash=hash_json({'reason': reason, 'link': link['link_id'], 'revision': link['revision'] + 1}),
-                    reason=reason, related_ids=(link['link_id'], link['snapshot_id']))
+                    reason=reason, related_ids=related)
                 task = updated
                 count += 1
         return count

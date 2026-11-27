@@ -15,11 +15,11 @@ import time
 
 from .domain import Task, canonical, hash_json, new_id, require_id, text, ZERO_HASH, parse_time
 from .errors import TaskError
-from . import evidence
+from . import evidence, reviews
 
 APPLICATION_ID = 0x4F4D4233
-SCHEMA_VERSION = 2
-CAPABILITIES = frozenset({'task.create','task.read','task.update','task.work','evidence.link'})
+SCHEMA_VERSION = 3
+CAPABILITIES = frozenset({'task.create','task.read','task.update','task.work','evidence.link','review.request'})
 SCHEMA = '''
 CREATE TABLE meta(key TEXT PRIMARY KEY,value TEXT NOT NULL);
 CREATE TABLE workspaces(workspace_id TEXT PRIMARY KEY,db_instance_id TEXT NOT NULL UNIQUE,mode TEXT NOT NULL CHECK(mode='LOCAL_SYNTHETIC'),policy_version INTEGER NOT NULL CHECK(policy_version>=1),generation INTEGER NOT NULL CHECK(generation>=0),created_at TEXT NOT NULL);
@@ -38,10 +38,10 @@ def schema_hash(db):
     rows=db.execute("SELECT type,name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type,name").fetchall()
     return hash_json([tuple(r) for r in rows])
 
-@lru_cache(maxsize=2)
+@lru_cache(maxsize=3)
 def expected_schema_hash(version=SCHEMA_VERSION):
     with closing(sqlite3.connect(':memory:')) as db:
-        db.executescript(SCHEMA + (evidence.SCHEMA if version == 2 else ''))
+        db.executescript(SCHEMA + (evidence.SCHEMA if version >= 2 else '') + (reviews.SCHEMA if version >= 3 else ''))
         return schema_hash(db)
 
 @dataclass(frozen=True)
@@ -109,7 +109,7 @@ class Repository:
         os.close(fd)
         with closing(repo._connection(initializing=True)) as db:
             try:
-                db.executescript('BEGIN IMMEDIATE;' + SCHEMA + evidence.SCHEMA)
+                db.executescript('BEGIN IMMEDIATE;' + SCHEMA + evidence.SCHEMA + reviews.SCHEMA)
                 db.execute(f'PRAGMA application_id={APPLICATION_ID}');db.execute(f'PRAGMA user_version={SCHEMA_VERSION}')
                 db.execute('INSERT INTO workspaces VALUES (?,?,?,?,?,?)',(workspace_id,new_id('db'),'LOCAL_SYNTHETIC',1,0,created_at))
                 service=new_id('principal')
@@ -261,6 +261,7 @@ class Repository:
                 if prev_time is not None and parse_time(old.updated_at)<parse_time(prev_time):raise TaskError('INTEGRITY_FAILURE')
                 prev_time=old.updated_at;prev_state=old.state.value;prev_hash=e['event_hash']
             evidence.verify_history(db, task, decoded_events, decoded_revisions)
+            reviews.verify_history(db, task, decoded_events)
             active=db.execute("SELECT * FROM attempts WHERE workspace_id=? AND task_id=? AND status IN ('ACQUIRED','RUNNING')",(task.workspace_id,task.task_id)).fetchall()
             if task.state.value=='RUNNING':
                 if len(active)!=1:raise TaskError('INTEGRITY_FAILURE')
