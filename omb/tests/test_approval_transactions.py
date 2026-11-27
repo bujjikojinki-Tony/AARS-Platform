@@ -20,9 +20,9 @@ from tests.test_approval_receipts import fixture_signature
 from tests.test_review_gate import prepared
 
 
-def setup(system, *, operator=None):
+def setup(system, *, operator=None, expires_at=None):
     repo, runtime, clock = (system[name] for name in ('repo', 'runtime', 'clock'))
-    args = prepared(system)
+    args = prepared(system, expires_at=expires_at)
     review = system['manager'].execute('review_request', args)['data']['review']
     signer = ec.generate_private_key(ec.SECP256R1())
     point = signer.public_key().public_bytes(serialization.Encoding.X962,

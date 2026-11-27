@@ -1,11 +1,11 @@
 {
   "current": {
-    "version": "omb-003d-b7",
-    "local_source_commit": "ceecc7766fbf775cca65c9084320850dd9def976",
-    "source_archive": "AARS_OMB_003D_CHALLENGE_RECOVERY_REVIEW.zip",
-    "source_archive_sha256": "67491c2a1f1c3040796ba5ff09e3e9f054da1949aa6e05f4a99611e4c497352b",
-    "status": "Same-session output-loss recovery for approval challenges",
-    "original_local_automated_tests_passed": 278
+    "version": "omb-003d-b8",
+    "local_source_commit": "7b518f6d4a81ad3da03a5912745086cbba3c6888",
+    "source_archive": "AARS_OMB_003D_RESULT_USABILITY_REVIEW.zip",
+    "source_archive_sha256": "49d9909ca9c79f5500e5f8d767d9520c36824020983dceb26a39340ca0019256",
+    "status": "Evidence authorization expiry and result usability audit",
+    "original_local_automated_tests_passed": 289
   },
   "history": [
     {
@@ -79,6 +79,14 @@
       "source_archive_sha256": "67491c2a1f1c3040796ba5ff09e3e9f054da1949aa6e05f4a99611e4c497352b",
       "status": "Same-session output-loss recovery for approval challenges",
       "original_local_automated_tests_passed": 278
+    },
+    {
+      "version": "omb-003d-b8",
+      "local_source_commit": "7b518f6d4a81ad3da03a5912745086cbba3c6888",
+      "source_archive": "AARS_OMB_003D_RESULT_USABILITY_REVIEW.zip",
+      "source_archive_sha256": "49d9909ca9c79f5500e5f8d767d9520c36824020983dceb26a39340ca0019256",
+      "status": "Evidence authorization expiry and result usability audit",
+      "original_local_automated_tests_passed": 289
     }
   ],
   "original_frozen_historical_commit": null,

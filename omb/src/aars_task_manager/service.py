@@ -12,7 +12,7 @@ from uuid import uuid4
 from .domain import (Task, State, OPERATOR_ACTIONS, canonical, hash_json, new_id, parse_time,
                      request_shape, require_id, require_key, require_version, stamp, text)
 from .errors import TaskError
-from . import evidence, reviews
+from . import approval_history, evidence, reviews
 
 class Clock:
     def now(self):return datetime.now(timezone.utc)
@@ -164,6 +164,18 @@ class TaskManager:
         if parse_time(attempt['lease_expires_at'])<=parse_time(now):raise TaskError('LEASE_EXPIRED')
         return attempt
 
+    @staticmethod
+    def _current_usage(db, task, now):
+        if approval_history.result_rejected(db, task):
+            return 'UNUSABLE'
+        if task.usage_state == 'USABLE':
+            if parse_time(now) < parse_time(task.updated_at):
+                raise TaskError('CLOCK_UNTRUSTED')
+            graph = evidence.verified_graph(db, task.workspace_id)
+            if not evidence.grant_usable(db, graph, now):
+                return 'REVIEW_REQUIRED'
+        return task.usage_state
+
     def get(self,task_id):
         require_id(task_id,'task')
         def read(db):
@@ -171,7 +183,9 @@ class TaskManager:
             review=reviews.current(db,task) if task.state==State.REVIEW_PENDING else None
             if review and (status:=reviews.invalidation_reason(db,task,self._now(task))):
                 review={**review,'status':status}
-            return self._envelope(self._view(task,review=review))
+            data = self._view(task, review=review)
+            data['task']['usage_state'] = self._current_usage(db, task, self._now())
+            return self._envelope(data)
         return self.repository.read(read)
 
     def list_tasks(self,*,state=None,limit=50,cursor=None):
@@ -179,7 +193,9 @@ class TaskManager:
         if type(limit) is not int or not 1<=limit<=50:raise TaskError('INVALID_ARGUMENT')
         if cursor is not None and (not isinstance(cursor,str) or len(cursor)>2048):raise TaskError('INVALID_ARGUMENT')
         def read(db):
-            p=self._principal(db,'task.read');ws=p['workspace_id'];pid=p['principal_id'];now=self.clock.now().timestamp()
+            p=self._principal(db,'task.read');ws=p['workspace_id'];pid=p['principal_id']
+            at = self._now()
+            now = parse_time(at).timestamp()
             generation=db.execute('SELECT generation FROM workspaces WHERE workspace_id=?',(ws,)).fetchone()[0]
             try:secret=bytes.fromhex(self.repository.meta(db,'cursor_key'))
             except ValueError:raise TaskError('INTEGRITY_FAILURE') from None
@@ -201,8 +217,11 @@ class TaskManager:
             summaries=[];more=False
             for row in rows:
                 if len(summaries)>=limit:more=True;break
-                task=self.repository.verify_task(db,row).snapshot()
-                summary={k:task[k] for k in ('task_id','workspace_id','title','state','version','updated_at','usage_state')}
+                task = self.repository.verify_task(db, row)
+                fields = ('task_id', 'workspace_id', 'title', 'state', 'version', 'updated_at')
+                snapshot = task.snapshot()
+                summary = {key: snapshot[key] for key in fields}
+                summary['usage_state'] = self._current_usage(db, task, at)
                 # Reserve room for the signed cursor and the fixed envelope.
                 if len(canonical({'tasks':summaries+[summary]}).encode('utf-8'))>14500:more=True;break
                 summaries.append(summary)

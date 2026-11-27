@@ -7,7 +7,7 @@ import stat
 
 from .domain import State, canonical, hash_json, new_id, parse_time, stamp
 from .errors import TaskError
-from . import evidence, reviews
+from . import approval_history, evidence, reviews
 from .service import Clock,TaskManager
 
 class TaskRuntime:
@@ -136,9 +136,9 @@ class TaskRuntime:
                     continue
                 if parse_time(now) < parse_time(task.updated_at):
                     raise TaskError('CLOCK_UNTRUSTED')
+                usage = 'UNUSABLE' if approval_history.result_rejected(db, task) else 'REVIEW_REQUIRED'
                 updated = replace(task, version=task.version + 1, updated_at=now,
-                    state=State.PAUSED if task.state == State.REVIEW_PENDING else task.state,
-                    usage_state='REVIEW_REQUIRED')
+                    state=State.PAUSED if task.state == State.REVIEW_PENDING else task.state, usage_state=usage)
                 db.execute('INSERT INTO evidence_link_versions VALUES (?,?,?,?,?,?,?,?,?)', (ws,
                     task.task_id, link['link_id'], link['revision'] + 1, link['snapshot_id'], updated.version,
                     target, link['scope_hash'], link['verification_hash']))
@@ -146,7 +146,10 @@ class TaskRuntime:
                 related = (link['link_id'],link['snapshot_id'])
                 if task.state == State.REVIEW_PENDING:
                     related += (reviews.close(db, task, 'STALE'), 'STALE')
-                repo.save(db, task, updated, actor=actor, event_type='EVIDENCE_INVALIDATED', now=now,
+                event_type = 'EVIDENCE_INVALIDATED'
+                if task.state == State.COMPLETED and task.usage_state != updated.usage_state:
+                    event_type = 'TASK_USABILITY_CHANGED'
+                repo.save(db, task, updated, actor=actor, event_type=event_type, now=now,
                     request_hash=hash_json({'reason': reason, 'link': link['link_id'], 'revision': link['revision'] + 1}),
                     reason=reason, related_ids=related)
                 task = updated
@@ -154,11 +157,11 @@ class TaskRuntime:
         return count
 
     def recover_expired(self):
-        if self._fd is None:raise TaskError('RUNTIME_INACTIVE')
         def recover(db):
-            if self.repository.meta(db,'active_boot')!=self.boot_id:raise TaskError('RUNTIME_INACTIVE')
-            return self._recover(db,all_previous=False,reason='lease_or_binding_expired')
-        return self.repository.write(recover)
+            recovered = self._recover(db, all_previous=False, reason='lease_or_binding_expired')
+            self._invalidate_evidence(db)
+            return recovered
+        return self._host_write(recover)
 
     def manager(self,binding_id):
         if self._fd is None:raise TaskError('RUNTIME_INACTIVE')

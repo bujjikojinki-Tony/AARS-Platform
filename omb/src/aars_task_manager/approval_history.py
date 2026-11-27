@@ -48,6 +48,18 @@ def commitment(decision, challenge):
     return hash_json({'decision': dict(decision), 'challenge': dict(challenge)})
 
 
+def result_rejected(db, task):
+    """Identify a signed rejection even if a legacy invalidation changed its usage state."""
+    if task.state != State.REJECTED:
+        return False
+    if task.usage_state == 'UNUSABLE':
+        return True
+    return db.execute(
+        "SELECT 1 FROM result_approval_decisions d JOIN result_approval_challenges c ON c.nonce_hash=d.nonce_hash "
+        "WHERE d.workspace_id=? AND d.task_id=? AND c.decision='REJECT_RESULT'",
+        (task.workspace_id, task.task_id)).fetchone() is not None
+
+
 def verify_decisions(db, task, events, revisions, review_rows, closed):
     task_key = (task.workspace_id, task.task_id)
     rows = db.execute('SELECT * FROM result_approval_decisions WHERE workspace_id=? AND task_id=?',

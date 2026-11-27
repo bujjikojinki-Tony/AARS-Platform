@@ -1,6 +1,6 @@
 # AARS OMB
 
-Current snapshot `omb-003d-b7`. Same-session output-loss recovery for approval challenges.
+Current snapshot `omb-003d-b8`. Evidence authorization expiry and result usability audit.
 
 | Version | Scope | Local regression |
 |---|---|---:|
@@ -13,6 +13,7 @@ Current snapshot `omb-003d-b7`. Same-session output-loss recovery for approval c
 | `omb-003d-b5` | Context-bound approval receipt validation and native interoperability | 237 |
 | `omb-003d-b6` | Transactional result decisions and one-time challenge consumption | 260 |
 | `omb-003d-b7` | Same-session output-loss recovery for approval challenges | 278 |
+| `omb-003d-b8` | Evidence authorization expiry and result usability audit | 289 |
 
 Run from the `omb/` directory with Python 3.13.
 

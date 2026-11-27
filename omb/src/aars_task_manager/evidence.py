@@ -198,8 +198,10 @@ def latest_links(rows):
 
 
 def verify_history(db, task, events, revisions):
+    invalidation_events = {'EVIDENCE_INVALIDATED', 'TASK_USABILITY_CHANGED'}
+    evidence_events = invalidation_events | {'EVIDENCE_LINKED'}
     rows = link_versions(db, task)
-    if not rows and all(event['payload']['evidence_set_hash'] == ZERO_HASH and event['event_type'] not in {'EVIDENCE_LINKED', 'EVIDENCE_INVALIDATED'} for event in events):
+    if not rows and all(event['payload']['evidence_set_hash'] == ZERO_HASH and event['event_type'] not in evidence_events for event in events):
         return
     graph = verified_graph(db, task.workspace_id)
     if graph is None or task.purpose != 'LOCAL_SYNTHETIC_VALIDATION':
@@ -225,14 +227,19 @@ def verify_history(db, task, events, revisions):
                     or link['scope_hash'] != hash_json(scope_for(revision))):
                     raise TaskError('INTEGRITY_FAILURE')
             elif (prior is None or link['revision'] != prior['revision'] + 1 or prior['use_state'] == 'REVOKED' or prior['use_state'] == link['use_state'] or prior['snapshot_id'] != link['snapshot_id']
-                  or prior['scope_hash'] != link['scope_hash'] or event['event_type'] != 'EVIDENCE_INVALIDATED'
+                  or prior['scope_hash'] != link['scope_hash'] or event['event_type'] not in invalidation_events
                   or (link['use_state'] == 'REVOKED' and not revoked)
                   or (link['use_state'] == 'REVIEW_REQUIRED' and not expired)):
                 raise TaskError('INTEGRITY_FAILURE')
+            if event['event_type'] == 'TASK_USABILITY_CHANGED':
+                previous = revisions[event['seq'] - 2]
+                if (event['from_state'], event['to_state'], previous.usage_state, revision.usage_state) != (
+                        'COMPLETED', 'COMPLETED', 'USABLE', 'REVIEW_REQUIRED'):
+                    raise TaskError('INTEGRITY_FAILURE')
             if event['payload']['related_ids'][:2] != [link['link_id'], link['snapshot_id']]:
                 raise TaskError('INTEGRITY_FAILURE')
             current[link['link_id']] = link
-        elif event['event_type'] in {'EVIDENCE_LINKED', 'EVIDENCE_INVALIDATED'}:
+        elif event['event_type'] in evidence_events:
             raise TaskError('INTEGRITY_FAILURE')
         if event['payload']['evidence_set_hash'] != evidence_digest(current.values()):
             raise TaskError('INTEGRITY_FAILURE')
