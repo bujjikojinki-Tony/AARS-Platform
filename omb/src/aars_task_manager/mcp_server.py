@@ -1,6 +1,8 @@
 """OMB-003D Bot-facing stdio transport. The operator control plane is separate."""
 from __future__ import annotations
 
+from contextlib import contextmanager
+
 import argparse
 import json
 import logging
@@ -20,7 +22,8 @@ from .service import TaskManager
 from .storage import Repository
 
 ROOT = Path(__file__).resolve().parents[2]
-VERSION = '0.3.0b3'
+VERSION = '0.3.0b4'
+MAX_WIRE_BYTES = 64 * 1024
 OPERATIONS = {
     'aars_task_create_v1': ('create', 'Create a task draft within the assigned workspace.'),
     'aars_task_get_v1': ('get', 'Read a task and its pending review summary.'),
@@ -87,6 +90,45 @@ class ToolAdapter:
             return _error('INTERNAL_ERROR', 'The task operation failed.')
 
 
+class BoundedStdin:
+    """Provide complete, bounded UTF-8 lines to the SDK's JSON-RPC parser."""
+    def __init__(self, source):
+        self.source = source
+        self.invalid = False
+
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        raw = await anyio.to_thread.run_sync(self.source.readline, MAX_WIRE_BYTES + 1)
+        if not raw:
+            raise StopAsyncIteration
+        if len(raw) <= MAX_WIRE_BYTES and raw.endswith(b'\n'):
+            try:
+                return raw.decode('utf-8')
+            except UnicodeDecodeError:
+                pass
+        # Close this session without draining attacker-controlled input or logging it.
+        self.invalid = True
+        raise StopAsyncIteration
+
+
+@contextmanager
+def wire_input():
+    # Retain the SDK's usual stdin isolation when supplying an explicit reader.
+    fd = os.dup(0)
+    try:
+        with open(os.devnull, 'rb') as empty:
+            os.dup2(empty.fileno(), 0)
+        with os.fdopen(fd, 'rb', closefd=False) as source:
+            yield BoundedStdin(source)
+    finally:
+        try:
+            os.dup2(fd, 0)
+        finally:
+            os.close(fd)
+
+
 async def serve(manager):
     adapter = ToolAdapter(manager)
 
@@ -100,8 +142,11 @@ async def serve(manager):
                                     isError=not result['ok'])
 
     server = Server('aars-task-dev', version=VERSION, on_list_tools=list_tools, on_call_tool=call_tool)
-    async with stdio_server() as (reader, writer):
-        await server.run(reader, writer, server.create_initialization_options())
+    with wire_input() as stdin:
+        async with stdio_server(stdin=stdin) as (reader, writer):
+            await server.run(reader, writer, server.create_initialization_options())
+    if stdin.invalid:
+        raise TaskError('INVALID_WIRE_FRAME')
 
 
 def development_repository(data_root):
