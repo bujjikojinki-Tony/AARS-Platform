@@ -1,0 +1,10 @@
+[project]
+name = "aars-task-manager"
+version = "0.3.0b1"
+requires-python = ">=3.13,<3.14"
+description = "OMB-003B isolated Task Manager foundation; approval and integrations remain locked"
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "frozen_payload/source/src"]
+testpaths = ["tests", "frozen_payload/source/tests"]
+addopts = "-p no:cacheprovider"

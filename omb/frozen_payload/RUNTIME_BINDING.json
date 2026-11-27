@@ -1,0 +1,5 @@
+{
+  "scope": "Repository-relative placeholders for development.",
+  "database_path": "frozen_payload/runtime/evidence.sqlite",
+  "source_path": "frozen_payload/source/src"
+}

@@ -1,11 +1,11 @@
 {
   "current": {
-    "version": "omb-003a",
-    "local_source_commit": null,
-    "source_archive": "AARS_OMB_003A_DETAILED_DESIGN.zip",
-    "source_archive_sha256": "266d07b438b57e9ef3bfa3ab1182baaeb43ac5b96391718f101d894187568b62",
-    "status": "Detailed design complete with accepted source registration exception",
-    "original_local_automated_tests_passed": null
+    "version": "omb-003b",
+    "local_source_commit": "7e659cbcb8347572fb05090b193929c3248f208f",
+    "source_archive": "AARS_OMB_003B_IMPLEMENTATION_REVIEW.zip",
+    "source_archive_sha256": "086235401a3ccf1fe491188ea6d2c21c3ea5fc686471bba17fd26dec15db8388",
+    "status": "Task Manager foundation code review",
+    "original_local_automated_tests_passed": 159
   },
   "history": [
     {
@@ -23,6 +23,14 @@
       "source_archive_sha256": "266d07b438b57e9ef3bfa3ab1182baaeb43ac5b96391718f101d894187568b62",
       "status": "Detailed design complete with accepted source registration exception",
       "original_local_automated_tests_passed": null
+    },
+    {
+      "version": "omb-003b",
+      "local_source_commit": "7e659cbcb8347572fb05090b193929c3248f208f",
+      "source_archive": "AARS_OMB_003B_IMPLEMENTATION_REVIEW.zip",
+      "source_archive_sha256": "086235401a3ccf1fe491188ea6d2c21c3ea5fc686471bba17fd26dec15db8388",
+      "status": "Task Manager foundation code review",
+      "original_local_automated_tests_passed": 159
     }
   ],
   "original_frozen_historical_commit": null,
