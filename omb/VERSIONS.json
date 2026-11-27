@@ -1,0 +1,26 @@
+{
+  "current": {
+    "version": "omb-002-fix",
+    "local_source_commit": null,
+    "source_archive": "AARS_OMB_002_FIX_BASELINE.zip",
+    "source_archive_sha256": "c36b6ef5ec43f543d8f7e08867d7c23bb7ef04a369fc5e0d13eb314bf65bd7aa",
+    "status": "Frozen for the local single-operator synthetic deployment",
+    "original_local_automated_tests_passed": 32
+  },
+  "history": [
+    {
+      "version": "omb-002-fix",
+      "local_source_commit": null,
+      "source_archive": "AARS_OMB_002_FIX_BASELINE.zip",
+      "source_archive_sha256": "c36b6ef5ec43f543d8f7e08867d7c23bb7ef04a369fc5e0d13eb314bf65bd7aa",
+      "status": "Frozen for the local single-operator synthetic deployment",
+      "original_local_automated_tests_passed": 32
+    }
+  ],
+  "original_frozen_historical_commit": null,
+  "post_freeze_source_registration_commit": "161d08556c4c7e84fa1489feb0026cd2c6a17200",
+  "post_freeze_registration_is_not_original_history": true,
+  "source_exception_accepted": false,
+  "publication_scope": "Source, tests, reviewed design contracts and synthetic fixture. The public tree has separate Git history and excludes local runtime evidence.",
+  "fixture_sha256": null
+}
