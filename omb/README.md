@@ -1,6 +1,6 @@
 # AARS OMB
 
-Current snapshot `omb-003d-b5`. Context-bound approval receipt validation and native interoperability.
+Current snapshot `omb-003d-b6`. Transactional result decisions and one-time challenge consumption.
 
 | Version | Scope | Local regression |
 |---|---|---:|
@@ -11,6 +11,7 @@ Current snapshot `omb-003d-b5`. Context-bound approval receipt validation and na
 | `omb-003d-b3` | Local MCP and review request verified; approval platform blocked | 189 |
 | `omb-003d-b4` | Local MCP framing hardened; approval platform blocked | 194 |
 | `omb-003d-b5` | Context-bound approval receipt validation and native interoperability | 237 |
+| `omb-003d-b6` | Transactional result decisions and one-time challenge consumption | 260 |
 
 Run from the `omb/` directory with Python 3.13.
 

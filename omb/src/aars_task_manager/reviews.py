@@ -4,7 +4,7 @@ import json
 from hashlib import sha256
 import secrets
 
-from . import evidence
+from . import approval_history, evidence
 from .domain import canonical, hash_json, new_id, parse_time, require_id, stamp
 from .errors import TaskError
 
@@ -69,7 +69,8 @@ def request(db, task, principal, attempt, now):
 
 def current(db, task):
     row = db.execute('SELECT r.* FROM result_review_requests r LEFT JOIN result_review_closures c '
-        'ON c.review_id=r.review_id WHERE r.workspace_id=? AND r.task_id=? AND c.review_id IS NULL',
+        'ON c.review_id=r.review_id LEFT JOIN result_approval_decisions d ON d.review_id=r.review_id '
+        'WHERE r.workspace_id=? AND r.task_id=? AND c.review_id IS NULL AND d.review_id IS NULL',
         (task.workspace_id, task.task_id)).fetchall()
     if len(row) > 1:
         raise TaskError('INTEGRITY_FAILURE')
@@ -99,7 +100,7 @@ def invalidation_reason(db, task, now):
     return None
 
 
-def verify_history(db, task, events):
+def verify_history(db, task, events, revisions):
     records = db.execute('SELECT * FROM result_review_requests WHERE workspace_id=? AND task_id=?',
                          (task.workspace_id, task.task_id)).fetchall()
     requests = {event['seq']: event for event in events if event['event_type'] == 'REVIEW_REQUESTED'}
@@ -133,6 +134,8 @@ def verify_history(db, task, events):
             or event['event_type'] not in {'REVIEW_INVALIDATED','EVIDENCE_INVALIDATED'}
             or event['payload']['related_ids'][-2:] != [row['review_id'], row['status']]):
             raise TaskError('INTEGRITY_FAILURE')
-    pending = len(records) - len(closures)
+    decided = approval_history.verify_decisions(db, task, events, revisions, by_id,
+                                                {row['review_id'] for row in closures})
+    pending = len(records) - len(closures) - decided
     if pending != (1 if task.state.value == 'REVIEW_PENDING' else 0):
         raise TaskError('INTEGRITY_FAILURE')

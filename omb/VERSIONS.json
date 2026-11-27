@@ -1,11 +1,11 @@
 {
   "current": {
-    "version": "omb-003d-b5",
-    "local_source_commit": "54ed61e04285df448791df3dee87505a69e6399a",
-    "source_archive": "AARS_OMB_003D_APPROVAL_RECEIPTS_REVIEW.zip",
-    "source_archive_sha256": "854bd681ce68f812e8230e045f19e7473ae84cdc51e300c8f3014d6b1716ad2b",
-    "status": "Context-bound approval receipt validation and native interoperability",
-    "original_local_automated_tests_passed": 237
+    "version": "omb-003d-b6",
+    "local_source_commit": "5cce6b668cad779949fe8f597b1fccad004c266f",
+    "source_archive": "AARS_OMB_003D_APPROVAL_TRANSACTIONS_REVIEW.zip",
+    "source_archive_sha256": "a336d96955e976434246d266d293419a43fdabf0d9e65a5254b9b49b9f6c6371",
+    "status": "Transactional result decisions and one-time challenge consumption",
+    "original_local_automated_tests_passed": 260
   },
   "history": [
     {
@@ -63,6 +63,14 @@
       "source_archive_sha256": "854bd681ce68f812e8230e045f19e7473ae84cdc51e300c8f3014d6b1716ad2b",
       "status": "Context-bound approval receipt validation and native interoperability",
       "original_local_automated_tests_passed": 237
+    },
+    {
+      "version": "omb-003d-b6",
+      "local_source_commit": "5cce6b668cad779949fe8f597b1fccad004c266f",
+      "source_archive": "AARS_OMB_003D_APPROVAL_TRANSACTIONS_REVIEW.zip",
+      "source_archive_sha256": "a336d96955e976434246d266d293419a43fdabf0d9e65a5254b9b49b9f6c6371",
+      "status": "Transactional result decisions and one-time challenge consumption",
+      "original_local_automated_tests_passed": 260
     }
   ],
   "original_frozen_historical_commit": null,

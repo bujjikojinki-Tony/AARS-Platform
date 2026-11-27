@@ -155,7 +155,8 @@ def test_unknown_or_tampered_source_not_usable(system):
 
 def to_b1_fixture(path):
     with sqlite3.connect(path) as db:
-        for table in ('result_review_closures', 'result_review_requests', 'evidence_link_versions', 'object_snapshots', 'fixture_revocations', 'fixture_expirations', 'fixture_graphs'):
+        for table in ('result_approval_decisions', 'result_approval_challenges', 'result_operator_pins',
+                      'result_review_closures', 'result_review_requests', 'evidence_link_versions', 'object_snapshots', 'fixture_revocations', 'fixture_expirations', 'fixture_graphs'):
             db.execute(f'DROP TABLE {table}')
         db.execute('PRAGMA user_version=1')
         db.execute("UPDATE meta SET value=? WHERE key='schema_hash'", (expected_schema_hash(1),))

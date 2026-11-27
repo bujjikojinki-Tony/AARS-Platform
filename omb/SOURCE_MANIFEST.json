@@ -1,5 +1,5 @@
 {
-  "version": "omb-003d-b5",
+  "version": "omb-003d-b6",
   "files": [
     {
       "path": ".gitignore",
@@ -8,18 +8,18 @@
     },
     {
       "path": "AUTHORIZATION.json",
-      "sha256": "4e40559da57f554d9451ab5194cc07f47fac3ce55e8f839a8194e869d057eb4e",
+      "sha256": "08458b2e3cdb3bdf6528c76742dc79a775632b8ed19fd16a6ec26339beb14196",
       "bytes": 125
     },
     {
       "path": "README.md",
-      "sha256": "6ee586a651f77f32710bd178336576f351656426dcbf7fdebe276d1836f383c4",
-      "bytes": 1162
+      "sha256": "cab6eaf2db57e2ddb5e0be9d32230eaca76a9525989a67f1e1346f5ee8b31283",
+      "bytes": 1250
     },
     {
       "path": "VERSIONS.json",
-      "sha256": "f2c4e787e8e86ee4aab2eb4b2faa0da15996496bc6fd69eaea3232d69cc86eaa",
-      "bytes": 3832
+      "sha256": "549db8e5d336fc053929209d5485e3fbd843fdade331fd5a46f24d8113941a4c",
+      "bytes": 4259
     },
     {
       "path": "design/omb003a/BOT_IDENTITY_AUTHORIZATION.md",
@@ -353,7 +353,7 @@
     },
     {
       "path": "pyproject.toml",
-      "sha256": "30ddfa773c678cc902a7dc8be8dd6fed2c841557b9fe104a1bf6090c6b354bc1",
+      "sha256": "d7e3de977593ee773f0fe4b556d64550a8bb330c332e6f7423da85023820be78",
       "bytes": 321
     },
     {
@@ -368,8 +368,8 @@
     },
     {
       "path": "scripts/mcp_smoke.py",
-      "sha256": "1afb07acc2accae4f91793babc158a2be53297b89f6c776dc2d9cc9cd3b6d8fc",
-      "bytes": 5422
+      "sha256": "fa3f1832b2d9b83abaf14fb75cea8e3593ba8d1e74b3c7e1d97971f867ad49f0",
+      "bytes": 5874
     },
     {
       "path": "scripts/run_tests.py",
@@ -382,9 +382,19 @@
       "bytes": 340
     },
     {
+      "path": "src/aars_task_manager/approval_history.py",
+      "sha256": "794d99190a74c2cedda8a667cefedf0614b44b8c5a05a20d7aa59b20f0b63504",
+      "bytes": 5109
+    },
+    {
       "path": "src/aars_task_manager/approval_receipts.py",
-      "sha256": "6dbcdd14f61487c691dcf67ac606fd4e55492a46d15d3c52f838560fa11aa2be",
-      "bytes": 10043
+      "sha256": "b7bea21543684854a165334be14879af88830eb5274c412b526c18c819811fec",
+      "bytes": 10437
+    },
+    {
+      "path": "src/aars_task_manager/approval_transactions.py",
+      "sha256": "2a18b2a261c891cee24b8685846ae5351fec084de6f675edd937bd3c3c98f77a",
+      "bytes": 8219
     },
     {
       "path": "src/aars_task_manager/domain.py",
@@ -403,18 +413,18 @@
     },
     {
       "path": "src/aars_task_manager/mcp_server.py",
-      "sha256": "e5438837fe849c9c3c8b82a915ee2707817380ded920c65315e69d29988a7c1a",
+      "sha256": "b630864f45f1e9da732f0d5aeeae4ed7160354791dc874241da42fdc273b1a8b",
       "bytes": 8386
     },
     {
       "path": "src/aars_task_manager/migration.py",
-      "sha256": "82f2e24d51cdbd2141d30105f45226be3274f87a92056bb74cd4439901e6f966",
-      "bytes": 4421
+      "sha256": "da404d0a79d7296c2a84791b8e7b7de68d62bb6baaa8911209d1b3b2e9541bcd",
+      "bytes": 4746
     },
     {
       "path": "src/aars_task_manager/reviews.py",
-      "sha256": "ef8c1686cbecb4c88040d2f288e07e50a87860ff3b86b99f76392f1139ab0fda",
-      "bytes": 7991
+      "sha256": "30d3baf8419ecb4cdd01cc2a22f4adc7695ffd4db64cb7de1eea7f8b45fa0161",
+      "bytes": 8302
     },
     {
       "path": "src/aars_task_manager/runtime.py",
@@ -428,8 +438,8 @@
     },
     {
       "path": "src/aars_task_manager/storage.py",
-      "sha256": "832270bac305431d3acbca1eaed6aa8247bf8e3f7a7d272d0d71fcde13bab645",
-      "bytes": 24371
+      "sha256": "128773a51de76f817bc2c78d1dfdbf7ed45a95da675280adb651d4dc4c6088f0",
+      "bytes": 24562
     },
     {
       "path": "tests/__init__.py",
@@ -452,9 +462,14 @@
       "bytes": 9674
     },
     {
+      "path": "tests/test_approval_transactions.py",
+      "sha256": "45dad5eb05d18ee2f538c639d61679a095b93541a97f2339c6a6e60693e8dd9a",
+      "bytes": 13963
+    },
+    {
       "path": "tests/test_evidence_integration.py",
-      "sha256": "3b6a9e2b04624d9e2675e33e597a3d2d7b2856bb879dd72d3f036991b1f9992d",
-      "bytes": 13318
+      "sha256": "387ece6e22a446b1339b4f8d9c1c94a8185d7019d660073f1057f6b3dfe9f0ff",
+      "bytes": 13423
     },
     {
       "path": "tests/test_manager_paging.py",

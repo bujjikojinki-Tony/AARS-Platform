@@ -15,10 +15,10 @@ import time
 
 from .domain import Task, canonical, hash_json, new_id, require_id, text, ZERO_HASH, parse_time
 from .errors import TaskError
-from . import evidence, reviews
+from . import approval_history, evidence, reviews
 
 APPLICATION_ID = 0x4F4D4233
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 CAPABILITIES = frozenset({'task.create','task.read','task.update','task.work','evidence.link','review.request'})
 SCHEMA = '''
 CREATE TABLE meta(key TEXT PRIMARY KEY,value TEXT NOT NULL);
@@ -38,10 +38,11 @@ def schema_hash(db):
     rows=db.execute("SELECT type,name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type,name").fetchall()
     return hash_json([tuple(r) for r in rows])
 
-@lru_cache(maxsize=3)
+@lru_cache(maxsize=4)
 def expected_schema_hash(version=SCHEMA_VERSION):
     with closing(sqlite3.connect(':memory:')) as db:
-        db.executescript(SCHEMA + (evidence.SCHEMA if version >= 2 else '') + (reviews.SCHEMA if version >= 3 else ''))
+        db.executescript(SCHEMA + (evidence.SCHEMA if version >= 2 else '') + (reviews.SCHEMA if version >= 3 else '')
+                         + (approval_history.SCHEMA if version >= 4 else ''))
         return schema_hash(db)
 
 @dataclass(frozen=True)
@@ -109,7 +110,7 @@ class Repository:
         os.close(fd)
         with closing(repo._connection(initializing=True)) as db:
             try:
-                db.executescript('BEGIN IMMEDIATE;' + SCHEMA + evidence.SCHEMA + reviews.SCHEMA)
+                db.executescript('BEGIN IMMEDIATE;' + SCHEMA + evidence.SCHEMA + reviews.SCHEMA + approval_history.SCHEMA)
                 db.execute(f'PRAGMA application_id={APPLICATION_ID}');db.execute(f'PRAGMA user_version={SCHEMA_VERSION}')
                 db.execute('INSERT INTO workspaces VALUES (?,?,?,?,?,?)',(workspace_id,new_id('db'),'LOCAL_SYNTHETIC',1,0,created_at))
                 service=new_id('principal')
@@ -248,7 +249,7 @@ class Repository:
                 if e['event_hash']!=hash_json(body) or ev['event_hash']!=e['event_hash'] or e['prev_hash']!=prev_hash or e['from_version']!=i-1 or e['to_version']!=i or e['seq']!=i or ev['seq']!=i or rev['version']!=i or e['event_id']!=ev['event_id'] or rev['event_id']!=ev['event_id']:raise TaskError('INTEGRITY_FAILURE')
                 if e['task_id']!=task.task_id or old.task_id!=task.task_id or old.workspace_id!=task.workspace_id or old.version!=i or e['from_state']!=prev_state or e['to_state']!=old.state.value or e['at']!=old.updated_at or hash_json(e['payload'])!=e['payload_hash'] or hash_json(snapshot)!=rev['snapshot_hash']:raise TaskError('INTEGRITY_FAILURE')
                 require_id(e['event_id'],'event')
-                if e['actor_principal_id'] not in actors:raise TaskError('INTEGRITY_FAILURE')
+                if e['event_type'] != approval_history.EVENT_TYPE and e['actor_principal_id'] not in actors:raise TaskError('INTEGRITY_FAILURE')
                 if prior_task is None:
                     if old.version!=1 or old.definition_revision!=1 or old.state.value!='DRAFT':raise TaskError('INTEGRITY_FAILURE')
                 else:
@@ -261,7 +262,7 @@ class Repository:
                 if prev_time is not None and parse_time(old.updated_at)<parse_time(prev_time):raise TaskError('INTEGRITY_FAILURE')
                 prev_time=old.updated_at;prev_state=old.state.value;prev_hash=e['event_hash']
             evidence.verify_history(db, task, decoded_events, decoded_revisions)
-            reviews.verify_history(db, task, decoded_events)
+            reviews.verify_history(db, task, decoded_events, decoded_revisions)
             active=db.execute("SELECT * FROM attempts WHERE workspace_id=? AND task_id=? AND status IN ('ACQUIRED','RUNNING')",(task.workspace_id,task.task_id)).fetchall()
             if task.state.value=='RUNNING':
                 if len(active)!=1:raise TaskError('INTEGRITY_FAILURE')

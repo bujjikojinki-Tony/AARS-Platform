@@ -1,4 +1,4 @@
-"""Offline B1 or C2 to D3 migration into a new private database file."""
+"""Offline B1, C2 or D3 to D4 migration into a new private database file."""
 from contextlib import closing
 import fcntl
 import os
@@ -8,7 +8,7 @@ import stat
 import time
 from tempfile import TemporaryDirectory
 
-from . import evidence, reviews
+from . import approval_history, evidence, reviews
 from .domain import new_id
 from .errors import TaskError
 from .storage import APPLICATION_ID, SCHEMA_VERSION, Repository, expected_schema_hash, schema_hash
@@ -19,6 +19,9 @@ def migrate_b1_copy(source, target, *, source_root, target_root, protected_roots
 
 def migrate_c2_copy(source, target, *, source_root, target_root, protected_roots):
     return _migrate(source, target, source_root=source_root, target_root=target_root, protected_roots=protected_roots, version=2)
+
+def migrate_d3_copy(source, target, *, source_root, target_root, protected_roots):
+    return _migrate(source, target, source_root=source_root, target_root=target_root, protected_roots=protected_roots, version=3)
 
 def _migrate(source, target, *, source_root, target_root, protected_roots, version):
     source = Path(source)
@@ -60,7 +63,8 @@ def _migrate(source, target, *, source_root, target_root, protected_roots, versi
                             raise TaskError('DB_BUSY', retryable=True)
                     src.backup(dst, pages=128, progress=check_deadline, sleep=.05)
                     dst.execute('PRAGMA foreign_keys=ON')
-                    dst.executescript('BEGIN IMMEDIATE;' + (evidence.SCHEMA if version == 1 else '') + reviews.SCHEMA)
+                    dst.executescript('BEGIN IMMEDIATE;' + (evidence.SCHEMA if version == 1 else '')
+                                      + (reviews.SCHEMA if version < 3 else '') + approval_history.SCHEMA)
                     dst.execute(f'PRAGMA user_version={SCHEMA_VERSION}')
                     dst.execute("UPDATE meta SET value=? WHERE key='schema_hash'", (expected_schema_hash(),))
                     dst.execute("UPDATE meta SET value='' WHERE key='active_boot'")

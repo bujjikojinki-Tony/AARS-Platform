@@ -163,12 +163,14 @@ def verify_result_receipt(raw: bytes, *, current_subject: ResultSubject,
                           boot_id: str, now: datetime, monotonic_now: float) -> VerifiedReceipt:
     """Verify format, live-context binding, expiry and signature.
 
-    A successful result is input to a future transactional decision. The caller
-    must supply live host state and a still-pending challenge, then consume that
-    challenge with the decision in the same transaction. No receipt is accepted
-    by a TaskManager or MCP endpoint in this implementation.
+    This function has no side effects. The isolated transaction store applies
+    verified receipts to a candidate database. TaskManager and MCP accept none.
     """
-    receipt = _parse(raw)
+    return _verify_parsed_result(_parse(raw), current_subject=current_subject, challenge=challenge,
+                                 pinned_key=pinned_key, boot_id=boot_id, now=now, monotonic_now=monotonic_now)
+
+
+def _verify_parsed_result(receipt, *, current_subject, challenge, pinned_key, boot_id, now, monotonic_now):
     if receipt['decision'] not in RESULT_DECISIONS or receipt['control_action'] is not None:
         raise TaskError('APPROVAL_DECISION_UNSUPPORTED')
     if receipt['purpose'] != 'LOCAL_SYNTHETIC_VALIDATION':
@@ -184,6 +186,12 @@ def verify_result_receipt(raw: bytes, *, current_subject: ResultSubject,
             or not hmac.compare_digest(_sha256(bytes.fromhex(receipt['nonce'])).encode(), challenge.nonce_hash.encode())):
         raise TaskError('APPROVAL_CHALLENGE_MISMATCH')
     _verify_deadline(challenge, now, monotonic_now)
+    return _verify_signature(receipt, pinned_key)
+
+
+def _verify_signature(receipt, pinned_key):
+    if receipt['key_id'] != pinned_key.key_id:
+        raise TaskError('APPROVAL_KEY_UNTRUSTED')
     key = pinned_key.load()
     signed = _signed_bytes(receipt)
     try:
@@ -203,34 +211,35 @@ def verify_result_receipt(raw: bytes, *, current_subject: ResultSubject,
 
 def result_subject_from_host(repository, task_id, *, boot_id, now):
     """Read a pending verified result for receipt integration. No challenge is issued."""
+    return repository.read(
+        lambda db: _result_in_transaction(repository, db, task_id, boot_id=boot_id, now=now)[1])
+
+
+def _result_in_transaction(repository, db, task_id, *, boot_id, now):
     require_id(task_id, 'task')
     at = stamp(now)
-
-    def read(db):
-        if repository.meta(db, 'active_boot') != boot_id:
-            raise TaskError('RUNTIME_INACTIVE')
-        repository.assert_runtime(boot_id)
-        workspace_id = repository.meta(db, 'workspace_id')
-        row = db.execute('SELECT * FROM tm_tasks WHERE workspace_id=? AND task_id=?',
-                         (workspace_id, task_id)).fetchone()
-        if row is None:
-            raise TaskError('REVIEW_STALE')
-        task = repository.verify_task(db, row)
-        if task.state.value != 'REVIEW_PENDING' or parse_time(at) < parse_time(task.updated_at):
-            raise TaskError('REVIEW_STALE')
-        review = reviews.current(db, task)
-        if review is None or review['subject_version'] != task.version or reviews.invalidation_reason(db, task, at):
-            raise TaskError('REVIEW_STALE')
-        db_instance = db.execute('SELECT db_instance_id FROM workspaces WHERE workspace_id=?',
-                                 (workspace_id,)).fetchone()[0]
-        review_instance = db.execute('SELECT db_instance_id FROM result_review_requests WHERE review_id=?',
-                                     (review['review_id'],)).fetchone()
-        if review_instance is None or review_instance[0] != db_instance:
-            raise TaskError('REVIEW_STALE')
-        return ResultSubject(workspace_id=workspace_id, db_instance_id=db_instance, task_id=task_id,
-            review_id=review['review_id'], subject_version=task.version,
-            definition_hash=review['definition_hash'], evidence_set_hash=review['evidence_set_hash'],
-            purpose=task.purpose, policy_version=review['policy_version'], binding_version=review['binding_version'],
-            authorization_scope_hash=review['authorization_scope_hash'], review_expires_at=review['expires_at'])
-
-    return repository.read(read)
+    if repository.meta(db, 'active_boot') != boot_id:
+        raise TaskError('RUNTIME_INACTIVE')
+    repository.assert_runtime(boot_id)
+    workspace_id = repository.meta(db, 'workspace_id')
+    row = db.execute('SELECT * FROM tm_tasks WHERE workspace_id=? AND task_id=?',
+                     (workspace_id, task_id)).fetchone()
+    if row is None:
+        raise TaskError('REVIEW_STALE')
+    task = repository.verify_task(db, row)
+    if task.state.value != 'REVIEW_PENDING' or parse_time(at) < parse_time(task.updated_at):
+        raise TaskError('REVIEW_STALE')
+    review = reviews.current(db, task)
+    if review is None or review['subject_version'] != task.version or reviews.invalidation_reason(db, task, at):
+        raise TaskError('REVIEW_STALE')
+    db_instance = db.execute('SELECT db_instance_id FROM workspaces WHERE workspace_id=?',
+                             (workspace_id,)).fetchone()[0]
+    review_instance = db.execute('SELECT db_instance_id FROM result_review_requests WHERE review_id=?',
+                                 (review['review_id'],)).fetchone()
+    if review_instance is None or review_instance[0] != db_instance:
+        raise TaskError('REVIEW_STALE')
+    return task, ResultSubject(workspace_id=workspace_id, db_instance_id=db_instance, task_id=task_id,
+        review_id=review['review_id'], subject_version=task.version,
+        definition_hash=review['definition_hash'], evidence_set_hash=review['evidence_set_hash'],
+        purpose=task.purpose, policy_version=review['policy_version'], binding_version=review['binding_version'],
+        authorization_scope_hash=review['authorization_scope_hash'], review_expires_at=review['expires_at'])
