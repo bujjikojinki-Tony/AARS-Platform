@@ -36,15 +36,20 @@ def setup(system, *, operator=None):
     return store, review, signer
 
 
+def challenge_fields(challenge, nonce):
+    fields = asdict(challenge.subject)
+    fields.pop('review_expires_at')
+    fields.update(domain=DOMAIN, decision=challenge.decision, control_action=None, reason='测试决定',
+                  nonce=nonce, issued_at=challenge.issued_at, expires_at=challenge.expires_at,
+                  key_id=challenge.key_id, algorithm='ECDSA_P256_SHA256_DER')
+    return fields
+
+
 def issue(store, review, signer, decision='APPROVE_RESULT'):
     idem = key()
     challenge, nonce = store.prepare(review['task_id'], expected_version=review['subject_version'],
                                     idempotency_key=idem, decision=decision)
-    fields = asdict(challenge.subject)
-    fields.pop('review_expires_at')
-    fields.update(domain=DOMAIN, decision=decision, control_action=None, reason='测试决定',
-                  nonce=nonce, issued_at=challenge.issued_at, expires_at=challenge.expires_at,
-                  key_id=challenge.key_id, algorithm='ECDSA_P256_SHA256_DER')
+    fields = challenge_fields(challenge, nonce)
     return idem, fields, fixture_signature(signer, fields)
 
 
@@ -257,7 +262,7 @@ def test_prepare_rejects_wrong_version_and_keeps_existing_challenge(system):
         store.prepare(review['task_id'], expected_version=review['subject_version'] + 1,
                       idempotency_key=key(), decision='APPROVE_RESULT')
     idem, _, _ = issue(store, review, signer)
-    with pytest.raises(TaskError, match='^APPROVAL_CHALLENGE_EXISTS$'):
+    with pytest.raises(TaskError, match='^IDEMPOTENCY_CONFLICT$'):
         store.prepare(review['task_id'], expected_version=review['subject_version'],
                       idempotency_key=idem, decision='REJECT_RESULT')
     assert counts(system['repo'])[:2] == (1, 0)

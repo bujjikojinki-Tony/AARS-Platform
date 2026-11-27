@@ -1,6 +1,6 @@
 # AARS OMB
 
-Current snapshot `omb-003d-b6`. Transactional result decisions and one-time challenge consumption.
+Current snapshot `omb-003d-b7`. Same-session output-loss recovery for approval challenges.
 
 | Version | Scope | Local regression |
 |---|---|---:|
@@ -12,6 +12,7 @@ Current snapshot `omb-003d-b6`. Transactional result decisions and one-time chal
 | `omb-003d-b4` | Local MCP framing hardened; approval platform blocked | 194 |
 | `omb-003d-b5` | Context-bound approval receipt validation and native interoperability | 237 |
 | `omb-003d-b6` | Transactional result decisions and one-time challenge consumption | 260 |
+| `omb-003d-b7` | Same-session output-loss recovery for approval challenges | 278 |
 
 Run from the `omb/` directory with Python 3.13.
 

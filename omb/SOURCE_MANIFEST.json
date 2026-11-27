@@ -1,5 +1,5 @@
 {
-  "version": "omb-003d-b6",
+  "version": "omb-003d-b7",
   "files": [
     {
       "path": ".gitignore",
@@ -8,18 +8,18 @@
     },
     {
       "path": "AUTHORIZATION.json",
-      "sha256": "08458b2e3cdb3bdf6528c76742dc79a775632b8ed19fd16a6ec26339beb14196",
+      "sha256": "697a769b87e83bd6747a4e9de612d41cf24a36c16ebd767afc54121cce4ce548",
       "bytes": 125
     },
     {
       "path": "README.md",
-      "sha256": "cab6eaf2db57e2ddb5e0be9d32230eaca76a9525989a67f1e1346f5ee8b31283",
-      "bytes": 1250
+      "sha256": "a01de04f6ebe67d8676b8a03067614af3412f601f692b1d10dd7fd6383f75d7a",
+      "bytes": 1326
     },
     {
       "path": "VERSIONS.json",
-      "sha256": "549db8e5d336fc053929209d5485e3fbd843fdade331fd5a46f24d8113941a4c",
-      "bytes": 4259
+      "sha256": "5297f56b4d11a29c3279041b39979e85cd4d31a9ecb4a4d53aa5c69675fbb1f1",
+      "bytes": 4664
     },
     {
       "path": "design/omb003a/BOT_IDENTITY_AUTHORIZATION.md",
@@ -353,7 +353,7 @@
     },
     {
       "path": "pyproject.toml",
-      "sha256": "d7e3de977593ee773f0fe4b556d64550a8bb330c332e6f7423da85023820be78",
+      "sha256": "b2379f0136c022cfbc85cdf126e3f5d9b34c03670a784d01f62efa4557fe173c",
       "bytes": 321
     },
     {
@@ -393,8 +393,8 @@
     },
     {
       "path": "src/aars_task_manager/approval_transactions.py",
-      "sha256": "2a18b2a261c891cee24b8685846ae5351fec084de6f675edd937bd3c3c98f77a",
-      "bytes": 8219
+      "sha256": "d3bf8d6329e19c3637b3c2f880b977861d1826199e1d5e9e17aecc16a367275c",
+      "bytes": 10900
     },
     {
       "path": "src/aars_task_manager/domain.py",
@@ -413,7 +413,7 @@
     },
     {
       "path": "src/aars_task_manager/mcp_server.py",
-      "sha256": "b630864f45f1e9da732f0d5aeeae4ed7160354791dc874241da42fdc273b1a8b",
+      "sha256": "2c0ecc181212216e84ad0d15fee07a775655109ec144fc845b41c14ddf6e0e81",
       "bytes": 8386
     },
     {
@@ -457,14 +457,19 @@
       "bytes": 3286
     },
     {
+      "path": "tests/test_approval_prepare_recovery.py",
+      "sha256": "8caa23bc2b063ebdcafd8d305384031a35dc9c7cef746928922a28aca38c2432",
+      "bytes": 7003
+    },
+    {
       "path": "tests/test_approval_receipts.py",
       "sha256": "b21037f5557f6f82f739f0acdecf04013ca10eb68c320726fc353340f1b15de2",
       "bytes": 9674
     },
     {
       "path": "tests/test_approval_transactions.py",
-      "sha256": "45dad5eb05d18ee2f538c639d61679a095b93541a97f2339c6a6e60693e8dd9a",
-      "bytes": 13963
+      "sha256": "a99194d72b6cf433b3d79e81b04aa8d786d7df1100e1921e3a09d1130e48bd5a",
+      "bytes": 14076
     },
     {
       "path": "tests/test_evidence_integration.py",

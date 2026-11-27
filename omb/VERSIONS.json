@@ -1,11 +1,11 @@
 {
   "current": {
-    "version": "omb-003d-b6",
-    "local_source_commit": "5cce6b668cad779949fe8f597b1fccad004c266f",
-    "source_archive": "AARS_OMB_003D_APPROVAL_TRANSACTIONS_REVIEW.zip",
-    "source_archive_sha256": "a336d96955e976434246d266d293419a43fdabf0d9e65a5254b9b49b9f6c6371",
-    "status": "Transactional result decisions and one-time challenge consumption",
-    "original_local_automated_tests_passed": 260
+    "version": "omb-003d-b7",
+    "local_source_commit": "ceecc7766fbf775cca65c9084320850dd9def976",
+    "source_archive": "AARS_OMB_003D_CHALLENGE_RECOVERY_REVIEW.zip",
+    "source_archive_sha256": "67491c2a1f1c3040796ba5ff09e3e9f054da1949aa6e05f4a99611e4c497352b",
+    "status": "Same-session output-loss recovery for approval challenges",
+    "original_local_automated_tests_passed": 278
   },
   "history": [
     {
@@ -71,6 +71,14 @@
       "source_archive_sha256": "a336d96955e976434246d266d293419a43fdabf0d9e65a5254b9b49b9f6c6371",
       "status": "Transactional result decisions and one-time challenge consumption",
       "original_local_automated_tests_passed": 260
+    },
+    {
+      "version": "omb-003d-b7",
+      "local_source_commit": "ceecc7766fbf775cca65c9084320850dd9def976",
+      "source_archive": "AARS_OMB_003D_CHALLENGE_RECOVERY_REVIEW.zip",
+      "source_archive_sha256": "67491c2a1f1c3040796ba5ff09e3e9f054da1949aa6e05f4a99611e4c497352b",
+      "status": "Same-session output-loss recovery for approval challenges",
+      "original_local_automated_tests_passed": 278
     }
   ],
   "original_frozen_historical_commit": null,

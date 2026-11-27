@@ -22,7 +22,7 @@ from .service import TaskManager
 from .storage import Repository
 
 ROOT = Path(__file__).resolve().parents[2]
-VERSION = '0.3.0b6'
+VERSION = '0.3.0b7'
 MAX_WIRE_BYTES = 64 * 1024
 OPERATIONS = {
     'aars_task_create_v1': ('create', 'Create a task draft within the assigned workspace.'),
