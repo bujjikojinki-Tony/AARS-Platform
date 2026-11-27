@@ -1,5 +1,5 @@
 {
-  "version": "omb-003d-b9",
+  "version": "omb-003d-f02-platform",
   "files": [
     {
       "path": ".gitignore",
@@ -8,18 +8,18 @@
     },
     {
       "path": "AUTHORIZATION.json",
-      "sha256": "74d971461ce81c31d8ac4c23a74cca63830a8079d031be8e70f822944844067c",
-      "bytes": 125
+      "sha256": "4685ca649d8cfce453a367d2a04259d47009e25174982373c7cee1c554d768cb",
+      "bytes": 135
     },
     {
       "path": "README.md",
-      "sha256": "1b12abbba9e9299a5d5e67d33aa8c55b2f8c151fde8fc35c3fb6dc961b4332c5",
-      "bytes": 1493
+      "sha256": "5f526eace4be57259da83cac73de9635cbeb008ac200a2b4f704e45ccdf61dcc",
+      "bytes": 1603
     },
     {
       "path": "VERSIONS.json",
-      "sha256": "98a1cf0ca8164cd4bc389090c6bdef682b32480358048057ca0b85a6f33b8762",
-      "bytes": 5487
+      "sha256": "a2df7280251351e7f54dbfbe029491d3ad6db5d308d6d943ff60a05b6def5759",
+      "bytes": 5924
     },
     {
       "path": "design/omb003a/BOT_IDENTITY_AUTHORIZATION.md",
@@ -362,6 +362,11 @@
       "bytes": 961
     },
     {
+      "path": "scripts/check_approval_presence.swift",
+      "sha256": "df393a2632edb81e8ea1f0de1ecf49e0577a2cc2bc139bacef86a917a0461ea4",
+      "bytes": 7962
+    },
+    {
       "path": "scripts/check_receipt_interop.swift",
       "sha256": "da73b65861e7d7f581ace8865aeff86d5da91e6d3c8eeef59a40df6ded3e08e6",
       "bytes": 1704
@@ -370,6 +375,11 @@
       "path": "scripts/mcp_smoke.py",
       "sha256": "696e968b06a57344f6a1374d230d6fe265470637c461e6d30c049bf06be6c0da",
       "bytes": 5947
+    },
+    {
+      "path": "scripts/run_approval_presence_probe.sh",
+      "sha256": "8f42e359fab57441678ef8b4016c9e0eb3f6de0722ad57af6ee6a44498f1de26",
+      "bytes": 435
     },
     {
       "path": "scripts/run_tests.py",

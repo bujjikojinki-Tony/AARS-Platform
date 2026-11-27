@@ -1,10 +1,10 @@
 {
   "current": {
-    "version": "omb-003d-b9",
-    "local_source_commit": "1e12bee8351bf46f4ea7fe122d171e3e6e40a1c4",
-    "source_archive": "AARS_OMB_003D_STORAGE_VERSION_REVIEW.zip",
-    "source_archive_sha256": "5f999832c031e9a29142cbbc80556b824335397ad0fc96bb2dd4067ad390975f",
-    "status": "D4 to D5 offline-copy migration and rollback verification",
+    "version": "omb-003d-f02-platform",
+    "local_source_commit": "67b951193edff21a6d11770eb0cb8e4c00196eea",
+    "source_archive": "AARS_OMB_003D_F02_PLATFORM_EVIDENCE.zip",
+    "source_archive_sha256": "3a1bbcb983b72dd8b2803d06ca18dcda4148bf1f0d37cc9f029329d1d835fdf3",
+    "status": "Native human-presence diagnostic with a locked approval gate",
     "original_local_automated_tests_passed": 298
   },
   "history": [
@@ -94,6 +94,14 @@
       "source_archive": "AARS_OMB_003D_STORAGE_VERSION_REVIEW.zip",
       "source_archive_sha256": "5f999832c031e9a29142cbbc80556b824335397ad0fc96bb2dd4067ad390975f",
       "status": "D4 to D5 offline-copy migration and rollback verification",
+      "original_local_automated_tests_passed": 298
+    },
+    {
+      "version": "omb-003d-f02-platform",
+      "local_source_commit": "67b951193edff21a6d11770eb0cb8e4c00196eea",
+      "source_archive": "AARS_OMB_003D_F02_PLATFORM_EVIDENCE.zip",
+      "source_archive_sha256": "3a1bbcb983b72dd8b2803d06ca18dcda4148bf1f0d37cc9f029329d1d835fdf3",
+      "status": "Native human-presence diagnostic with a locked approval gate",
       "original_local_automated_tests_passed": 298
     }
   ],
