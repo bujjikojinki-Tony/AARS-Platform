@@ -1,11 +1,11 @@
 {
   "current": {
-    "version": "omb-003d-b8",
-    "local_source_commit": "7b518f6d4a81ad3da03a5912745086cbba3c6888",
-    "source_archive": "AARS_OMB_003D_RESULT_USABILITY_REVIEW.zip",
-    "source_archive_sha256": "49d9909ca9c79f5500e5f8d767d9520c36824020983dceb26a39340ca0019256",
-    "status": "Evidence authorization expiry and result usability audit",
-    "original_local_automated_tests_passed": 289
+    "version": "omb-003d-b9",
+    "local_source_commit": "1e12bee8351bf46f4ea7fe122d171e3e6e40a1c4",
+    "source_archive": "AARS_OMB_003D_STORAGE_VERSION_REVIEW.zip",
+    "source_archive_sha256": "5f999832c031e9a29142cbbc80556b824335397ad0fc96bb2dd4067ad390975f",
+    "status": "D4 to D5 offline-copy migration and rollback verification",
+    "original_local_automated_tests_passed": 298
   },
   "history": [
     {
@@ -87,6 +87,14 @@
       "source_archive_sha256": "49d9909ca9c79f5500e5f8d767d9520c36824020983dceb26a39340ca0019256",
       "status": "Evidence authorization expiry and result usability audit",
       "original_local_automated_tests_passed": 289
+    },
+    {
+      "version": "omb-003d-b9",
+      "local_source_commit": "1e12bee8351bf46f4ea7fe122d171e3e6e40a1c4",
+      "source_archive": "AARS_OMB_003D_STORAGE_VERSION_REVIEW.zip",
+      "source_archive_sha256": "5f999832c031e9a29142cbbc80556b824335397ad0fc96bb2dd4067ad390975f",
+      "status": "D4 to D5 offline-copy migration and rollback verification",
+      "original_local_automated_tests_passed": 298
     }
   ],
   "original_frozen_historical_commit": null,

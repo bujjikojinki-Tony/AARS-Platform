@@ -1,4 +1,4 @@
-"""Offline B1, C2 or D3 to D4 migration into a new private database file."""
+"""Offline B1, C2, D3 or D4 to D5 migration into a new private database file."""
 from contextlib import closing
 import fcntl
 import os
@@ -11,7 +11,7 @@ from tempfile import TemporaryDirectory
 from . import approval_history, evidence, reviews
 from .domain import new_id
 from .errors import TaskError
-from .storage import APPLICATION_ID, SCHEMA_VERSION, Repository, expected_schema_hash, schema_hash
+from .storage import APPLICATION_ID, SCHEMA_VERSION, Repository, checked_metadata, expected_schema_hash, schema_hash
 
 
 def migrate_b1_copy(source, target, *, source_root, target_root, protected_roots):
@@ -22,6 +22,10 @@ def migrate_c2_copy(source, target, *, source_root, target_root, protected_roots
 
 def migrate_d3_copy(source, target, *, source_root, target_root, protected_roots):
     return _migrate(source, target, source_root=source_root, target_root=target_root, protected_roots=protected_roots, version=3)
+
+def migrate_d4_copy(source, target, *, source_root, target_root, protected_roots):
+    """Upgrade the validated D4 history in an independent, inactive D5 copy."""
+    return _migrate(source, target, source_root=source_root, target_root=target_root, protected_roots=protected_roots, version=4)
 
 def _migrate(source, target, *, source_root, target_root, protected_roots, version):
     source = Path(source)
@@ -54,8 +58,7 @@ def _migrate(source, target, *, source_root, target_root, protected_roots, versi
                     or src.execute('PRAGMA user_version').fetchone()[0] != version
                     or schema_hash(src) != expected_schema_hash(version)):
                     raise TaskError('SCHEMA_VERSION_MISMATCH')
-                if src.execute("SELECT value FROM meta WHERE key='schema_hash'").fetchone() != (expected_schema_hash(version),):
-                    raise TaskError('INTEGRITY_FAILURE')
+                checked_metadata(src, version=version)
                 with closing(sqlite3.connect(destination, isolation_level=None)) as dst:
                     deadline = time.monotonic() + 5
                     def check_deadline(status, remaining, total):
@@ -64,7 +67,8 @@ def _migrate(source, target, *, source_root, target_root, protected_roots, versi
                     src.backup(dst, pages=128, progress=check_deadline, sleep=.05)
                     dst.execute('PRAGMA foreign_keys=ON')
                     dst.executescript('BEGIN IMMEDIATE;' + (evidence.SCHEMA if version == 1 else '')
-                                      + (reviews.SCHEMA if version < 3 else '') + approval_history.SCHEMA)
+                                      + (reviews.SCHEMA if version < 3 else '')
+                                      + (approval_history.SCHEMA if version < 4 else ''))
                     dst.execute(f'PRAGMA user_version={SCHEMA_VERSION}')
                     dst.execute("UPDATE meta SET value=? WHERE key='schema_hash'", (expected_schema_hash(),))
                     dst.execute("UPDATE meta SET value='' WHERE key='active_boot'")

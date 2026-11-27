@@ -9,6 +9,7 @@ import json
 import fcntl
 import os
 import random
+import re
 import sqlite3
 import stat
 import time
@@ -18,7 +19,8 @@ from .errors import TaskError
 from . import approval_history, evidence, reviews
 
 APPLICATION_ID = 0x4F4D4233
-SCHEMA_VERSION = 4
+# D5 retains the D4 tables and requires a reader that verifies TASK_USABILITY_CHANGED.
+SCHEMA_VERSION = 5
 CAPABILITIES = frozenset({'task.create','task.read','task.update','task.work','evidence.link','review.request'})
 SCHEMA = '''
 CREATE TABLE meta(key TEXT PRIMARY KEY,value TEXT NOT NULL);
@@ -38,12 +40,32 @@ def schema_hash(db):
     rows=db.execute("SELECT type,name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type,name").fetchall()
     return hash_json([tuple(r) for r in rows])
 
-@lru_cache(maxsize=4)
+@lru_cache(maxsize=5)
 def expected_schema_hash(version=SCHEMA_VERSION):
     with closing(sqlite3.connect(':memory:')) as db:
         db.executescript(SCHEMA + (evidence.SCHEMA if version >= 2 else '') + (reviews.SCHEMA if version >= 3 else '')
                          + (approval_history.SCHEMA if version >= 4 else ''))
         return schema_hash(db)
+
+def checked_metadata(db, *, version=SCHEMA_VERSION):
+    meta = dict(db.execute('SELECT key,value FROM meta').fetchall())
+    if (set(meta) != {'workspace_id', 'service_principal', 'active_boot', 'cursor_key', 'schema_hash'}
+        or meta['schema_hash'] != expected_schema_hash(version)
+        or not isinstance(meta['cursor_key'], str) or not re.fullmatch('[0-9a-f]{64}', meta['cursor_key'])):
+        raise TaskError('INTEGRITY_FAILURE')
+    workspaces = db.execute('SELECT workspace_id,db_instance_id FROM workspaces').fetchall()
+    if len(workspaces) != 1 or workspaces[0][0] != meta['workspace_id']:
+        raise TaskError('INTEGRITY_FAILURE')
+    try:
+        require_id(meta['workspace_id'], 'workspace')
+        require_id(meta['service_principal'], 'principal')
+        require_id(workspaces[0][1], 'db')
+        if meta['active_boot'] != '':
+            require_id(meta['active_boot'], 'boot')
+    except TaskError:
+        raise TaskError('INTEGRITY_FAILURE') from None
+    return meta
+
 
 @dataclass(frozen=True)
 class Binding:
@@ -298,15 +320,7 @@ class Repository:
     def check_integrity(self):
         def check(db):
             if db.execute('PRAGMA quick_check').fetchone()[0]!='ok' or db.execute('PRAGMA foreign_key_check').fetchall():raise TaskError('INTEGRITY_FAILURE')
-            meta=dict(db.execute('SELECT key,value FROM meta').fetchall())
-            if set(meta)!={'workspace_id','service_principal','active_boot','cursor_key','schema_hash'} or meta['schema_hash']!=expected_schema_hash():raise TaskError('INTEGRITY_FAILURE')
-            import re
-            if not re.fullmatch('[0-9a-f]{64}',meta['cursor_key']):raise TaskError('INTEGRITY_FAILURE')
-            require_id(meta['workspace_id'],'workspace');require_id(meta['service_principal'],'principal')
-            if meta['active_boot']:require_id(meta['active_boot'],'boot')
-            workspaces=db.execute('SELECT * FROM workspaces').fetchall()
-            if len(workspaces)!=1 or workspaces[0]['workspace_id']!=meta['workspace_id']:raise TaskError('INTEGRITY_FAILURE')
-            require_id(workspaces[0]['db_instance_id'],'db')
+            meta = checked_metadata(db)
             service=db.execute("SELECT * FROM principals WHERE workspace_id=? AND principal_id=? AND kind='SERVICE' AND active=1",(meta['workspace_id'],meta['service_principal'])).fetchone()
             if service is None:raise TaskError('INTEGRITY_FAILURE')
             graph=evidence.verified_graph(db, meta['workspace_id'])

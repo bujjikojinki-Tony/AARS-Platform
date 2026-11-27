@@ -1,6 +1,6 @@
 [project]
 name = "aars-task-manager"
-version = "0.3.0b8"
+version = "0.3.0b9"
 requires-python = ">=3.13,<3.14"
 description = "OMB-003D review request gate and local MCP transport"
 

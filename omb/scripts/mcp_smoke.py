@@ -15,7 +15,7 @@ from mcp.client import ClientSession
 from mcp.client.stdio import StdioServerParameters, stdio_client
 
 from aars_task_manager import TaskRuntime
-from aars_task_manager.migration import migrate_c2_copy, migrate_d3_copy
+from aars_task_manager.migration import migrate_c2_copy, migrate_d3_copy, migrate_d4_copy
 from aars_task_manager.storage import SCHEMA_VERSION
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -77,14 +77,15 @@ async def sdk_exercise(command, env):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('offline_source', type=Path)
-    parser.add_argument('--source-schema', type=int, choices=(2, 3), default=2)
+    migrations = {2: migrate_c2_copy, 3: migrate_d3_copy, 4: migrate_d4_copy}
+    parser.add_argument('--source-schema', type=int, choices=tuple(migrations), default=2)
     args = parser.parse_args()
     source = args.offline_source.resolve(strict=True)
     before = hashlib.sha256(source.read_bytes()).hexdigest()
     base = ROOT/'.devdata';base.mkdir(mode=0o700,exist_ok=True)
     target = Path(tempfile.mkdtemp(prefix=f'd{SCHEMA_VERSION}-mcp-',dir=base))
     frozen_path = Path(json.loads((ROOT/'frozen_payload/RUNTIME_BINDING.json').read_text())['database_path'])
-    migrate = migrate_d3_copy if args.source_schema == 3 else migrate_c2_copy
+    migrate = migrations[args.source_schema]
     repo = migrate(source,target/'tasks.sqlite',source_root=source.parent,target_root=target,
                            protected_roots=(frozen_path.parents[1],ROOT/'frozen_payload',ROOT/'frozen_archive'))
     env = os.environ.copy()

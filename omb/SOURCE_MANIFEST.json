@@ -1,5 +1,5 @@
 {
-  "version": "omb-003d-b8",
+  "version": "omb-003d-b9",
   "files": [
     {
       "path": ".gitignore",
@@ -8,18 +8,18 @@
     },
     {
       "path": "AUTHORIZATION.json",
-      "sha256": "d90c1a89510529213ec2fb27433e3c74065ec857cf519b6a6e825e461f99772f",
+      "sha256": "74d971461ce81c31d8ac4c23a74cca63830a8079d031be8e70f822944844067c",
       "bytes": 125
     },
     {
       "path": "README.md",
-      "sha256": "0aa25345fbaa53bef9d1eeabe506ceb9215a053db703b6d1c0127b2ee0d1b88a",
-      "bytes": 1408
+      "sha256": "1b12abbba9e9299a5d5e67d33aa8c55b2f8c151fde8fc35c3fb6dc961b4332c5",
+      "bytes": 1493
     },
     {
       "path": "VERSIONS.json",
-      "sha256": "ff831027d1930818352f18635c2c88a1f66bd485430d496c32b37d0e3a13920e",
-      "bytes": 5074
+      "sha256": "98a1cf0ca8164cd4bc389090c6bdef682b32480358048057ca0b85a6f33b8762",
+      "bytes": 5487
     },
     {
       "path": "design/omb003a/BOT_IDENTITY_AUTHORIZATION.md",
@@ -353,7 +353,7 @@
     },
     {
       "path": "pyproject.toml",
-      "sha256": "f61522e7b99e3adee980e6331877710cc0ca5eb851ce818994c3dfbfe04242b0",
+      "sha256": "aab4fd09f7d0c9906d54863775c395125ff98f8b2cc4b5db1cf4c45fb315cb80",
       "bytes": 321
     },
     {
@@ -368,8 +368,8 @@
     },
     {
       "path": "scripts/mcp_smoke.py",
-      "sha256": "fa3f1832b2d9b83abaf14fb75cea8e3593ba8d1e74b3c7e1d97971f867ad49f0",
-      "bytes": 5874
+      "sha256": "696e968b06a57344f6a1374d230d6fe265470637c461e6d30c049bf06be6c0da",
+      "bytes": 5947
     },
     {
       "path": "scripts/run_tests.py",
@@ -413,13 +413,13 @@
     },
     {
       "path": "src/aars_task_manager/mcp_server.py",
-      "sha256": "4e3a7c2d4f1e6839702bcbbfdb743e1150e966251ff00977cf65b841db1f9752",
+      "sha256": "35b603024e0a8c6fd45afa80e3061d4a25fec53e101b450b100b4855d27d4384",
       "bytes": 8386
     },
     {
       "path": "src/aars_task_manager/migration.py",
-      "sha256": "da404d0a79d7296c2a84791b8e7b7de68d62bb6baaa8911209d1b3b2e9541bcd",
-      "bytes": 4746
+      "sha256": "a68b8fec8686034a2254d2ed3aac3c80f8d2bd76461cf3fd6834ca930707ddee",
+      "bytes": 4994
     },
     {
       "path": "src/aars_task_manager/reviews.py",
@@ -438,8 +438,8 @@
     },
     {
       "path": "src/aars_task_manager/storage.py",
-      "sha256": "128773a51de76f817bc2c78d1dfdbf7ed45a95da675280adb651d4dc4c6088f0",
-      "bytes": 24562
+      "sha256": "4454d4ed0a5cd938cd78297c3c012b7de165a402aff8c331f50ea13ddf6bec54",
+      "bytes": 24873
     },
     {
       "path": "tests/__init__.py",
@@ -475,6 +475,11 @@
       "path": "tests/test_approval_usability.py",
       "sha256": "ba2ed2a8b05e3b1c16235165e6ce911a59a0d493e74897350f243e774254914c",
       "bytes": 8868
+    },
+    {
+      "path": "tests/test_d4_migration.py",
+      "sha256": "6e2404960ecc0f941e5b70bd23798ddf227c28608f7acd23f57b9c28a5f8fd61",
+      "bytes": 6709
     },
     {
       "path": "tests/test_evidence_integration.py",
