@@ -8,7 +8,7 @@ from aars_task_manager import Repository,TaskManager,TaskRuntime,State
 from aars_task_manager.domain import new_id,stamp,hash_json
 
 class FakeClock:
-    def __init__(self):self.value=datetime(2026,11,26,tzinfo=timezone.utc)
+    def __init__(self):self.value=datetime(2026,11,26,12,tzinfo=timezone.utc)
     def now(self):return self.value
     def advance(self,seconds):self.value+=timedelta(seconds=seconds)
 

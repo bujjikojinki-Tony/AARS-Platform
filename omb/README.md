@@ -1,12 +1,13 @@
 # AARS OMB
 
-Current version `omb-003b`. Task Manager foundation code review.
+Current version `omb-003c`. Task events and synthetic Evidence integration code review.
 
 | Version | Local status | Original local tests |
 |---|---|---:|
 | `omb-002-fix` | Frozen for the local single-operator synthetic deployment | 32 |
 | `omb-003a` | Detailed design complete with accepted source registration exception | Design only |
 | `omb-003b` | Task Manager foundation code review | 159 |
+| `omb-003c` | Task events and synthetic Evidence integration code review | 175 |
 
 The source archive hashes and development commit identifiers are recorded in `VERSIONS.json`.
 OMB-002-FIX remains scoped to the local, single-operator synthetic deployment. The 003D human approval gate is `BLOCKED_APPROVAL_PLATFORM`.

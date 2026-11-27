@@ -1,0 +1,303 @@
+[
+  {
+    "object_id": "claim.6e1bf7de094d416bb2efaa297bbe5656",
+    "type": "claim",
+    "record": {
+      "created_at": "2026-11-26T08:01:27.342499+00:00",
+      "evidence_ids": [
+        "evidence.b4c0335c101f4d24b8f0be604fb028dc"
+      ],
+      "id": "claim.6e1bf7de094d416bb2efaa297bbe5656",
+      "provenance": {
+        "collected_at": "2026-11-26T08:01:27.342499+00:00",
+        "content_hash": "sha256:unavailable",
+        "parent_ids": [
+          "evidence.b4c0335c101f4d24b8f0be604fb028dc"
+        ],
+        "source_id": "omb-synthetic-fixture",
+        "source_type": "test_fixture",
+        "source_uri": null,
+        "source_version": "1.0.0"
+      },
+      "scope": {
+        "domain": "reference"
+      },
+      "semantic_type": "aars.any",
+      "spec_version": "1.0.0",
+      "statement": "Synthetic condition",
+      "status": "active",
+      "type": "claim"
+    },
+    "sha256": "1b97ff41de4e6d2fef367cf42b28f139a3b1ff77bb06a29615ec633c9519adaf"
+  },
+  {
+    "object_id": "decision.69ed1e626b1e45f3a15785fce03dcfb2",
+    "type": "decision",
+    "record": {
+      "claim_ids": [
+        "claim.6e1bf7de094d416bb2efaa297bbe5656"
+      ],
+      "confidence": 0.7,
+      "created_at": "2026-11-26T08:01:27.342563+00:00",
+      "id": "decision.69ed1e626b1e45f3a15785fce03dcfb2",
+      "level": "spot",
+      "posture": "wait",
+      "provenance": {
+        "collected_at": "2026-11-26T08:01:27.342563+00:00",
+        "content_hash": "sha256:unavailable",
+        "parent_ids": [
+          "claim.6e1bf7de094d416bb2efaa297bbe5656"
+        ],
+        "source_id": "omb-synthetic-fixture",
+        "source_type": "test_fixture",
+        "source_uri": null,
+        "source_version": "1.0.0"
+      },
+      "rationale": "Synthetic review only",
+      "semantic_type": "aars.any",
+      "spec_version": "1.0.0",
+      "status": "active",
+      "type": "decision"
+    },
+    "sha256": "d8453cc4096463b3949f01f2fe06dd2980308613c0b09e9e9fb45d1827ced36c"
+  },
+  {
+    "object_id": "evidence.b4c0335c101f4d24b8f0be604fb028dc",
+    "type": "evidence",
+    "record": {
+      "category": "measurement",
+      "code": "aars.reference.VALUE_HIGH",
+      "confidence": 0.9,
+      "created_at": "2026-11-26T08:01:27.342394+00:00",
+      "direction": "positive",
+      "explanation": "",
+      "id": "evidence.b4c0335c101f4d24b8f0be604fb028dc",
+      "observation_ids": [
+        "observation.da3edb93f53f48c3b3e6d6f23bdb29a9"
+      ],
+      "provenance": {
+        "collected_at": "2026-11-26T08:01:27.342394+00:00",
+        "content_hash": "sha256:unavailable",
+        "parent_ids": [
+          "observation.da3edb93f53f48c3b3e6d6f23bdb29a9"
+        ],
+        "source_id": "omb-synthetic-fixture",
+        "source_type": "test_fixture",
+        "source_uri": null,
+        "source_version": "1.0.0"
+      },
+      "semantic_type": "aars.any",
+      "spec_version": "1.0.0",
+      "status": "active",
+      "type": "evidence",
+      "value": null,
+      "weight": 0.8
+    },
+    "sha256": "32fc32a1b172de278baf665b8192d041a7ad1b66a8153c628ce6d32261f789b9"
+  },
+  {
+    "object_id": "knowledge.ebe4dd622d6e44cb9c3edf1d202f17ac",
+    "type": "knowledge",
+    "record": {
+      "claim": "Synthetic knowledge",
+      "created_at": "2026-11-26T08:01:27.342792+00:00",
+      "id": "knowledge.ebe4dd622d6e44cb9c3edf1d202f17ac",
+      "lesson_ids": [
+        "lesson.3f3f644fc1f648c3b8b78aca740ef92a"
+      ],
+      "provenance": {
+        "collected_at": "2026-11-26T08:01:27.342792+00:00",
+        "content_hash": "sha256:unavailable",
+        "parent_ids": [
+          "lesson.3f3f644fc1f648c3b8b78aca740ef92a"
+        ],
+        "source_id": "omb-synthetic-fixture",
+        "source_type": "test_fixture",
+        "source_uri": null,
+        "source_version": "1.0.0"
+      },
+      "scope": {
+        "domain": "reference"
+      },
+      "semantic_type": "aars.any",
+      "spec_version": "1.0.0",
+      "status": "accepted",
+      "type": "knowledge"
+    },
+    "sha256": "20b95cd5dcf10a21e153d53090efa0df835a397b909b2172c8ba16674801bcd3"
+  },
+  {
+    "object_id": "lesson.3f3f644fc1f648c3b8b78aca740ef92a",
+    "type": "lesson",
+    "record": {
+      "alignment": "supported",
+      "codes": [
+        "DECISION_SUPPORTED"
+      ],
+      "created_at": "2026-11-26T08:01:27.342689+00:00",
+      "id": "lesson.3f3f644fc1f648c3b8b78aca740ef92a",
+      "narrative": "Synthetic outcome",
+      "outcome_ids": [
+        "outcome.2c773347210d4c2ebe61e3b690d586c6"
+      ],
+      "provenance": {
+        "collected_at": "2026-11-26T08:01:27.342689+00:00",
+        "content_hash": "sha256:unavailable",
+        "parent_ids": [
+          "outcome.2c773347210d4c2ebe61e3b690d586c6"
+        ],
+        "source_id": "omb-synthetic-fixture",
+        "source_type": "test_fixture",
+        "source_uri": null,
+        "source_version": "1.0.0"
+      },
+      "semantic_type": "aars.any",
+      "spec_version": "1.0.0",
+      "status": "active",
+      "type": "lesson"
+    },
+    "sha256": "ce29bd6ab3c495ef797f2ec33cbfc418922cbe252b7b96b7e69665f968462284"
+  },
+  {
+    "object_id": "memory.dc484e7b138c47dbbbc6f3d82af99a26",
+    "type": "memory",
+    "record": {
+      "claim_ids": [
+        "claim.6e1bf7de094d416bb2efaa297bbe5656"
+      ],
+      "created_at": "2026-11-26T08:01:27.342749+00:00",
+      "decision_ids": [
+        "decision.69ed1e626b1e45f3a15785fce03dcfb2"
+      ],
+      "evidence_ids": [
+        "evidence.b4c0335c101f4d24b8f0be604fb028dc"
+      ],
+      "id": "memory.dc484e7b138c47dbbbc6f3d82af99a26",
+      "lesson_ids": [
+        "lesson.3f3f644fc1f648c3b8b78aca740ef92a"
+      ],
+      "observation_ids": [
+        "observation.da3edb93f53f48c3b3e6d6f23bdb29a9"
+      ],
+      "outcome_ids": [
+        "outcome.2c773347210d4c2ebe61e3b690d586c6"
+      ],
+      "provenance": {
+        "collected_at": "2026-11-26T08:01:27.342749+00:00",
+        "content_hash": "sha256:unavailable",
+        "parent_ids": [
+          "observation.da3edb93f53f48c3b3e6d6f23bdb29a9",
+          "evidence.b4c0335c101f4d24b8f0be604fb028dc",
+          "claim.6e1bf7de094d416bb2efaa297bbe5656",
+          "decision.69ed1e626b1e45f3a15785fce03dcfb2",
+          "outcome.2c773347210d4c2ebe61e3b690d586c6",
+          "lesson.3f3f644fc1f648c3b8b78aca740ef92a"
+        ],
+        "source_id": "omb-synthetic-fixture",
+        "source_type": "test_fixture",
+        "source_uri": null,
+        "source_version": "1.0.0"
+      },
+      "semantic_type": "aars.any",
+      "spec_version": "1.0.0",
+      "status": "active",
+      "type": "memory"
+    },
+    "sha256": "ea7481416fcb60d441f2131b5de4d5d09b7965a79c3410a57504bbd640894732"
+  },
+  {
+    "object_id": "observation.da3edb93f53f48c3b3e6d6f23bdb29a9",
+    "type": "observation",
+    "record": {
+      "created_at": "2026-11-26T08:01:27.341882+00:00",
+      "id": "observation.da3edb93f53f48c3b3e6d6f23bdb29a9",
+      "observed_at": "2026-11-26T08:01:27.341882+00:00",
+      "payload": {
+        "value": 10
+      },
+      "provenance": {
+        "collected_at": "2026-11-26T08:01:27.341882+00:00",
+        "content_hash": "sha256:unavailable",
+        "parent_ids": [],
+        "source_id": "omb-synthetic-fixture",
+        "source_type": "test_fixture",
+        "source_uri": null,
+        "source_version": "1.0.0"
+      },
+      "semantic_type": "aars.any",
+      "spec_version": "1.0.0",
+      "status": "recorded",
+      "subject": "reference",
+      "type": "observation"
+    },
+    "sha256": "ba5d0a2c80e311234ae7dbd04a90383b51e957c9bc0fe61f8fc8ff1bedead779"
+  },
+  {
+    "object_id": "outcome.2c773347210d4c2ebe61e3b690d586c6",
+    "type": "outcome",
+    "record": {
+      "claim_ids": [
+        "claim.6e1bf7de094d416bb2efaa297bbe5656"
+      ],
+      "classification": "supported",
+      "created_at": "2026-11-26T08:01:27.342629+00:00",
+      "decision_ids": [
+        "decision.69ed1e626b1e45f3a15785fce03dcfb2"
+      ],
+      "id": "outcome.2c773347210d4c2ebe61e3b690d586c6",
+      "measured_at": "2026-11-26T08:01:27.342629+00:00",
+      "measurements": {
+        "value": 12
+      },
+      "provenance": {
+        "collected_at": "2026-11-26T08:01:27.342629+00:00",
+        "content_hash": "sha256:unavailable",
+        "parent_ids": [
+          "decision.69ed1e626b1e45f3a15785fce03dcfb2",
+          "claim.6e1bf7de094d416bb2efaa297bbe5656"
+        ],
+        "source_id": "omb-synthetic-fixture",
+        "source_type": "test_fixture",
+        "source_uri": null,
+        "source_version": "1.0.0"
+      },
+      "semantic_type": "aars.any",
+      "spec_version": "1.0.0",
+      "status": "validated",
+      "type": "outcome"
+    },
+    "sha256": "2f140fb238a0f5e2eea9be18b9fa6240fb1dc712cc4808261ef9f9c8db086f9b"
+  },
+  {
+    "object_id": "policy.b315600b2c3146c2a692c51daa63f685",
+    "type": "policy",
+    "record": {
+      "authority": "reference.governance",
+      "created_at": "2026-11-26T08:01:27.342857+00:00",
+      "id": "policy.b315600b2c3146c2a692c51daa63f685",
+      "knowledge_ids": [
+        "knowledge.ebe4dd622d6e44cb9c3edf1d202f17ac"
+      ],
+      "provenance": {
+        "collected_at": "2026-11-26T08:01:27.342857+00:00",
+        "content_hash": "sha256:unavailable",
+        "parent_ids": [
+          "knowledge.ebe4dd622d6e44cb9c3edf1d202f17ac"
+        ],
+        "source_id": "omb-synthetic-fixture",
+        "source_type": "test_fixture",
+        "source_uri": null,
+        "source_version": "1.0.0"
+      },
+      "rule": "Synthetic review",
+      "scope": {
+        "domain": "reference"
+      },
+      "semantic_type": "aars.any",
+      "spec_version": "1.0.0",
+      "status": "effective",
+      "type": "policy"
+    },
+    "sha256": "c4413390c84611425c75324320847530e5222e3fd50876a07e56fa6ff468e972"
+  }
+]

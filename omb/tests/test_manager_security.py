@@ -6,7 +6,7 @@ import hashlib
 import pytest
 from aars_task_manager import Repository,TaskManager,TaskError,State
 from aars_task_manager.domain import new_id,canonical,stamp
-from aars_task_manager.storage import APPLICATION_ID
+from aars_task_manager.storage import APPLICATION_ID, SCHEMA_VERSION
 from tests.support import create,key,seed_precondition
 
 def test_cross_bot_task_and_history_hidden(system):
@@ -109,7 +109,7 @@ def test_future_schema_refused_not_migrated(system):
     try:
         with pytest.raises(TaskError,match='SCHEMA_VERSION_MISMATCH'):Repository.open(repo.path,allowed_root=repo.root,protected_roots=(system['protected'],))
     finally:
-        with sqlite3.connect(repo.path) as db:db.execute('PRAGMA user_version=1')
+        with sqlite3.connect(repo.path) as db:db.execute(f'PRAGMA user_version={SCHEMA_VERSION}')
 
 def test_tampered_snapshot_quarantines_without_repair(system):
     repo=system['repo'];m=system['manager'];t=create(m)

@@ -7,6 +7,7 @@ import stat
 
 from .domain import State, canonical, hash_json, new_id, parse_time, stamp
 from .errors import TaskError
+from . import evidence
 from .service import Clock,TaskManager
 
 class TaskRuntime:
@@ -29,6 +30,7 @@ class TaskRuntime:
             self._fd=fd
             def start(db):
                 self._recover(db,all_previous=True,reason='runtime_restart')
+                self._invalidate_evidence(db)
                 db.execute("UPDATE meta SET value=? WHERE key='active_boot'",(self.boot_id,))
             self.repository.write(start)
             return self
@@ -49,6 +51,92 @@ class TaskRuntime:
             db.execute("UPDATE attempts SET status='EXPIRED',finished_at=? WHERE workspace_id=? AND task_id=? AND status IN ('ACQUIRED','RUNNING')",(now,ws,task.task_id))
             repo.save(db,task,result,actor=actor,event_type='RECOVERED',now=now,request_hash=hash_json({'reason':reason,'boot':self.boot_id,'task':task.task_id}),reason=reason)
             count+=1
+        return count
+
+    def _host_write(self, operation):
+        if self._fd is None:
+            raise TaskError('RUNTIME_INACTIVE')
+        def run(db):
+            if self.repository.meta(db, 'active_boot') != self.boot_id:
+                raise TaskError('RUNTIME_INACTIVE')
+            self.repository.assert_runtime(self.boot_id)
+            return operation(db)
+        return self.repository.write(run)
+
+    def register_frozen_fixture(self, *, expires_at=None):
+        """Host-only ingestion of the pinned archive file. No caller-provided source path."""
+        from pathlib import Path
+        fixture = Path(__file__).resolve().parents[2] / 'frozen_payload' / evidence.FIXTURE_ARCHIVE_ENTRY
+        try:
+            with fixture.open('rb') as handle:
+                artifact = handle.read(128 * 1024)
+        except OSError:
+            raise TaskError('SOURCE_UNVERIFIED') from None
+        evidence.certify_fixture(artifact)
+        return self._host_write(lambda db: evidence.register_fixture(db,
+            self.repository.meta(db, 'workspace_id'), artifact, stamp(self.clock.now()), expires_at))
+
+    def revoke_frozen_fixture(self, reason):
+        """Record a local host withdrawal and affected task revisions atomically."""
+        from .domain import text
+        text(reason, 300)
+        def revoke(db):
+            ws = self.repository.meta(db, 'workspace_id')
+            graph = evidence.verified_graph(db, ws)
+            if graph is None:
+                raise TaskError('EVIDENCE_UNUSABLE')
+            if evidence.revocation(db, ws):
+                return 0
+            now = stamp(self.clock.now())
+            if parse_time(now) < parse_time(graph['registered_at']):
+                raise TaskError('CLOCK_UNTRUSTED')
+            digest = hash_json({'workspace_id': ws, 'at': now, 'reason': reason})
+            db.execute('INSERT INTO fixture_revocations VALUES (?,?,?,?)', (ws, now, reason, digest))
+            return self._invalidate_evidence(db)
+        return self._host_write(revoke)
+
+    def reevaluate_evidence(self):
+        return self._host_write(self._invalidate_evidence)
+
+    def _invalidate_evidence(self, db):
+        repo = self.repository
+        ws = repo.meta(db, 'workspace_id')
+        now = stamp(self.clock.now())
+        graph = evidence.verified_graph(db, ws)
+        if graph is None or evidence.grant_usable(db, graph, now):
+            return 0
+        revoked = evidence.revocation(db, ws)
+        if not revoked and not evidence.expiration(db, graph):
+            if not graph['expires_at'] or parse_time(now) < parse_time(graph['expires_at']):
+                raise TaskError('CLOCK_UNTRUSTED')
+            db.execute('INSERT INTO fixture_expirations VALUES (?,?,?)',
+                       (ws, now, hash_json({'grant_hash': graph['grant_hash'], 'at': now})))
+        target = 'REVOKED' if revoked else 'REVIEW_REQUIRED'
+        actor = repo.meta(db, 'service_principal')
+        affected = db.execute('SELECT t.* FROM tm_tasks t WHERE t.workspace_id=? AND EXISTS '
+            '(SELECT 1 FROM evidence_link_versions l WHERE l.workspace_id=t.workspace_id AND l.task_id=t.task_id)',
+            (ws,)).fetchall()
+        count = 0
+        for row in affected:
+            task = repo.verify_task(db, row)
+            current = evidence.latest_links(evidence.link_versions(db, task))
+            for link in current:
+                if link['use_state'] in (target, 'REVOKED'):
+                    continue
+                if parse_time(now) < parse_time(task.updated_at):
+                    raise TaskError('CLOCK_UNTRUSTED')
+                updated = replace(task, version=task.version + 1, updated_at=now,
+                    state=State.PAUSED if task.state == State.REVIEW_PENDING else task.state,
+                    usage_state='REVIEW_REQUIRED')
+                db.execute('INSERT INTO evidence_link_versions VALUES (?,?,?,?,?,?,?,?,?)', (ws,
+                    task.task_id, link['link_id'], link['revision'] + 1, link['snapshot_id'], updated.version,
+                    target, link['scope_hash'], link['verification_hash']))
+                reason = 'fixture_revoked' if revoked else 'fixture_expired'
+                repo.save(db, task, updated, actor=actor, event_type='EVIDENCE_INVALIDATED', now=now,
+                    request_hash=hash_json({'reason': reason, 'link': link['link_id'], 'revision': link['revision'] + 1}),
+                    reason=reason, related_ids=(link['link_id'], link['snapshot_id']))
+                task = updated
+                count += 1
         return count
 
     def recover_expired(self):

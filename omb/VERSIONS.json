@@ -1,11 +1,11 @@
 {
   "current": {
-    "version": "omb-003b",
-    "local_source_commit": "7e659cbcb8347572fb05090b193929c3248f208f",
-    "source_archive": "AARS_OMB_003B_IMPLEMENTATION_REVIEW.zip",
-    "source_archive_sha256": "086235401a3ccf1fe491188ea6d2c21c3ea5fc686471bba17fd26dec15db8388",
-    "status": "Task Manager foundation code review",
-    "original_local_automated_tests_passed": 159
+    "version": "omb-003c",
+    "local_source_commit": "0a26c4a50572c27bc921124549fcf6b6ea5b9eff",
+    "source_archive": "AARS_OMB_003C_IMPLEMENTATION_REVIEW.zip",
+    "source_archive_sha256": "1a3b3d26b0f24e7208c0e9ca4a3b6de96428c40422a53a61bded197fd5fc7b3c",
+    "status": "Task events and synthetic Evidence integration code review",
+    "original_local_automated_tests_passed": 175
   },
   "history": [
     {
@@ -31,6 +31,14 @@
       "source_archive_sha256": "086235401a3ccf1fe491188ea6d2c21c3ea5fc686471bba17fd26dec15db8388",
       "status": "Task Manager foundation code review",
       "original_local_automated_tests_passed": 159
+    },
+    {
+      "version": "omb-003c",
+      "local_source_commit": "0a26c4a50572c27bc921124549fcf6b6ea5b9eff",
+      "source_archive": "AARS_OMB_003C_IMPLEMENTATION_REVIEW.zip",
+      "source_archive_sha256": "1a3b3d26b0f24e7208c0e9ca4a3b6de96428c40422a53a61bded197fd5fc7b3c",
+      "status": "Task events and synthetic Evidence integration code review",
+      "original_local_automated_tests_passed": 175
     }
   ],
   "original_frozen_historical_commit": null,
@@ -38,6 +46,6 @@
   "post_freeze_registration_is_not_original_history": true,
   "source_exception_accepted": true,
   "publication_scope": "Source, tests, reviewed design contracts and synthetic fixture. The public tree has separate Git history and excludes local runtime evidence.",
-  "fixture_sha256": null,
+  "fixture_sha256": "0c8f2bdc5d92a7e7453bf6b6fee73635c490ac2d487407b6f51a57a3cbce9b86",
   "source_exception_acceptance_archive_sha256": "dd00692143f2cef44c0e30e231646b849bfee2b071651c0f9074ff1b9ff71ce2"
 }

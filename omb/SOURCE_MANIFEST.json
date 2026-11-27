@@ -1,5 +1,5 @@
 {
-  "version": "omb-003b",
+  "version": "omb-003c",
   "files": [
     {
       "path": ".gitignore",
@@ -8,18 +8,18 @@
     },
     {
       "path": "AUTHORIZATION.json",
-      "sha256": "8a790ea4d52cdfd0cd414139bfeee93a2a42fb3b2c204dd692e07edac0dfe862",
+      "sha256": "145823750e3b48c232005dd646a9019270dabdd273988a37cf77c8fec5ab20e6",
       "bytes": 160
     },
     {
       "path": "README.md",
-      "sha256": "3e48520405e02112f1fe2be6f66e2e9b808db949b0bb0066439a8f5f439482f6",
-      "bytes": 1149
+      "sha256": "99b94c2cad1d223e868a7af7fcd3c9411e5ee160059f73e5602fecd7633242e4",
+      "bytes": 1254
     },
     {
       "path": "VERSIONS.json",
-      "sha256": "e0b05b969fc8cfe6ab7942b7a27ffc23400694cddc38ace675bf0e0da78278cf",
-      "bytes": 2071
+      "sha256": "33de6e5886f596dc97477177d6e8e401e9b6c875654183a3a0950fd22184612f",
+      "bytes": 2566
     },
     {
       "path": "design/omb003a/BOT_IDENTITY_AUTHORIZATION.md",
@@ -110,6 +110,11 @@
       "path": "examples/task_manager_demo.py",
       "sha256": "5fc6542fe5fe9191b416c78186bf43cd598f50650f3a3f66ad662784dce62414",
       "bytes": 4016
+    },
+    {
+      "path": "frozen_payload/BOT_TASK_OBJECT_SNAPSHOT.json",
+      "sha256": "0c8f2bdc5d92a7e7453bf6b6fee73635c490ac2d487407b6f51a57a3cbce9b86",
+      "bytes": 9689
     },
     {
       "path": "frozen_payload/RUNTIME_BINDING.json",
@@ -348,8 +353,8 @@
     },
     {
       "path": "pyproject.toml",
-      "sha256": "e292e0419c77cce94ee89df49f6a1990b398ea3add4cd5dc6de402cd7040fa27",
-      "bytes": 351
+      "sha256": "f091f36e17b806cbdec188fda080f8a7716b26c4d62cc13d0ae0b5dfa2a35e41",
+      "bytes": 327
     },
     {
       "path": "scripts/run_tests.py",
@@ -372,19 +377,29 @@
       "bytes": 395
     },
     {
+      "path": "src/aars_task_manager/evidence.py",
+      "sha256": "0f83ebeb1db146c33526cb6741b6b704d4704be1ed383bdb134046ec34c22628",
+      "bytes": 14421
+    },
+    {
+      "path": "src/aars_task_manager/migration.py",
+      "sha256": "68c02b7f0fb0cccf7bdba7640ffcda8980e8c7df6227232c507eb35311fe7c73",
+      "bytes": 3915
+    },
+    {
       "path": "src/aars_task_manager/runtime.py",
-      "sha256": "8bf6b1b0062af4270e0b0d1f7e97213ade0c239958a9f8cd4066f64b537f58b0",
-      "bytes": 4213
+      "sha256": "77d9a9de517533397eeb2d9e939692223e5177e7daaf58b5380ae2ac17b10c25",
+      "bytes": 8839
     },
     {
       "path": "src/aars_task_manager/service.py",
-      "sha256": "8abf4f9da23f68d979b1d5ce34e082cd911553387ac8cc1c0546e84c7ae3b08e",
-      "bytes": 13426
+      "sha256": "29d6c94b3e3855014706ea968288138709d350195d3e9691766cd03bb49fd3f7",
+      "bytes": 15183
     },
     {
       "path": "src/aars_task_manager/storage.py",
-      "sha256": "9e73f74c9c6ab0f3e96742eade5ca9e27760daeb6abe5aecea89399b640b4e10",
-      "bytes": 23548
+      "sha256": "7d4532a54d0859fcd242d993c6f0d7137eb0a5967aacefc6bde4763edb780300",
+      "bytes": 24224
     },
     {
       "path": "tests/__init__.py",
@@ -393,13 +408,18 @@
     },
     {
       "path": "tests/conftest.py",
-      "sha256": "97e7cf2efeb1cc9f2f79a388247d5897e4dcd0e58905029a281627c4dbc19b51",
-      "bytes": 1017
+      "sha256": "bb4e8efb62934d3d11ac7e671c97774d9e1e495966778478eab9bdd52617d3e8",
+      "bytes": 1133
     },
     {
       "path": "tests/support.py",
-      "sha256": "cdbd6608883faca857036dcd9fb148f3b07516438b4b8297a6c6a6f73ddcc1c0",
-      "bytes": 3283
+      "sha256": "8f93c4a16c7b91f1fa1d8b7987fd8d55fde0773327214afeaea51a92cd6734f5",
+      "bytes": 3286
+    },
+    {
+      "path": "tests/test_evidence_integration.py",
+      "sha256": "73262cc3b1dce30c6b4db39ace6ad6a0b1ab8acfc7936f22911fc2b88adbab30",
+      "bytes": 13266
     },
     {
       "path": "tests/test_manager_paging.py",
@@ -413,8 +433,8 @@
     },
     {
       "path": "tests/test_manager_security.py",
-      "sha256": "2a4a0ea281a65cfa2853aaa9d05c0de03467876eb7e3c0c3aad40fdfe653c4c4",
-      "bytes": 11556
+      "sha256": "3a016818b1faba75bb813a53fdfdd42821e8decb411790be337f9069affc2d03",
+      "bytes": 11588
     },
     {
       "path": "tests/test_manager_transactions.py",
@@ -423,8 +443,8 @@
     },
     {
       "path": "tests/test_manager_values.py",
-      "sha256": "0318d564d0a150bb26dc6b8267720582f4dfe6c0d0e0a8801d3cd7f89fba1604",
-      "bytes": 6253
+      "sha256": "df5a0c057fe80baaf9aa37c4c1db0a98aa3a96123fa025b5e2afba38b7a90ff1",
+      "bytes": 6177
     }
   ]
 }
