@@ -1,6 +1,6 @@
 # AARS OMB
 
-Current snapshot `omb-003d-f02-platform`. Native human-presence diagnostic with a locked approval gate.
+Current snapshot `omb-003d-f02-window`. AppKit diagnostic and hardware primitive retest evidence.
 
 | Version | Scope | Local regression |
 |---|---|---:|
@@ -16,6 +16,7 @@ Current snapshot `omb-003d-f02-platform`. Native human-presence diagnostic with 
 | `omb-003d-b8` | Evidence authorization expiry and result usability audit | 289 |
 | `omb-003d-b9` | D4 to D5 offline-copy migration and rollback verification | 298 |
 | `omb-003d-f02-platform` | Native human-presence diagnostic with a locked approval gate | 298 |
+| `omb-003d-f02-window` | AppKit diagnostic and hardware primitive retest evidence | 298 |
 
 Run from the `omb/` directory with Python 3.13.
 

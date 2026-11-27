@@ -1,5 +1,5 @@
 {
-  "version": "omb-003d-f02-platform",
+  "version": "omb-003d-f02-window",
   "files": [
     {
       "path": ".gitignore",
@@ -8,18 +8,18 @@
     },
     {
       "path": "AUTHORIZATION.json",
-      "sha256": "4685ca649d8cfce453a367d2a04259d47009e25174982373c7cee1c554d768cb",
-      "bytes": 135
+      "sha256": "1f10e1604126488bfb52ba5ac20072bacbec483398738ba45cebad63386c5efb",
+      "bytes": 133
     },
     {
       "path": "README.md",
-      "sha256": "5f526eace4be57259da83cac73de9635cbeb008ac200a2b4f704e45ccdf61dcc",
-      "bytes": 1603
+      "sha256": "b8580108f1c0cbc86ec66995253f685047409c4779fc6ed38dbfa59ed67f9675",
+      "bytes": 1688
     },
     {
       "path": "VERSIONS.json",
-      "sha256": "a2df7280251351e7f54dbfbe029491d3ad6db5d308d6d943ff60a05b6def5759",
-      "bytes": 5924
+      "sha256": "6bf6b35025294ce0317396bd2dd8ad7aa957d4aee35381ea142240985abbda40",
+      "bytes": 6333
     },
     {
       "path": "design/omb003a/BOT_IDENTITY_AUTHORIZATION.md",
@@ -357,14 +357,29 @@
       "bytes": 321
     },
     {
+      "path": "scripts/approval_presence_app.swift",
+      "sha256": "b7f26e1b89cfc1eeb2db449c09e1de1824de18b4bf9bed6c370d66e9885862a5",
+      "bytes": 8132
+    },
+    {
+      "path": "scripts/build_approval_presence_app.sh",
+      "sha256": "d15d75a0e1bfa43bdde6d26c08c7e10cdb9ce478ea4ebbd469fa08db24deddab",
+      "bytes": 1623
+    },
+    {
       "path": "scripts/check_approval_platform.swift",
       "sha256": "1e83180e5a09ad5bd3a19f46b3fc19100ee662531779be286832fbd4fa583c44",
       "bytes": 961
     },
     {
       "path": "scripts/check_approval_presence.swift",
-      "sha256": "df393a2632edb81e8ea1f0de1ecf49e0577a2cc2bc139bacef86a917a0461ea4",
-      "bytes": 7962
+      "sha256": "902465117762c3aa114ff0cecc6bda3daa0bec15382952d28db1485ed9a9008e",
+      "bytes": 8681
+    },
+    {
+      "path": "scripts/check_approval_presence_cli.swift",
+      "sha256": "cd6a83109e025c8e9768521198a741ff04c678e1c2ea3f5b8032f464af51d004",
+      "bytes": 1156
     },
     {
       "path": "scripts/check_receipt_interop.swift",
@@ -378,8 +393,8 @@
     },
     {
       "path": "scripts/run_approval_presence_probe.sh",
-      "sha256": "8f42e359fab57441678ef8b4016c9e0eb3f6de0722ad57af6ee6a44498f1de26",
-      "bytes": 435
+      "sha256": "cf27674c7ed488ad1aa89bc0cf313b0b895cda42b3737e97f4538331af48bfa9",
+      "bytes": 483
     },
     {
       "path": "scripts/run_tests.py",

@@ -1,10 +1,10 @@
 {
   "current": {
-    "version": "omb-003d-f02-platform",
-    "local_source_commit": "67b951193edff21a6d11770eb0cb8e4c00196eea",
-    "source_archive": "AARS_OMB_003D_F02_PLATFORM_EVIDENCE.zip",
-    "source_archive_sha256": "3a1bbcb983b72dd8b2803d06ca18dcda4148bf1f0d37cc9f029329d1d835fdf3",
-    "status": "Native human-presence diagnostic with a locked approval gate",
+    "version": "omb-003d-f02-window",
+    "local_source_commit": "9c7e661662c10948d3f99f6643f6a4126568e12e",
+    "source_archive": "AARS_OMB_003D_F02_WINDOW_EVIDENCE.zip",
+    "source_archive_sha256": "d51454a60daac48e79c638ae4938d863b2ea3f4baeadd204b82da847aaa35246",
+    "status": "AppKit diagnostic and hardware primitive retest evidence",
     "original_local_automated_tests_passed": 298
   },
   "history": [
@@ -102,6 +102,14 @@
       "source_archive": "AARS_OMB_003D_F02_PLATFORM_EVIDENCE.zip",
       "source_archive_sha256": "3a1bbcb983b72dd8b2803d06ca18dcda4148bf1f0d37cc9f029329d1d835fdf3",
       "status": "Native human-presence diagnostic with a locked approval gate",
+      "original_local_automated_tests_passed": 298
+    },
+    {
+      "version": "omb-003d-f02-window",
+      "local_source_commit": "9c7e661662c10948d3f99f6643f6a4126568e12e",
+      "source_archive": "AARS_OMB_003D_F02_WINDOW_EVIDENCE.zip",
+      "source_archive_sha256": "d51454a60daac48e79c638ae4938d863b2ea3f4baeadd204b82da847aaa35246",
+      "status": "AppKit diagnostic and hardware primitive retest evidence",
       "original_local_automated_tests_passed": 298
     }
   ],

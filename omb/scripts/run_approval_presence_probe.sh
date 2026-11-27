@@ -8,5 +8,5 @@ trap 'rm -rf -- "$probe_tmp"' EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
-swiftc -module-cache-path "$probe_tmp/module-cache" "$script_dir/check_approval_presence.swift" -o "$probe_tmp/probe"
+swiftc -module-cache-path "$probe_tmp/module-cache" "$script_dir/check_approval_presence.swift" "$script_dir/check_approval_presence_cli.swift" -o "$probe_tmp/probe"
 "$probe_tmp/probe" "$@"
