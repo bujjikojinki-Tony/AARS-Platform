@@ -1,6 +1,6 @@
 # AARS OMB
 
-Current snapshot `omb-003d-f02-window`. AppKit diagnostic and hardware primitive retest evidence.
+Current snapshot `omb-003d-f02-peer`. Signed peer identity preflight and same-process XPC refusal tests.
 
 | Version | Scope | Local regression |
 |---|---|---:|
@@ -17,6 +17,7 @@ Current snapshot `omb-003d-f02-window`. AppKit diagnostic and hardware primitive
 | `omb-003d-b9` | D4 to D5 offline-copy migration and rollback verification | 298 |
 | `omb-003d-f02-platform` | Native human-presence diagnostic with a locked approval gate | 298 |
 | `omb-003d-f02-window` | AppKit diagnostic and hardware primitive retest evidence | 298 |
+| `omb-003d-f02-peer` | Signed peer identity preflight and same-process XPC refusal tests | 298 |
 
 Run from the `omb/` directory with Python 3.13.
 
@@ -28,3 +29,5 @@ python3 -m venv .venv
 
 The approval gate is `BLOCKED_APPROVAL_PLATFORM`. OMB-003E through OMB-003G remain on hold.
 Source provenance and hashes are recorded in `VERSIONS.json`. Published examples use synthetic data.
+
+[Signed peer test evidence and limits](docs/OMB_003D_F02_PEER.md)

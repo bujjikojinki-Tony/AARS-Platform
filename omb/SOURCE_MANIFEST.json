@@ -1,5 +1,5 @@
 {
-  "version": "omb-003d-f02-window",
+  "version": "omb-003d-f02-peer",
   "files": [
     {
       "path": ".gitignore",
@@ -8,18 +8,18 @@
     },
     {
       "path": "AUTHORIZATION.json",
-      "sha256": "1f10e1604126488bfb52ba5ac20072bacbec483398738ba45cebad63386c5efb",
-      "bytes": 133
+      "sha256": "e2a4e51e51b3bad5f7c4fec20e6180b3a2a2418adaed6662e9c568127a80f6d4",
+      "bytes": 131
     },
     {
       "path": "README.md",
-      "sha256": "b8580108f1c0cbc86ec66995253f685047409c4779fc6ed38dbfa59ed67f9675",
-      "bytes": 1688
+      "sha256": "589c42e3762860b64c4bad2d2f4a08ac70b4bb8d47f844418e2cc77cecb53df7",
+      "bytes": 1860
     },
     {
       "path": "VERSIONS.json",
-      "sha256": "6bf6b35025294ce0317396bd2dd8ad7aa957d4aee35381ea142240985abbda40",
-      "bytes": 6333
+      "sha256": "b23998d134fe3b628e1503fc67ae6e459fabe3ec96fa5cb6aee51f2c251bd242",
+      "bytes": 6760
     },
     {
       "path": "design/omb003a/BOT_IDENTITY_AUTHORIZATION.md",
@@ -100,6 +100,11 @@
       "path": "design/omb003a/TEST_MATRIX.md",
       "sha256": "fffe5d42986f43d65fea19333f26cbf55c59c62407555de100ced828b649324a",
       "bytes": 12048
+    },
+    {
+      "path": "docs/OMB_003D_F02_PEER.md",
+      "sha256": "7949125853e066d2084ef7a9dd923696a9c438819acc565ae41687cb31ede5cb",
+      "bytes": 1413
     },
     {
       "path": "docs/requirements-development-lock.txt",
@@ -357,6 +362,11 @@
       "bytes": 321
     },
     {
+      "path": "scripts/approval_peer_identity.swift",
+      "sha256": "f5aac2782cef5b24b8ae533d7d6400a76f26de6ba6a90151910b4c4edd40068d",
+      "bytes": 3217
+    },
+    {
       "path": "scripts/approval_presence_app.swift",
       "sha256": "b7f26e1b89cfc1eeb2db449c09e1de1824de18b4bf9bed6c370d66e9885862a5",
       "bytes": 8132
@@ -365,6 +375,16 @@
       "path": "scripts/build_approval_presence_app.sh",
       "sha256": "d15d75a0e1bfa43bdde6d26c08c7e10cdb9ce478ea4ebbd469fa08db24deddab",
       "bytes": 1623
+    },
+    {
+      "path": "scripts/build_approval_xpc_fixture.py",
+      "sha256": "2e8f659498427941fdd86b5eb0402e68c81957ac72a2d976d1dc5e0f4d8fa1d6",
+      "bytes": 1828
+    },
+    {
+      "path": "scripts/check_approval_peer.swift",
+      "sha256": "226ea3689a9323f709fa59d287ca7ec843c1393a827473dfa76179c28595226b",
+      "bytes": 2448
     },
     {
       "path": "scripts/check_approval_platform.swift",
@@ -380,6 +400,11 @@
       "path": "scripts/check_approval_presence_cli.swift",
       "sha256": "cd6a83109e025c8e9768521198a741ff04c678e1c2ea3f5b8032f464af51d004",
       "bytes": 1156
+    },
+    {
+      "path": "scripts/check_approval_xpc.swift",
+      "sha256": "e2ace280cd48aca38602ccd29d9d1993b7ecbde4e954afa3cf3eba455fcb51fc",
+      "bytes": 11766
     },
     {
       "path": "scripts/check_receipt_interop.swift",
