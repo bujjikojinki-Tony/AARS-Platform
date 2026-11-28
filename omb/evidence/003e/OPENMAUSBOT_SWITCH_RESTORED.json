@@ -1,0 +1,37 @@
+{
+  "captured_at_utc": "2026-11-28T06:12:43.306571+00:00",
+  "status": "APP_CONFIG_SWITCH_PASS",
+  "scope": {
+    "target": "AARS-Test",
+    "services": [
+      "aars-local",
+      "aars-task-dev"
+    ],
+    "other_bots_checked": 5
+  },
+  "activity": {
+    "active_bots": 1,
+    "active_threads": 1,
+    "waiting_bots": 1,
+    "waiting_threads": 1,
+    "queued_messages": false
+  },
+  "original_draft": {
+    "integrity": "ok",
+    "task_state": "DRAFT",
+    "event_sequences": [
+      1
+    ],
+    "approval_decisions": 0
+  },
+  "readback": {
+    "scope": "REAL_MCP_ON_CONSISTENT_SQLITE_COPY",
+    "processes": 2,
+    "clean_shutdowns": true,
+    "execution_authorized": false
+  },
+  "disabled_phase_sha256": "463f1b21359e148b6724c04c5bb46cf4002d5d2ba77b802827bfe63d82b20890",
+  "frozen_inputs_verified": 4,
+  "magpie_turn_this_run": "NOT_RUN",
+  "overall_decision": "BLOCKED"
+}
