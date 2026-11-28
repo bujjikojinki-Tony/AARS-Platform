@@ -1,0 +1,28 @@
+{
+  "status": "PASS",
+  "scope": "REVIEW_REPRODUCTION",
+  "decision": "BLOCKED",
+  "source_snapshot_commit": "051a8a7809537078759c5948d8eda2a5402bbc2a",
+  "package_sha256": "3bc4ad6e9b0cf2ff5e1caa3141cab5560f36fe3baff130fb6e7392711286c9e6",
+  "patches": [
+    {
+      "commit": "eed3072ea4e525f84a185080be4b268a694ed52e",
+      "git_blob": "23045e52bda5bd81fe5bf32f56d97e810b37ab1e"
+    },
+    {
+      "commit": "a6e747a6e8bc7753c93bd916ee8850997b73da34",
+      "git_blob": "44307074becab1b9511068bf4f50122061eee3cc"
+    }
+  ],
+  "patched_file_sha256": {
+    "tests/test_d4_migration.py": "6d85545d1b446779b7dcc1d8e658a43843db7358a7c461cc3b8e87986fbe4d0f",
+    "tests/test_mcp_adapter.py": "46d62124f25dda7d3ec6fca173b0ca01e8dc7901ceee27cbc2dc74568d12d824"
+  },
+  "regression": {
+    "tests": 330,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "junit_sha256": "0c916b8fd02675b4237a287141b021bbace3c6bc84c3ab7719273546921ef9bc"
+}
