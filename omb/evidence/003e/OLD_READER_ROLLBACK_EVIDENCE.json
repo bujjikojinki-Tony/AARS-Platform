@@ -1,0 +1,24 @@
+{
+  "status": "PASS_ISOLATED_REHEARSAL",
+  "scope": "TM-RELEASE-04",
+  "source_schema": 4,
+  "target_schema": 5,
+  "old_reader_on_d5": {
+    "reader_version": "0.3.0b8",
+    "status": "SCHEMA_VERSION_MISMATCH",
+    "quarantined": false
+  },
+  "old_reader_on_restored_d4": {
+    "reader_version": "0.3.0b8",
+    "status": "PASS",
+    "quarantined": false
+  },
+  "original_and_restored_d4_sha256": "906442f22e55c394c09cf859609a352f0b4ebb4eb4b319828e86f2c39a738691",
+  "d4_history_preserved": true,
+  "d5_archive_sha256_before_replay": "0b07b4421fcff53a4ae5d288a46cd47d624c53e98bece15731716262ae419779",
+  "d5_new_event_hash": "sha256:6ed903fbe44f22204646eba258d66e1a6569e30a193875d51eee5d2f1d625198",
+  "d5_new_event_time": "2026-11-26T13:00:00.000000Z",
+  "fixture_clock": true,
+  "d5_new_event_read_back_from_archive": true,
+  "frozen_inputs_verified": 4
+}
