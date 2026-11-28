@@ -1,0 +1,34 @@
+{
+  "status": "PASS_READ_ONLY_APP_RETEST",
+  "magpie_installed_version": "0.1.4971",
+  "provider": "magpie",
+  "model": "grok/grok-4.7",
+  "recorded_at_utc": "2026-11-28T11:32:29.366Z",
+  "calls": {
+    "aars_task_get_v1": {
+      "ok": true,
+      "execution_authorized": false,
+      "state": "DRAFT",
+      "version": 1,
+      "matches_original": true
+    },
+    "aars_task_events_v1": {
+      "ok": true,
+      "execution_authorized": false,
+      "app_preview_event_count": 1,
+      "app_preview_has_next_page": false
+    }
+  },
+  "database": {
+    "integrity": "ok",
+    "task_state": "DRAFT",
+    "event_sequences": [
+      1
+    ],
+    "approval_decisions": 0
+  },
+  "frozen_inputs_verified": 4,
+  "other_tools_observed": 0,
+  "approval_platform": "BLOCKED",
+  "overall_decision": "BLOCKED"
+}
