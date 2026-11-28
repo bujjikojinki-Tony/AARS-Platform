@@ -1,0 +1,21 @@
+{
+  "status": "PASS_SCOPED_003_EVIDENCE_DISPLAY",
+  "recorded_at_utc": "2026-11-28T14:36:37.933Z",
+  "provider": "magpie",
+  "model": "grok/grok-4.7",
+  "data": "SYNTHETIC_ONLY",
+  "preflight_and_active_scope": "AARS-Test only",
+  "other_bots_checked": 5,
+  "visible_fields": {
+    "evidence_set_hash": "sha256:d9a4597af501f2a4bd72320b9b55576aa477ac88a725829e43e7f0a71b6330c4",
+    "snapshot_id": "sha256:32fc32a1b172de278baf665b8192d041a7ad1b66a8153c628ce6d32261f789b9",
+    "effective_use_state": "USABLE_FIXTURE",
+    "execution_authorized": false
+  },
+  "fixture_probe_disabled_after_test": true,
+  "original_service_configuration_enabled": true,
+  "frozen_inputs_verified": 4,
+  "html_execution_isolation": "NOT_RUN",
+  "signing_current_stage": "DEFERRED_BY_OPERATOR",
+  "formal_release": "BLOCKED"
+}
