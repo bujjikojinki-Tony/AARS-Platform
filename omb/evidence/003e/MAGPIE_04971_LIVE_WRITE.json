@@ -1,0 +1,30 @@
+{
+  "status": "PARTIAL",
+  "provider": "magpie",
+  "model": "grok/grok-4.7",
+  "recorded_at_utc": "2026-11-28T11:48:11.503Z",
+  "write_path": "PASS",
+  "tool_scope_conformance": "FAIL_ADDITIONAL_CALLS",
+  "created_version": 1,
+  "updated_version": 2,
+  "final_state": "DRAFT",
+  "execution_authorized": false,
+  "additional_tools": {
+    "aars_task_get_v1": 2,
+    "ToolSearch": 2
+  },
+  "persisted_events": [
+    {
+      "seq": 1,
+      "type": "CREATED"
+    },
+    {
+      "seq": 2,
+      "type": "UPDATED"
+    }
+  ],
+  "approval_decisions": 0,
+  "sqlite_integrity": "ok",
+  "frozen_inputs_verified": 4,
+  "overall_decision": "BLOCKED"
+}
