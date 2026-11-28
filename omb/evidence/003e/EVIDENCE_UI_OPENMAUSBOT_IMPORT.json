@@ -1,0 +1,16 @@
+{
+  "captured_at_utc": "2026-11-28T13:48:05.954936+00:00",
+  "status": "BLOCKED_BOT_SCOPE",
+  "import_auto_enabled": true,
+  "import_preserved_bot_scope": false,
+  "probe_disabled_after_check": true,
+  "original_service_configs_enabled_and_scoped": true,
+  "app_evidence_readback": "NOT_RUN",
+  "fixture_supports_reads_only": true,
+  "signing_current_stage": "DEFERRED_BY_OPERATOR",
+  "formal_release": "BLOCKED",
+  "temporary_probe_removed": true,
+  "recorded_probe_calls_in_recent_event_logs": 0,
+  "frozen_inputs_verified": 4,
+  "checked_at_utc": "2026-11-28T13:48:59.479489+00:00"
+}
