@@ -1,0 +1,24 @@
+{
+  "status": "PASS_LEGACY_EVIDENCE_DISPLAY",
+  "tool": "aars_evidence_query",
+  "server": "aars-local",
+  "provider": "magpie",
+  "model": "grok/grok-4.7",
+  "recorded_at_utc": "2026-11-28T12:14:57.088Z",
+  "synthetic_object_count": 1,
+  "execution_authorized": false,
+  "gui_fields_matching_frozen_record": [
+    "id",
+    "type",
+    "record_sha256"
+  ],
+  "record_sha256": "32fc32a1b172de278baf665b8192d041a7ad1b66a8153c628ce6d32261f789b9",
+  "read_only": true,
+  "frozen_inputs_verified": 4,
+  "tm_mcp_08": "PARTIAL",
+  "limits": [
+    "002-FIX compatibility path",
+    "003 Evidence rendering and HTML execution isolation not evaluated"
+  ],
+  "overall_decision": "BLOCKED"
+}
