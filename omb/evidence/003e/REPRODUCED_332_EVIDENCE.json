@@ -1,0 +1,31 @@
+{
+  "status": "PASS",
+  "scope": "ISOLATED_REVIEW_REPRODUCTION",
+  "formal_release": "BLOCKED",
+  "source_snapshot_commit": "051a8a7809537078759c5948d8eda2a5402bbc2a",
+  "source_archive_sha256": "3bc4ad6e9b0cf2ff5e1caa3141cab5560f36fe3baff130fb6e7392711286c9e6",
+  "rollback_patch": {
+    "commit": "eed3072ea4e525f84a185080be4b268a694ed52e",
+    "git_blob": "23045e52bda5bd81fe5bf32f56d97e810b37ab1e"
+  },
+  "additional_patch_sources": [
+    {
+      "name": "OMB_003_MCP_CONCURRENCY_RETEST.md",
+      "ref": "acc78c0fb4117f76a03bd5d20965ae995f9e23cc",
+      "blob": "a53d2f8401288e602117d118510c3c1f27974199"
+    },
+    {
+      "name": "OMB_003_EVIDENCE_QUERY_REVIEW.md",
+      "ref": "82510b7e0adeaae6b630314d02ce1a3d3c945fd7",
+      "blob": "495c1c9cd93171e8c29db17ac0bf425bb130a49e"
+    }
+  ],
+  "candidate_changed_files_verified": 7,
+  "regression": {
+    "tests": 332,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "junit_sha256": "a6429f08d7023800105bb8e5a5c12bdf8006e3d970bb49db00be386f6da0ec33"
+}
